@@ -1,0 +1,16 @@
+services:
+    postgres:
+        image: postgres:17
+        container_name: mts-postgres
+        restart: no
+        ports:
+            - "5432:5432"
+        environment:
+            POSTGRES_USER: username
+            POSTGRES_PASSWORD: password
+            POSTGRES_DB: mbs
+        volumes:
+            - pgdata:/var/lib/postgresql/data
+
+volumes:
+    pgdata:
