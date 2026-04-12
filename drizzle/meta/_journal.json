@@ -8,6 +8,13 @@
       "when": 1775988784912,
       "tag": "0000_daffy_punisher",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1775996869782,
+      "tag": "0001_shocking_lady_mastermind",
+      "breakpoints": true
     }
   ]
 }

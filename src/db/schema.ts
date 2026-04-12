@@ -33,6 +33,8 @@ export const bookings = pgTable(
 		userId: uuid("user_id").notNull(),
 		startTime: timestamp("start_time", { withTimezone: true }).notNull(),
 		endTime: timestamp("end_time", { withTimezone: true }).notNull(),
+		title: text().notNull(),
+		description: text(),
 
 		createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 		updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
