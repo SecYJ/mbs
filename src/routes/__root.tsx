@@ -6,7 +6,6 @@ import type { QueryClient } from "@tanstack/react-query";
 import { ReactQueryDevtoolsPanel } from "@tanstack/react-query-devtools";
 
 import appCss from "@/styles.css?url";
-import { Button } from "@/components/ui/button";
 
 interface MyRouterContext {
 	queryClient: QueryClient;
@@ -42,7 +41,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 			<head>
 				<HeadContent />
 			</head>
-			<body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
+			<body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(16,185,129,0.24)]">
 				{children}
 				<TanStackDevtools
 					config={{
