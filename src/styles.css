@@ -404,6 +404,26 @@ a {
 	}
 }
 
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes slide-in-right {
+	from {
+		opacity: 0;
+		transform: translateX(40px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
 @keyframes glow-pulse {
 	0%,
 	100% {
@@ -435,4 +455,340 @@ a {
 	box-shadow: 0 4px 16px -4px rgba(96, 215, 207, 0.2);
 	outline: none;
 	--tw-ring-shadow: none;
+}
+
+/* ── FullCalendar dark atmospheric theme ── */
+
+.fc-dark-theme {
+	--fc-border-color: rgba(141, 229, 219, 0.08);
+	--fc-page-bg-color: transparent;
+	--fc-neutral-bg-color: rgba(12, 27, 31, 0.4);
+	--fc-list-event-hover-bg-color: rgba(96, 215, 207, 0.06);
+	--fc-today-bg-color: rgba(96, 215, 207, 0.03);
+	--fc-now-indicator-color: #60d7cf;
+	--fc-event-bg-color: rgba(96, 215, 207, 0.12);
+	--fc-event-border-color: rgba(96, 215, 207, 0.25);
+	--fc-event-text-color: #e8dfd4;
+	--fc-non-business-color: rgba(7, 19, 22, 0.3);
+	--fc-highlight-color: rgba(96, 215, 207, 0.08);
+	--fc-small-font-size: 0.75rem;
+}
+
+/* Table structure */
+.fc-dark-theme .fc-scrollgrid {
+	border: none;
+}
+
+.fc-dark-theme .fc-scrollgrid td,
+.fc-dark-theme .fc-scrollgrid th {
+	border-color: rgba(141, 229, 219, 0.06);
+}
+
+.fc-dark-theme .fc-scrollgrid-sync-inner {
+	padding: 0;
+}
+
+/* Column headers (resource labels) */
+.fc-dark-theme .fc-col-header-cell {
+	background: rgba(12, 27, 31, 0.6);
+	border-color: rgba(141, 229, 219, 0.06);
+	padding: 8px 12px;
+}
+
+.fc-dark-theme .fc-col-header-cell-cushion {
+	color: #e8dfd4;
+	font-size: 0.8rem;
+	font-weight: 600;
+	padding: 6px 4px;
+	text-decoration: none;
+}
+
+/* Resource label column */
+.fc-dark-theme .fc-datagrid-cell-frame {
+	padding: 4px 12px;
+}
+
+.fc-dark-theme .fc-datagrid-cell-cushion {
+	padding: 4px 0;
+}
+
+.fc-dark-theme .fc-datagrid-header .fc-datagrid-cell-frame {
+	background: rgba(12, 27, 31, 0.6);
+}
+
+.fc-dark-theme .fc-resource-group {
+	background: rgba(12, 27, 31, 0.5);
+}
+
+/* Time slots */
+.fc-dark-theme .fc-timegrid-slot {
+	height: 40px;
+	border-color: rgba(141, 229, 219, 0.04);
+}
+
+.fc-dark-theme .fc-timegrid-slot-minor {
+	border-color: rgba(141, 229, 219, 0.02);
+}
+
+.fc-dark-theme .fc-timegrid-slot-label {
+	vertical-align: top;
+}
+
+.fc-dark-theme .fc-timegrid-slot-label-cushion {
+	color: #5a7e79;
+	font-size: 0.7rem;
+	font-weight: 500;
+	letter-spacing: 0.04em;
+	padding: 4px 10px 0 0;
+}
+
+.fc-dark-theme .fc-timegrid-axis-cushion {
+	color: #5a7e79;
+	font-size: 0.7rem;
+}
+
+/* Now indicator */
+.fc-dark-theme .fc-timegrid-now-indicator-line {
+	border-color: #60d7cf;
+	border-width: 1.5px 0 0 0;
+	box-shadow: 0 0 8px rgba(96, 215, 207, 0.3);
+}
+
+.fc-dark-theme .fc-timegrid-now-indicator-arrow {
+	border-color: #60d7cf;
+	border-top-color: transparent;
+	border-bottom-color: transparent;
+}
+
+/* Events — per-event accent driven by CSS variables set in eventDidMount */
+.fc-dark-theme .fc-timegrid-event {
+	border-radius: 8px;
+	border-left: 3px solid var(--accent-stripe, rgba(96, 215, 207, 0.5));
+	border-top: none;
+	border-right: none;
+	border-bottom: none;
+	background:
+		linear-gradient(135deg, var(--accent-wash, rgba(96, 215, 207, 0.14)) 0%, rgba(7, 19, 22, 0.35) 100%);
+	box-shadow:
+		0 2px 10px rgba(0, 0, 0, 0.2),
+		inset 0 1px 0 rgba(255, 255, 255, 0.04);
+	transition:
+		background 220ms ease,
+		box-shadow 220ms ease,
+		transform 220ms ease;
+	cursor: pointer;
+	overflow: hidden;
+}
+
+.fc-dark-theme .fc-timegrid-event:hover {
+	background:
+		linear-gradient(135deg, var(--accent-wash-hover, rgba(96, 215, 207, 0.22)) 0%, rgba(7, 19, 22, 0.4) 100%);
+	box-shadow:
+		0 6px 18px rgba(0, 0, 0, 0.28),
+		0 0 18px var(--accent-glow, rgba(96, 215, 207, 0.3));
+	transform: translateY(-1px) scale(1.012);
+}
+
+.fc-dark-theme .fc-timegrid-event .fc-event-main {
+	padding: 0;
+	color: #e8dfd4;
+}
+
+.fc-dark-theme .fc-event-time {
+	display: none;
+}
+
+.fc-dark-theme .fc-event-title {
+	font-weight: 600;
+}
+
+/* Selection mirror */
+.fc-dark-theme .fc-highlight {
+	background: rgba(96, 215, 207, 0.08);
+	border: 1px dashed rgba(96, 215, 207, 0.25);
+	border-radius: 6px;
+}
+
+/* Day-grid (month view) events — accent colors still apply via CSS vars */
+.fc-dark-theme .fc-daygrid-day {
+	background: rgba(7, 19, 22, 0.2);
+	transition: background 180ms ease;
+}
+
+.fc-dark-theme .fc-daygrid-day:hover {
+	background: rgba(94, 234, 212, 0.04);
+}
+
+.fc-dark-theme .fc-day-today {
+	background: rgba(94, 234, 212, 0.05) !important;
+}
+
+.fc-dark-theme .fc-daygrid-day-number {
+	color: #afcdc8;
+	font-size: 0.78rem;
+	font-weight: 600;
+	padding: 6px 8px;
+	text-decoration: none;
+}
+
+.fc-dark-theme .fc-day-today .fc-daygrid-day-number {
+	color: #5eead4;
+}
+
+.fc-dark-theme .fc-day-other .fc-daygrid-day-number {
+	color: #3e5e58;
+}
+
+.fc-dark-theme .fc-daygrid-event {
+	border-radius: 6px;
+	border: none;
+	border-left: 3px solid var(--accent-stripe, rgba(94, 234, 212, 0.5));
+	background: linear-gradient(
+		135deg,
+		var(--accent-wash, rgba(94, 234, 212, 0.14)) 0%,
+		rgba(7, 19, 22, 0.2) 100%
+	);
+	color: #e8dfd4;
+	margin: 1px 4px;
+	padding: 1px 0;
+	cursor: pointer;
+	transition:
+		background 200ms ease,
+		box-shadow 200ms ease,
+		transform 200ms ease;
+}
+
+.fc-dark-theme .fc-daygrid-event:hover {
+	background: linear-gradient(
+		135deg,
+		var(--accent-wash-hover, rgba(94, 234, 212, 0.22)) 0%,
+		rgba(7, 19, 22, 0.25) 100%
+	);
+	box-shadow: 0 0 12px var(--accent-glow, rgba(94, 234, 212, 0.3));
+	transform: translateY(-1px);
+}
+
+.fc-dark-theme .fc-daygrid-event-dot {
+	display: none;
+}
+
+.fc-dark-theme .fc-daygrid-event .fc-event-time {
+	display: inline;
+	color: rgba(232, 223, 212, 0.55);
+	font-size: 0.65rem;
+	font-weight: 500;
+	margin-right: 4px;
+}
+
+.fc-dark-theme .fc-daygrid-event .fc-event-title {
+	color: #e8dfd4;
+	font-size: 0.68rem;
+	font-weight: 600;
+}
+
+.fc-dark-theme .fc-daygrid-more-link {
+	color: #6a9590;
+	font-size: 0.65rem;
+	font-weight: 600;
+	padding: 2px 6px;
+	transition: color 180ms ease;
+}
+
+.fc-dark-theme .fc-daygrid-more-link:hover {
+	color: #5eead4;
+	text-decoration: none;
+}
+
+/* Week / day-grid header polish */
+.fc-dark-theme .fc-day-today .fc-col-header-cell-cushion {
+	color: #5eead4;
+}
+
+/* Multi-month (year) view */
+.fc-dark-theme .fc-multimonth {
+	border: none;
+	background: transparent;
+}
+
+.fc-dark-theme .fc-multimonth-month {
+	border: 1px solid rgba(141, 229, 219, 0.06);
+	border-radius: 12px;
+	background: rgba(7, 19, 22, 0.4);
+	margin: 6px;
+	padding: 6px 4px 4px;
+	width: calc(33.3333% - 12px) !important;
+	box-sizing: border-box;
+}
+
+.fc-dark-theme .fc-multimonth-title {
+	color: #e8dfd4;
+	font-family: "Fraunces", Georgia, serif;
+	font-size: 0.95rem;
+	font-style: italic;
+	font-weight: 500;
+	padding: 6px 8px 8px;
+}
+
+.fc-dark-theme .fc-multimonth-header-table .fc-col-header-cell-cushion {
+	color: #5a7e79;
+	font-size: 0.62rem;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	padding: 4px 0;
+	text-transform: uppercase;
+}
+
+.fc-dark-theme .fc-multimonth-daygrid {
+	background: transparent;
+}
+
+.fc-dark-theme .fc-multimonth-daygrid-table td,
+.fc-dark-theme .fc-multimonth-daygrid-table th {
+	border-color: rgba(141, 229, 219, 0.04);
+}
+
+.fc-dark-theme .fc-multimonth-daygrid .fc-daygrid-day-number {
+	color: #afcdc8;
+	font-size: 0.7rem;
+	font-weight: 500;
+	padding: 2px 4px;
+}
+
+.fc-dark-theme .fc-multimonth-daygrid .fc-day-today {
+	background: rgba(94, 234, 212, 0.08) !important;
+}
+
+.fc-dark-theme .fc-multimonth-daygrid .fc-day-today .fc-daygrid-day-number {
+	color: #5eead4;
+	font-weight: 700;
+}
+
+.fc-dark-theme .fc-multimonth-daygrid .fc-day-other .fc-daygrid-day-number {
+	color: #3e5e58;
+}
+
+/* Scrollbar */
+.fc-dark-theme .fc-scroller::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+
+.fc-dark-theme .fc-scroller::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.fc-dark-theme .fc-scroller::-webkit-scrollbar-thumb {
+	background: rgba(141, 229, 219, 0.1);
+	border-radius: 3px;
+}
+
+.fc-dark-theme .fc-scroller::-webkit-scrollbar-thumb:hover {
+	background: rgba(141, 229, 219, 0.18);
+}
+
+/* Remove default FullCalendar license message styling clutter */
+.fc-dark-theme .fc-license-message {
+	color: #3e5e58;
+	font-size: 0.65rem;
+	opacity: 0.5;
 }

@@ -18,6 +18,14 @@
         "db:studio": "bun --bun drizzle-kit studio"
     },
     "dependencies": {
+        "@fullcalendar/core": "^6.1.20",
+        "@fullcalendar/daygrid": "^6.1.20",
+        "@fullcalendar/interaction": "^6.1.20",
+        "@fullcalendar/multimonth": "^6.1.20",
+        "@fullcalendar/react": "^6.1.20",
+        "@fullcalendar/resource": "^6.1.20",
+        "@fullcalendar/resource-timegrid": "^6.1.20",
+        "@fullcalendar/timegrid": "^6.1.20",
         "@t3-oss/env-core": "^0.13.11",
         "@tailwindcss/vite": "^4.2.2",
         "@tanstack/react-devtools": "latest",
