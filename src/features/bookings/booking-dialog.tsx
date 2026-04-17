@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import type { EventInput } from "@fullcalendar/core";
-import { Calendar, Clock, MapPin, Users, FileText, X } from "lucide-react";
+import { Clock, MapPin, Users, FileText, X, ArrowRight } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
 import {
 	Dialog,
 	DialogContent,
@@ -66,8 +64,10 @@ function formatDateDisplay(dateStr: string | undefined): string {
 	return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 }
 
-// Mock registered users for the attendees picker
 const MOCK_USERS = ["Alice Chen", "Bob", "Carol", "David Kim", "Eve", "Frank", "Grace Liu", "Henry Wang", "Ivan", "Julia", "Kevin", "Liam", "Mia"];
+
+const DIALOG_CLASS =
+	"border border-[var(--hairline)] bg-[var(--surface-01)] text-[var(--bone)] rounded-none shadow-[0_40px_80px_rgba(0,0,0,0.6)]";
 
 export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill, onSubmit }: BookingDialogProps) {
 	const [title, setTitle] = useState("");
@@ -79,7 +79,6 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
 	const [attendeeSearch, setAttendeeSearch] = useState("");
 	const [showSuggestions, setShowSuggestions] = useState(false);
 
-	// Reset form on open
 	useEffect(() => {
 		if (!open) return;
 
@@ -128,80 +127,76 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
 	if (mode === "view" && event) {
 		return (
 			<Dialog open={open} onOpenChange={onOpenChange}>
-				<DialogContent className="border-[rgba(141,229,219,0.1)] bg-[#0c1b1f] text-[#e8dfd4] sm:max-w-md">
+				<DialogContent className={`${DIALOG_CLASS} sm:max-w-md`}>
 					<DialogHeader>
-						<DialogTitle className="font-['Fraunces'] text-xl font-normal italic text-[#e8dfd4]">
+						<p className="eyebrow eyebrow-gold">Reservation</p>
+						<DialogTitle className="mt-2 display-italic text-[1.75rem] leading-[1.05] font-normal text-[var(--bone)]">
 							{event.title}
 						</DialogTitle>
-						<DialogDescription className="text-[0.82rem] text-[#6a9590]">
-							Organized by {event.extendedProps?.organizer ?? "Unknown"}
+						<DialogDescription className="text-[0.78rem] text-[var(--bone-muted)]">
+							Organized by{" "}
+							<span className="text-[var(--bone)]">
+								{event.extendedProps?.organizer ?? "Unknown"}
+							</span>
 						</DialogDescription>
 					</DialogHeader>
 
-					<div className="mt-2 space-y-4">
-						{/* Room */}
-						{selectedRoom && (
-							<div className="flex items-start gap-3">
-								<MapPin className="mt-0.5 size-4 shrink-0 text-[#5a7e79]" strokeWidth={1.6} />
-								<div>
-									<p className="text-[0.85rem] font-medium text-[#e8dfd4]">{selectedRoom.title}</p>
-									<p className="text-[0.75rem] text-[#5a7e79]">
-										{selectedRoom.location} · {selectedRoom.capacity} people
-									</p>
-								</div>
-							</div>
-						)}
+					<div className="mt-4 border-t border-[var(--hairline)] pt-6">
+						<dl className="space-y-5">
+							{selectedRoom && (
+								<InfoRow icon={<MapPin className="size-[15px]" strokeWidth={1.4} />} label="Room">
+									<span className="text-[0.88rem] font-medium text-[var(--bone)]">
+										{selectedRoom.title}
+									</span>
+									<span className="tabular-num ml-2 text-[0.72rem] text-[var(--bone-dim)]">
+										{selectedRoom.location} &middot; {selectedRoom.capacity}p
+									</span>
+								</InfoRow>
+							)}
 
-						{/* Time */}
-						<div className="flex items-start gap-3">
-							<Clock className="mt-0.5 size-4 shrink-0 text-[#5a7e79]" strokeWidth={1.6} />
-							<div>
-								<p className="text-[0.85rem] font-medium text-[#e8dfd4]">
-									{formatTimeDisplay(event.start as string)} – {formatTimeDisplay(event.end as string)}
-								</p>
-								<p className="text-[0.75rem] text-[#5a7e79]">
+							<InfoRow icon={<Clock className="size-[15px]" strokeWidth={1.4} />} label="Time">
+								<span className="tabular-num text-[0.95rem] font-medium text-[var(--gold)]">
+									{formatTimeDisplay(event.start as string)} &mdash;{" "}
+									{formatTimeDisplay(event.end as string)}
+								</span>
+								<span className="ml-3 text-[0.72rem] text-[var(--bone-dim)]">
 									{formatDateDisplay(event.start as string)}
-								</p>
-							</div>
-						</div>
+								</span>
+							</InfoRow>
 
-						{/* Attendees */}
-						{event.extendedProps?.attendees?.length > 0 && (
-							<div className="flex items-start gap-3">
-								<Users className="mt-0.5 size-4 shrink-0 text-[#5a7e79]" strokeWidth={1.6} />
-								<div className="flex flex-wrap gap-1.5">
-									{event.extendedProps.attendees.map((a: string) => (
-										<Badge
-											key={a}
-											variant="outline"
-											className="border-[rgba(141,229,219,0.12)] bg-[rgba(96,215,207,0.06)] text-[0.7rem] text-[#6a9590]"
-										>
-											{a}
-										</Badge>
-									))}
-								</div>
-							</div>
-						)}
+							{event.extendedProps?.attendees?.length > 0 && (
+								<InfoRow icon={<Users className="size-[15px]" strokeWidth={1.4} />} label="Attendees">
+									<div className="flex flex-wrap gap-1.5">
+										{event.extendedProps.attendees.map((a: string) => (
+											<span
+												key={a}
+												className="border border-[var(--hairline)] px-2 py-0.5 text-[0.7rem] text-[var(--bone-muted)]"
+											>
+												{a}
+											</span>
+										))}
+									</div>
+								</InfoRow>
+							)}
 
-						{/* Description */}
-						{event.extendedProps?.description && (
-							<div className="flex items-start gap-3">
-								<FileText className="mt-0.5 size-4 shrink-0 text-[#5a7e79]" strokeWidth={1.6} />
-								<p className="text-[0.82rem] leading-relaxed text-[#6a9590]">
-									{event.extendedProps.description}
-								</p>
-							</div>
-						)}
+							{event.extendedProps?.description && (
+								<InfoRow icon={<FileText className="size-[15px]" strokeWidth={1.4} />} label="Notes">
+									<p className="text-[0.82rem] leading-relaxed text-[var(--bone-muted)]">
+										{event.extendedProps.description}
+									</p>
+								</InfoRow>
+							)}
+						</dl>
 					</div>
 
-					<div className="mt-4 flex gap-2">
-						<Button
-							variant="outline"
-							className="flex-1 cursor-pointer border-[rgba(141,229,219,0.12)] bg-transparent text-[0.78rem] text-[#6a9590] hover:bg-[rgba(96,215,207,0.06)] hover:text-[#8de5db]"
+					<div className="mt-6 border-t border-[var(--hairline)] pt-5">
+						<button
+							type="button"
 							onClick={() => onOpenChange(false)}
+							className="w-full cursor-pointer border border-[var(--hairline)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-[var(--bone-muted)] transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
 						>
 							Close
-						</Button>
+						</button>
 					</div>
 				</DialogContent>
 			</Dialog>
@@ -211,120 +206,106 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
 	// ── Create mode ──
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="border-[rgba(141,229,219,0.1)] bg-[#0c1b1f] text-[#e8dfd4] sm:max-w-lg">
+			<DialogContent className={`${DIALOG_CLASS} sm:max-w-lg`}>
 				<DialogHeader>
-					<DialogTitle className="font-['Fraunces'] text-xl font-normal italic text-[#e8dfd4]">
-						New Booking
+					<p className="eyebrow eyebrow-gold">New Reservation</p>
+					<DialogTitle className="mt-2 display-italic text-[1.75rem] leading-[1.05] font-normal text-[var(--bone)]">
+						Reserve a room.
 					</DialogTitle>
-					<DialogDescription className="text-[0.82rem] text-[#6a9590]">
-						Reserve a meeting room for your team
+					<DialogDescription className="text-[0.78rem] text-[var(--bone-muted)]">
+						Enter the details below to add a booking to the ledger.
 					</DialogDescription>
 				</DialogHeader>
 
-				<form onSubmit={handleSubmit} className="mt-2 space-y-5">
-					{/* Title */}
+				<form onSubmit={handleSubmit} className="mt-4 space-y-6 border-t border-[var(--hairline)] pt-6">
 					<div className="space-y-2">
-						<Label className="text-[0.72rem] font-semibold tracking-[0.08em] uppercase text-[#5a7e79]">
-							Meeting Title
-						</Label>
+						<Label className="eyebrow block">Meeting Title</Label>
 						<Input
 							value={title}
 							onChange={(e) => setTitle(e.target.value)}
 							placeholder="e.g. Sprint Planning"
 							required
-							className="login-input-underline h-10 text-[0.85rem] text-[#e8dfd4] shadow-none placeholder:text-[#3e5e58] focus-visible:ring-0"
+							className="login-input-underline h-10 rounded-none bg-transparent text-[0.9rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0"
 						/>
 					</div>
 
-					{/* Room */}
 					<div className="space-y-2">
-						<Label className="text-[0.72rem] font-semibold tracking-[0.08em] uppercase text-[#5a7e79]">
-							Room
-						</Label>
+						<Label className="eyebrow block">Room</Label>
 						<Select value={roomId} onValueChange={setRoomId} required>
-							<SelectTrigger className="h-10 border-0 border-b border-[rgba(141,229,219,0.16)] bg-transparent text-[0.85rem] text-[#e8dfd4] shadow-none ring-0 rounded-none focus:border-[#60d7cf] focus:ring-0 [&>svg]:text-[#5a7e79]">
+							<SelectTrigger className="h-10 border-0 border-b border-[var(--hairline)] bg-transparent text-[0.9rem] text-[var(--bone)] shadow-none ring-0 rounded-none focus:border-[var(--gold)] focus:ring-0 [&>svg]:text-[var(--bone-dim)]">
 								<SelectValue placeholder="Select a room" />
 							</SelectTrigger>
-							<SelectContent className="border-[rgba(141,229,219,0.12)] bg-[#0f2228]">
+							<SelectContent className="rounded-none border-[var(--hairline)] bg-[var(--surface-02)]">
 								{rooms.map((room) => (
 									<SelectItem
 										key={room.id}
 										value={room.id}
-										className="text-[#e8dfd4] focus:bg-[rgba(96,215,207,0.1)] focus:text-[#e8dfd4]"
+										className="rounded-none text-[var(--bone)] focus:bg-[var(--gold-wash)] focus:text-[var(--bone)]"
 									>
 										<span className="font-medium">{room.title}</span>
-										<span className="ml-2 text-[#5a7e79]">
-											· {room.location} · {room.capacity}p
+										<span className="tabular-num ml-2 text-[var(--bone-dim)]">
+											&middot; {room.location} &middot; {room.capacity}p
 										</span>
 									</SelectItem>
 								))}
 							</SelectContent>
 						</Select>
 						{selectedRoom && (
-							<div className="flex flex-wrap gap-1.5 pt-1">
+							<div className="flex flex-wrap gap-1.5 pt-2">
 								{selectedRoom.equipment.map((eq) => (
-									<Badge
+									<span
 										key={eq}
-										variant="outline"
-										className="border-[rgba(141,229,219,0.1)] bg-[rgba(96,215,207,0.04)] text-[0.65rem] text-[#5a7e79]"
+										className="border border-[var(--hairline)] px-2 py-0.5 text-[0.66rem] tracking-[0.08em] uppercase text-[var(--bone-dim)]"
 									>
 										{eq}
-									</Badge>
+									</span>
 								))}
 							</div>
 						)}
 					</div>
 
-					{/* Time */}
-					<div className="grid grid-cols-2 gap-4">
+					<div className="grid grid-cols-2 gap-5">
 						<div className="space-y-2">
-							<Label className="text-[0.72rem] font-semibold tracking-[0.08em] uppercase text-[#5a7e79]">
-								Start Time
-							</Label>
+							<Label className="eyebrow block">Start Time</Label>
 							<Input
 								type="datetime-local"
 								value={startTime}
 								onChange={(e) => setStartTime(e.target.value)}
 								required
-								className="login-input-underline h-10 text-[0.82rem] text-[#e8dfd4] shadow-none focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
+								className="login-input-underline tabular-num h-10 rounded-none bg-transparent text-[0.85rem] text-[var(--bone)] shadow-none focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
 							/>
 						</div>
 						<div className="space-y-2">
-							<Label className="text-[0.72rem] font-semibold tracking-[0.08em] uppercase text-[#5a7e79]">
-								End Time
-							</Label>
+							<Label className="eyebrow block">End Time</Label>
 							<Input
 								type="datetime-local"
 								value={endTime}
 								onChange={(e) => setEndTime(e.target.value)}
 								required
-								className="login-input-underline h-10 text-[0.82rem] text-[#e8dfd4] shadow-none focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
+								className="login-input-underline tabular-num h-10 rounded-none bg-transparent text-[0.85rem] text-[var(--bone)] shadow-none focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
 							/>
 						</div>
 					</div>
 
-					{/* Attendees */}
 					<div className="space-y-2">
-						<Label className="text-[0.72rem] font-semibold tracking-[0.08em] uppercase text-[#5a7e79]">
-							Attendees
-						</Label>
+						<Label className="eyebrow block">Attendees</Label>
 						{attendees.length > 0 && (
-							<div className="flex flex-wrap gap-1.5 pb-1">
+							<div className="flex flex-wrap gap-1.5 pb-2">
 								{attendees.map((a) => (
-									<Badge
+									<span
 										key={a}
-										variant="outline"
-										className="gap-1 border-[rgba(141,229,219,0.12)] bg-[rgba(96,215,207,0.06)] text-[0.7rem] text-[#6a9590]"
+										className="inline-flex items-center gap-1 border border-[var(--hairline)] bg-[var(--surface-02)] px-2 py-0.5 text-[0.7rem] text-[var(--bone-muted)]"
 									>
 										{a}
 										<button
 											type="button"
 											onClick={() => removeAttendee(a)}
-											className="ml-0.5 cursor-pointer text-[#5a7e79] transition-colors hover:text-[#60d7cf]"
+											aria-label={`Remove ${a}`}
+											className="ml-0.5 cursor-pointer text-[var(--bone-dim)] transition-colors hover:text-[var(--gold)]"
 										>
-											<X className="size-3" />
+											<X className="size-3" strokeWidth={1.6} />
 										</button>
-									</Badge>
+									</span>
 								))}
 							</div>
 						)}
@@ -338,16 +319,16 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
 								onFocus={() => setShowSuggestions(true)}
 								onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
 								placeholder="Search users to invite..."
-								className="login-input-underline h-10 text-[0.85rem] text-[#e8dfd4] shadow-none placeholder:text-[#3e5e58] focus-visible:ring-0"
+								className="login-input-underline h-10 rounded-none bg-transparent text-[0.9rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0"
 							/>
 							{showSuggestions && attendeeSearch && filteredSuggestions.length > 0 && (
-								<div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-36 overflow-y-auto rounded-lg border border-[rgba(141,229,219,0.12)] bg-[#0f2228] py-1 shadow-xl">
+								<div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-y-auto border border-[var(--hairline)] bg-[var(--surface-02)] py-1 shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
 									{filteredSuggestions.map((user) => (
 										<button
 											type="button"
 											key={user}
 											onMouseDown={() => addAttendee(user)}
-											className="flex w-full cursor-pointer items-center px-3 py-2 text-left text-[0.82rem] text-[#6a9590] transition-colors hover:bg-[rgba(96,215,207,0.08)] hover:text-[#e8dfd4]"
+											className="flex w-full cursor-pointer items-center px-4 py-2 text-left text-[0.82rem] text-[var(--bone-muted)] transition-colors hover:bg-[var(--gold-wash)] hover:text-[var(--bone)]"
 										>
 											{user}
 										</button>
@@ -357,41 +338,60 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
 						</div>
 					</div>
 
-					{/* Description */}
 					<div className="space-y-2">
-						<Label className="text-[0.72rem] font-semibold tracking-[0.08em] uppercase text-[#5a7e79]">
-							Description
-							<span className="ml-1 font-normal normal-case text-[#4a6e68]">(optional)</span>
+						<Label className="eyebrow block">
+							Description <span className="ml-1 text-[var(--bone-faint)]">(optional)</span>
 						</Label>
 						<Textarea
 							value={description}
 							onChange={(e) => setDescription(e.target.value)}
 							placeholder="Meeting agenda or notes..."
 							rows={3}
-							className="resize-none border-0 border-b border-[rgba(141,229,219,0.16)] rounded-none bg-transparent text-[0.85rem] text-[#e8dfd4] shadow-none placeholder:text-[#3e5e58] focus-visible:ring-0 focus:border-[#60d7cf]"
+							className="resize-none rounded-none border-0 border-b border-[var(--hairline)] bg-transparent px-0.5 text-[0.88rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0 focus:border-[var(--gold)]"
 						/>
 					</div>
 
-					{/* Actions */}
-					<div className="flex gap-3 pt-2">
-						<Button
+					<div className="flex gap-3 border-t border-[var(--hairline)] pt-5">
+						<button
 							type="button"
-							variant="outline"
-							className="flex-1 cursor-pointer border-[rgba(141,229,219,0.12)] bg-transparent text-[0.78rem] text-[#6a9590] hover:bg-[rgba(96,215,207,0.06)] hover:text-[#8de5db]"
 							onClick={() => onOpenChange(false)}
+							className="flex-1 cursor-pointer border border-[var(--hairline)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-[var(--bone-muted)] transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
 						>
 							Cancel
-						</Button>
-						<Button
+						</button>
+						<button
 							type="submit"
-							className="flex-1 cursor-pointer text-[0.78rem] font-semibold tracking-[0.04em] uppercase text-[#0a1418] shadow-[0_4px_24px_rgba(96,215,207,0.2)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_8px_32px_rgba(96,215,207,0.3)]"
-							style={{ background: "linear-gradient(135deg, #60d7cf 0%, #2f8a6a 100%)" }}
+							className="group flex flex-1 cursor-pointer items-center justify-center gap-2 border border-[var(--bone)] bg-[var(--bone)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-black transition-all hover:bg-white hover:tracking-[0.32em]"
 						>
-							Create Booking
-						</Button>
+							<span>Reserve</span>
+							<ArrowRight
+								className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+								strokeWidth={1.6}
+							/>
+						</button>
 					</div>
 				</form>
 			</DialogContent>
 		</Dialog>
+	);
+}
+
+function InfoRow({
+	icon,
+	label,
+	children,
+}: {
+	icon: React.ReactNode;
+	label: string;
+	children: React.ReactNode;
+}) {
+	return (
+		<div className="grid grid-cols-[88px_1fr] items-start gap-4">
+			<div className="flex items-center gap-2 pt-[2px]">
+				<span className="text-[var(--bone-dim)]">{icon}</span>
+				<span className="eyebrow">{label}</span>
+			</div>
+			<div className="flex flex-wrap items-baseline">{children}</div>
+		</div>
 	);
 }

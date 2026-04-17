@@ -7,50 +7,52 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import multiMonthPlugin from "@fullcalendar/multimonth";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateSelectArg, DatesSetArg, EventClickArg, EventInput } from "@fullcalendar/core";
-import {
-	ChevronLeft,
-	ChevronRight,
-	Filter,
-	Plus,
-	MapPin,
-	Users,
-	Monitor,
-	X,
-	Sparkles,
-	CalendarDays,
-	Activity,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import { BookingDialog, type BookingFormData } from "@/features/bookings/booking-dialog";
 
 export const Route = createFileRoute("/_app/bookings")({ component: BookingsPage });
 
-// ── Per-room accent palette ──
-// Each room gets a distinct hue so events become visually scannable instead of
-// a wall of teal. Hues are chosen to harmonize on the dark background.
+// ── Per-room accent palette — jewel tones on pure black ──
 type RoomAccent = {
 	hue: string;
 	stripe: string;
 	wash: string;
 	washHover: string;
-	glow: string;
-	dot: string;
 };
 
 const ROOM_ACCENTS: Record<string, RoomAccent> = {
-	"1": { hue: "Aurora", stripe: "#2dd4bf", wash: "rgba(45,212,191,0.16)", washHover: "rgba(45,212,191,0.26)", glow: "rgba(45,212,191,0.4)", dot: "#5eead4" },
-	"2": { hue: "Amber", stripe: "#f59e0b", wash: "rgba(251,191,36,0.15)", washHover: "rgba(251,191,36,0.25)", glow: "rgba(251,191,36,0.4)", dot: "#fbbf24" },
-	"3": { hue: "Violet", stripe: "#a855f7", wash: "rgba(192,132,252,0.16)", washHover: "rgba(192,132,252,0.26)", glow: "rgba(192,132,252,0.4)", dot: "#c084fc" },
-	"4": { hue: "Sky", stripe: "#38bdf8", wash: "rgba(125,211,252,0.16)", washHover: "rgba(125,211,252,0.26)", glow: "rgba(125,211,252,0.4)", dot: "#7dd3fc" },
-	"5": { hue: "Rose", stripe: "#fb7185", wash: "rgba(253,164,175,0.15)", washHover: "rgba(253,164,175,0.25)", glow: "rgba(253,164,175,0.4)", dot: "#fda4af" },
+	"1": {
+		hue: "Amber",
+		stripe: "#e8c29a",
+		wash: "rgba(232,194,154,0.06)",
+		washHover: "rgba(232,194,154,0.12)",
+	},
+	"2": {
+		hue: "Rust",
+		stripe: "#b66a4a",
+		wash: "rgba(182,106,74,0.07)",
+		washHover: "rgba(182,106,74,0.14)",
+	},
+	"3": {
+		hue: "Steel",
+		stripe: "#7a8fa8",
+		wash: "rgba(122,143,168,0.07)",
+		washHover: "rgba(122,143,168,0.14)",
+	},
+	"4": {
+		hue: "Sage",
+		stripe: "#6a8a6e",
+		wash: "rgba(106,138,110,0.07)",
+		washHover: "rgba(106,138,110,0.14)",
+	},
+	"5": {
+		hue: "Plum",
+		stripe: "#8a6a8a",
+		wash: "rgba(138,106,138,0.07)",
+		washHover: "rgba(138,106,138,0.14)",
+	},
 };
-
-const FILTER_THEMES = {
-	capacity: "#5eead4",
-	equipment: "#c084fc",
-	location: "#fbbf24",
-} as const;
 
 // ── Mock data ──
 
@@ -171,16 +173,9 @@ function BookingsPage() {
 		return !!start && !!end && start <= now && now < end;
 	}).length;
 
-	// Navigation
-	const goToday = () => {
-		calendarRef.current?.getApi().today();
-	};
-	const goPrev = () => {
-		calendarRef.current?.getApi().prev();
-	};
-	const goNext = () => {
-		calendarRef.current?.getApi().next();
-	};
+	const goToday = () => calendarRef.current?.getApi().today();
+	const goPrev = () => calendarRef.current?.getApi().prev();
+	const goNext = () => calendarRef.current?.getApi().next();
 	const changeView = (next: ViewKey) => {
 		setView(next);
 		calendarRef.current?.getApi().changeView(VIEW_MAP[next]);
@@ -192,7 +187,6 @@ function BookingsPage() {
 		setViewContainsToday(arg.view.activeStart <= today && today < arg.view.activeEnd);
 	}, []);
 
-	// Calendar interaction
 	const handleSelect = useCallback((info: DateSelectArg) => {
 		setPrefill({
 			roomId: info.resource?.id,
@@ -235,7 +229,6 @@ function BookingsPage() {
 		setDialogOpen(false);
 	}, []);
 
-	// Filter toggles
 	const toggleEquipment = (eq: string) =>
 		setEquipmentFilter((prev) => (prev.includes(eq) ? prev.filter((e) => e !== eq) : [...prev, eq]));
 	const toggleLocation = (loc: string) =>
@@ -247,191 +240,148 @@ function BookingsPage() {
 	};
 
 	const dateLabel = computeTitle(view, currentDate);
+	const openNewBooking = () => {
+		setPrefill({});
+		setSelectedEvent(null);
+		setDialogMode("create");
+		setDialogOpen(true);
+	};
 
 	return (
-		<div className="space-y-7">
-			{/* Hero — single-row command bar */}
+		<div className="space-y-10">
+			{/* ════════════════════════════════════════════
+			    HEADER — editorial masthead
+			════════════════════════════════════════════ */}
 			<header
-				className="relative overflow-hidden rounded-2xl border border-[rgba(141,229,219,0.08)] bg-[rgba(10,22,26,0.55)] px-6 py-4 backdrop-blur-sm sm:px-7"
+				className="relative"
 				style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
 			>
-				{/* Aurora glow accents (subtle) */}
-				<div
-					aria-hidden
-					className="pointer-events-none absolute -top-32 -left-24 size-[280px] rounded-full opacity-50"
-					style={{ background: "radial-gradient(circle, rgba(94,234,212,0.18) 0%, transparent 65%)" }}
-				/>
-				<div
-					aria-hidden
-					className="pointer-events-none absolute -right-24 -bottom-32 size-[300px] rounded-full opacity-40"
-					style={{ background: "radial-gradient(circle, rgba(192,132,252,0.16) 0%, transparent 65%)" }}
-				/>
-				<div
-					aria-hidden
-					className="pointer-events-none absolute -top-16 left-1/2 size-[240px] rounded-full opacity-30"
-					style={{ background: "radial-gradient(circle, rgba(125,211,252,0.14) 0%, transparent 65%)" }}
-				/>
-
-				<div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:gap-8">
-					{/* Title block */}
-					<div className="flex items-center justify-between gap-3">
-						<div className="min-w-0">
-							<span
-								className="inline-flex items-center gap-1.5 bg-clip-text text-[0.6rem] font-bold tracking-[0.2em] text-transparent uppercase"
-								style={{
-									backgroundImage:
-										"linear-gradient(90deg, #5eead4 0%, #c084fc 55%, #fda4af 100%)",
-								}}
-							>
-								<Sparkles className="size-3 text-[#60d7cf]" strokeWidth={2} />
-								Workspace
-							</span>
-							<h1 className="mt-0.5 font-['Fraunces'] text-[1.5rem] leading-tight font-normal italic text-[#e8dfd4] sm:text-[1.7rem]">
-								Room{" "}
-								<span className="bg-gradient-to-r from-[#8de5db] via-[#c084fc] to-[#fda4af] bg-clip-text text-transparent">
-									Bookings
+				<div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+					<div>
+						<p className="eyebrow eyebrow-gold">Concierge &middot; Today</p>
+						<h1 className="mt-3 display-italic text-[clamp(2.4rem,4vw,3.5rem)] leading-[1] tracking-[-0.02em] text-[var(--bone)]">
+							Room Bookings
+						</h1>
+						<p className="mt-3 max-w-[52ch] text-[0.88rem] leading-relaxed text-[var(--bone-muted)]">
+							{dateLabel}
+							{viewContainsToday && (
+								<span className="ml-3 inline-flex items-center gap-2 align-middle">
+									<span
+										className="inline-block size-1.5 rounded-full bg-[var(--signal)]"
+										style={{ animation: "signal-pulse 2.4s ease-in-out infinite" }}
+									/>
+									<span className="tabular-num text-[0.62rem] tracking-[0.3em] uppercase text-[var(--signal)]">
+										Live
+									</span>
 								</span>
-							</h1>
-						</div>
-						{/* Mobile-only action */}
-						<Button
-							onClick={() => {
-								setPrefill({});
-								setSelectedEvent(null);
-								setDialogMode("create");
-								setDialogOpen(true);
-							}}
-							aria-label="New booking"
-							className="size-10 shrink-0 cursor-pointer rounded-lg p-0 text-[#0a1418] shadow-[0_6px_20px_rgba(94,234,212,0.25)] transition-all hover:-translate-y-0.5 hover:shadow-[0_10px_28px_rgba(94,234,212,0.4)] lg:hidden"
-							style={{ background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 50%, #0d9488 100%)" }}
-						>
-							<Plus className="size-4" strokeWidth={2.4} />
-						</Button>
+							)}
+						</p>
 					</div>
 
-					{/* Stats — inline divider strip */}
-					<div className="flex flex-wrap items-center gap-x-6 gap-y-2 lg:ml-auto lg:flex-nowrap lg:rounded-xl lg:border lg:border-[rgba(141,229,219,0.08)] lg:bg-[rgba(7,19,22,0.4)] lg:px-5 lg:py-2">
-						<Stat
-							label="Today"
-							value={events.length}
-							accent="#5eead4"
-							icon={<CalendarDays className="size-3.5" strokeWidth={1.7} />}
-						/>
-						<span aria-hidden className="hidden h-7 w-px bg-[rgba(141,229,219,0.1)] lg:block" />
-						<Stat
-							label="Rooms"
-							value={`${filteredRooms.length}/${MOCK_ROOMS.length}`}
-							accent="#c084fc"
-							icon={<MapPin className="size-3.5" strokeWidth={1.7} />}
-						/>
-						<span aria-hidden className="hidden h-7 w-px bg-[rgba(141,229,219,0.1)] lg:block" />
-						<Stat
-							label="Live"
-							value={liveBookings}
-							accent="#fbbf24"
-							pulse
-							icon={<Activity className="size-3.5" strokeWidth={1.7} />}
-						/>
-					</div>
-
-					{/* Desktop action */}
-					<Button
-						onClick={() => {
-							setPrefill({});
-							setSelectedEvent(null);
-							setDialogMode("create");
-							setDialogOpen(true);
-						}}
-						className="hidden h-10 cursor-pointer gap-2 rounded-lg px-4 text-[0.74rem] font-semibold tracking-[0.04em] uppercase text-[#0a1418] shadow-[0_6px_20px_rgba(94,234,212,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(94,234,212,0.4)] lg:flex"
-						style={{ background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 50%, #0d9488 100%)" }}
+					{/* Primary CTA — inverted bone button */}
+					<button
+						type="button"
+						onClick={openNewBooking}
+						className="group relative flex h-11 cursor-pointer items-center justify-center gap-3 self-start border border-[var(--bone)] bg-[var(--bone)] px-6 text-[0.68rem] font-semibold tracking-[0.3em] uppercase text-black transition-all duration-300 hover:bg-white hover:border-white hover:tracking-[0.34em]"
 					>
-						<Plus className="size-4" strokeWidth={2.4} />
-						New Booking
-					</Button>
+						<Plus className="size-4 transition-transform duration-300 group-hover:rotate-90" strokeWidth={1.8} />
+						<span>New Booking</span>
+					</button>
+				</div>
+
+				{/* Hairline rule */}
+				<div aria-hidden className="mt-8 h-px w-full bg-[var(--hairline)]" />
+
+				{/* Stats strip — editorial figures separated by hairline dividers */}
+				<div className="mt-6 grid grid-cols-3 items-stretch divide-x divide-[var(--hairline)]">
+					<EditorialStat label="Bookings Today" value={events.length} />
+					<EditorialStat label="Rooms Shown" value={`${filteredRooms.length}/${MOCK_ROOMS.length}`} />
+					<EditorialStat
+						label="In Session"
+						value={liveBookings}
+						accent={liveBookings > 0 ? "signal" : undefined}
+					/>
 				</div>
 			</header>
 
-			{/* Toolbar: Date Nav + View Switcher + Filters */}
+			{/* ════════════════════════════════════════════
+			    TOOLBAR — editorial tab strip + date nav
+			════════════════════════════════════════════ */}
 			<div
-				className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between"
+				className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between"
 				style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 200ms both" }}
 			>
-				{/* Date Navigation */}
-				<div className="flex flex-wrap items-center gap-3">
-					<div className="flex items-center gap-0.5 rounded-xl border border-[rgba(141,229,219,0.1)] bg-[rgba(12,27,31,0.6)] p-1 backdrop-blur-sm">
+				{/* Date nav */}
+				<div className="flex items-center gap-6">
+					<div className="flex items-center gap-1">
 						<button
 							type="button"
 							onClick={goPrev}
 							aria-label="Previous"
-							className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-[#6a9590] transition-all hover:bg-[rgba(94,234,212,0.1)] hover:text-[#5eead4]"
+							className="flex size-9 cursor-pointer items-center justify-center border border-[var(--hairline)] text-[var(--bone-dim)] transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
 						>
-							<ChevronLeft className="size-4" />
-						</button>
-						<button
-							type="button"
-							onClick={goToday}
-							className={`rounded-lg px-3 py-1.5 text-[0.7rem] font-semibold tracking-[0.06em] uppercase transition-all ${
-								viewContainsToday
-									? "bg-gradient-to-br from-[rgba(94,234,212,0.18)] to-[rgba(192,132,252,0.12)] text-[#8de5db] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-									: "cursor-pointer text-[#6a9590] hover:bg-[rgba(94,234,212,0.06)] hover:text-[#8de5db]"
-							}`}
-						>
-							Today
+							<ChevronLeft className="size-4" strokeWidth={1.4} />
 						</button>
 						<button
 							type="button"
 							onClick={goNext}
 							aria-label="Next"
-							className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-[#6a9590] transition-all hover:bg-[rgba(94,234,212,0.1)] hover:text-[#5eead4]"
+							className="flex size-9 cursor-pointer items-center justify-center border border-[var(--hairline)] text-[var(--bone-dim)] transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
 						>
-							<ChevronRight className="size-4" />
+							<ChevronRight className="size-4" strokeWidth={1.4} />
 						</button>
 					</div>
-
-					<div className="flex items-baseline gap-2">
-						<h2 className="text-[1rem] font-semibold text-[#e8dfd4]">{dateLabel}</h2>
-						{viewContainsToday && (
-							<span className="rounded-full bg-[rgba(94,234,212,0.12)] px-2 py-0.5 text-[0.6rem] font-bold tracking-wider text-[#5eead4] uppercase">
-								Live
-							</span>
-						)}
-					</div>
+					<button
+						type="button"
+						onClick={goToday}
+						className={`text-[0.66rem] font-semibold tracking-[0.28em] uppercase transition-colors ${
+							viewContainsToday
+								? "text-[var(--gold)]"
+								: "cursor-pointer text-[var(--bone-dim)] hover:text-[var(--bone)]"
+						}`}
+					>
+						Today
+					</button>
 				</div>
 
 				{/* Right: View switcher + Filters */}
-				<div className="flex items-center gap-3">
-					{/* View switcher pill */}
-					<div className="flex items-center gap-0.5 rounded-xl border border-[rgba(141,229,219,0.1)] bg-[rgba(12,27,31,0.6)] p-1 backdrop-blur-sm">
+				<div className="flex items-center gap-8">
+					{/* View strip */}
+					<div className="flex items-stretch divide-x divide-[var(--hairline)]">
 						{(["day", "week", "month", "year"] as const).map((v) => (
 							<button
 								key={v}
 								type="button"
 								onClick={() => changeView(v)}
-								className={`rounded-lg px-3 py-1.5 text-[0.7rem] font-semibold tracking-[0.06em] uppercase transition-all ${
+								className={`relative px-4 py-1 text-[0.66rem] font-semibold tracking-[0.28em] uppercase transition-colors ${
 									view === v
-										? "bg-gradient-to-br from-[rgba(94,234,212,0.18)] to-[rgba(192,132,252,0.12)] text-[#8de5db] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
-										: "cursor-pointer text-[#6a9590] hover:bg-[rgba(94,234,212,0.06)] hover:text-[#8de5db]"
+										? "text-[var(--bone)]"
+										: "cursor-pointer text-[var(--bone-dim)] hover:text-[var(--bone-muted)]"
 								}`}
 							>
 								{v}
+								<span
+									className={`pointer-events-none absolute bottom-0 left-2 right-2 h-px transition-all duration-300 ${
+										view === v ? "bg-[var(--gold)]" : "bg-transparent"
+									}`}
+								/>
 							</button>
 						))}
 					</div>
 
-					{/* Filter Toggle */}
+					{/* Filter button */}
 					<button
 						type="button"
 						onClick={() => setShowFilters(true)}
-						className={`flex cursor-pointer items-center gap-2 rounded-xl border px-3.5 py-2 text-[0.78rem] font-medium backdrop-blur-sm transition-all ${
+						className={`flex cursor-pointer items-center gap-3 border px-4 py-2 text-[0.66rem] font-semibold tracking-[0.28em] uppercase transition-all ${
 							hasActiveFilters
-								? "border-[rgba(94,234,212,0.25)] bg-[rgba(94,234,212,0.1)] text-[#5eead4]"
-								: "border-[rgba(141,229,219,0.1)] bg-[rgba(12,27,31,0.6)] text-[#6a9590] hover:border-[rgba(94,234,212,0.2)] hover:bg-[rgba(94,234,212,0.06)] hover:text-[#8de5db]"
+								? "border-[var(--gold)] text-[var(--gold)]"
+								: "border-[var(--hairline)] text-[var(--bone-dim)] hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
 						}`}
 					>
-						<Filter className="size-4" strokeWidth={1.6} />
-						Filters
+						<span>Filters</span>
 						{hasActiveFilters && (
-							<span className="ml-0.5 flex size-5 items-center justify-center rounded-full bg-gradient-to-br from-[#5eead4] to-[#0d9488] text-[0.65rem] font-bold text-[#071316] shadow-[0_0_10px_rgba(94,234,212,0.4)]">
+							<span className="tabular-num inline-flex h-4 min-w-4 items-center justify-center border border-[var(--gold)] px-1 text-[0.58rem] tracking-normal text-[var(--gold)]">
 								{activeFilterCount}
 							</span>
 						)}
@@ -439,42 +389,47 @@ function BookingsPage() {
 				</div>
 			</div>
 
-			{/* Room Legend */}
+			{/* ════════════════════════════════════════════
+			    ROOM LEGEND — hairline chips with jewel stripes
+			════════════════════════════════════════════ */}
 			<div
-				className="flex flex-wrap items-center gap-2.5"
+				className="flex flex-wrap items-center gap-3"
 				style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 300ms both" }}
 			>
-				<span className="text-[0.7rem] font-medium tracking-[0.04em] text-[#5a7e79] uppercase">
+				<span className="eyebrow">
 					{filteredRooms.length} room{filteredRooms.length !== 1 ? "s" : ""}
 				</span>
+				<div aria-hidden className="h-3 w-px bg-[var(--hairline)]" />
 				{filteredRooms.map((room) => {
 					const a = ROOM_ACCENTS[room.id];
 					return (
 						<div
 							key={room.id}
-							className="flex items-center gap-2 rounded-full border px-3 py-1 text-[0.7rem] backdrop-blur-sm"
-							style={{
-								borderColor: `${a.stripe}33`,
-								background: `linear-gradient(135deg, ${a.stripe}14 0%, rgba(7,19,22,0.4) 100%)`,
-							}}
+							className="group relative flex items-center gap-3 border border-[var(--hairline)] bg-[var(--surface-01)] px-3 py-1.5 transition-colors hover:border-[var(--hairline-strong)]"
 						>
+							{/* Inset left stripe */}
 							<span
-								className="size-1.5 rounded-full"
-								style={{ background: a.dot, boxShadow: `0 0 8px ${a.glow}` }}
+								aria-hidden
+								className="absolute left-0 top-0 bottom-0 w-[2px]"
+								style={{ background: a.stripe }}
 							/>
-							<span className="font-semibold text-[#e8dfd4]">{room.title}</span>
-							<span className="text-[#6a9590]">
-								{room.capacity}p · {room.location}
-							</span>
+							<div className="ml-1 flex items-baseline gap-2">
+								<span className="text-[0.76rem] font-medium text-[var(--bone)]">{room.title}</span>
+								<span className="tabular-num text-[0.62rem] text-[var(--bone-dim)]">
+									{room.capacity}p &middot; {room.location}
+								</span>
+							</div>
 						</div>
 					);
 				})}
 			</div>
 
-			{/* Calendar */}
+			{/* ════════════════════════════════════════════
+			    CALENDAR — hairline frame, no rounded card
+			════════════════════════════════════════════ */}
 			<div
-				className="fc-dark-theme rounded-2xl border border-[rgba(141,229,219,0.08)] bg-[rgba(12,27,31,0.5)] p-1 backdrop-blur-sm"
-				style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 350ms both" }}
+				className="fc-dark-theme border-y border-[var(--hairline)] py-2"
+				style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
 			>
 				<FullCalendar
 					ref={calendarRef}
@@ -508,38 +463,30 @@ function BookingsPage() {
 						hour12: false,
 					}}
 					views={{
-						dayGridMonth: {
-							dayHeaderFormat: { weekday: "short" },
-						},
-						timeGridWeek: {
-							dayHeaderFormat: { weekday: "short", day: "numeric" },
-						},
-						multiMonthYear: {
-							multiMonthMaxColumns: 3,
-							multiMonthMinWidth: 200,
-						},
+						dayGridMonth: { dayHeaderFormat: { weekday: "short" } },
+						timeGridWeek: { dayHeaderFormat: { weekday: "short", day: "numeric" } },
+						multiMonthYear: { multiMonthMaxColumns: 3, multiMonthMinWidth: 200 },
 					}}
 					multiMonthMaxColumns={3}
 					multiMonthMinWidth={200}
 					resourceLabelContent={(arg) => {
 						const accent = (arg.resource.extendedProps as { accent?: RoomAccent }).accent;
 						return (
-							<div className="flex items-center gap-2.5 py-1">
+							<div className="flex items-center gap-3 py-2">
 								{accent && (
 									<span
-										className="block h-7 w-[3px] rounded-full"
-										style={{
-											background: `linear-gradient(180deg, ${accent.stripe}, ${accent.dot})`,
-											boxShadow: `0 0 10px ${accent.glow}`,
-										}}
+										aria-hidden
+										className="block h-8 w-[2px]"
+										style={{ background: accent.stripe }}
 									/>
 								)}
 								<div className="flex flex-col gap-0.5 text-left">
-									<span className="text-[0.82rem] font-semibold text-[#e8dfd4]">
+									<span className="text-[0.82rem] font-medium tracking-[0.02em] text-[var(--bone)]">
 										{arg.resource.title}
 									</span>
-									<span className="text-[0.65rem] text-[#5a7e79]">
-										{arg.resource.extendedProps.location} · {arg.resource.extendedProps.capacity}p
+									<span className="tabular-num text-[0.6rem] text-[var(--bone-dim)]">
+										{arg.resource.extendedProps.location} &middot;{" "}
+										{arg.resource.extendedProps.capacity}p
 									</span>
 								</div>
 							</div>
@@ -547,10 +494,10 @@ function BookingsPage() {
 					}}
 					eventContent={(arg) => (
 						<div className="flex h-full flex-col justify-center overflow-hidden px-2 py-1">
-							<span className="truncate text-[0.74rem] leading-tight font-semibold text-[#e8dfd4]">
+							<span className="truncate text-[0.74rem] leading-tight font-medium text-[var(--bone)]">
 								{arg.event.title}
 							</span>
-							<span className="truncate text-[0.65rem] leading-tight text-[rgba(232,223,212,0.55)]">
+							<span className="tabular-num truncate text-[0.6rem] leading-tight text-[var(--bone-dim)]">
 								{arg.timeText}
 							</span>
 						</div>
@@ -563,7 +510,6 @@ function BookingsPage() {
 						info.el.style.setProperty("--accent-stripe", accent.stripe);
 						info.el.style.setProperty("--accent-wash", accent.wash);
 						info.el.style.setProperty("--accent-wash-hover", accent.washHover);
-						info.el.style.setProperty("--accent-glow", accent.glow);
 					}}
 					datesSet={handleDatesSet}
 					select={handleSelect}
@@ -601,46 +547,34 @@ function BookingsPage() {
 	);
 }
 
-// ── Sub-components ──
+// ════════════════════════════════════════════
+// SUB-COMPONENTS
+// ════════════════════════════════════════════
 
-function Stat({
+function EditorialStat({
 	label,
 	value,
 	accent,
-	icon,
-	pulse,
 }: {
 	label: string;
 	value: number | string;
-	accent: string;
-	icon: React.ReactNode;
-	pulse?: boolean;
+	accent?: "signal";
 }) {
 	return (
-		<div className="flex items-center gap-2">
-			<span
-				className="flex size-7 items-center justify-center rounded-md"
-				style={{
-					background: `linear-gradient(135deg, ${accent}26 0%, ${accent}10 100%)`,
-					boxShadow: `inset 0 0 0 1px ${accent}38`,
-					color: accent,
-				}}
-			>
-				{icon}
-			</span>
-			<div className="flex items-baseline gap-1.5 leading-tight">
-				<span className="text-[0.95rem] font-semibold text-[#e8dfd4] tabular-nums">{value}</span>
-				<span className="text-[0.62rem] font-semibold tracking-[0.1em] text-[#5a7e79] uppercase">
-					{label}
+		<div className="flex flex-col gap-2 py-2 pl-0 pr-4 first:pl-0 sm:pl-5 sm:first:pl-0">
+			<span className="eyebrow">{label}</span>
+			<div className="flex items-baseline gap-2">
+				<span
+					className={`tabular-num text-[1.9rem] leading-none font-normal ${
+						accent === "signal" ? "text-[var(--signal)]" : "text-[var(--bone)]"
+					}`}
+				>
+					{value}
 				</span>
-				{pulse && (
+				{accent === "signal" && (
 					<span
-						className="size-1.5 rounded-full"
-						style={{
-							background: accent,
-							boxShadow: `0 0 8px ${accent}`,
-							animation: "glow-pulse 2.4s ease-in-out infinite",
-						}}
+						className="size-1.5 rounded-full bg-[var(--signal)]"
+						style={{ animation: "signal-pulse 2.4s ease-in-out infinite" }}
 					/>
 				)}
 			</div>
@@ -649,46 +583,26 @@ function Stat({
 }
 
 function FilterGroup({
-	icon: Icon,
 	label,
-	accent,
 	children,
 }: {
-	icon: typeof Users;
 	label: string;
-	accent: string;
 	children: React.ReactNode;
 }) {
 	return (
-		<div>
-			<div className="mb-3 flex items-center gap-2">
-				<span
-					className="flex size-6 items-center justify-center rounded-md"
-					style={{
-						background: `${accent}1c`,
-						boxShadow: `inset 0 0 0 1px ${accent}38`,
-						color: accent,
-					}}
-				>
-					<Icon className="size-3.5" strokeWidth={1.8} />
-				</span>
-				<span className="text-[0.7rem] font-semibold tracking-[0.08em] text-[#7da39d] uppercase">
-					{label}
-				</span>
-			</div>
-			<div className="flex flex-wrap gap-1.5">{children}</div>
+		<div className="border-t border-[var(--hairline)] pt-6 first:border-t-0 first:pt-0">
+			<p className="eyebrow mb-4">{label}</p>
+			<div className="flex flex-wrap gap-2">{children}</div>
 		</div>
 	);
 }
 
 function Chip({
 	active,
-	accent,
 	onClick,
 	children,
 }: {
 	active: boolean;
-	accent: string;
 	onClick: () => void;
 	children: React.ReactNode;
 }) {
@@ -696,28 +610,11 @@ function Chip({
 		<button
 			type="button"
 			onClick={onClick}
-			className="cursor-pointer rounded-md px-2.5 py-1 text-[0.72rem] font-medium transition-all"
-			style={
+			className={`cursor-pointer border px-3 py-1.5 text-[0.72rem] font-medium transition-all ${
 				active
-					? {
-							background: `linear-gradient(135deg, ${accent}28, ${accent}14)`,
-							boxShadow: `inset 0 0 0 1px ${accent}55, 0 4px 14px ${accent}1f`,
-							color: accent,
-						}
-					: {
-							color: "#6a9590",
-						}
-			}
-			onMouseEnter={(e) => {
-				if (active) return;
-				e.currentTarget.style.background = `${accent}10`;
-				e.currentTarget.style.color = "#e8dfd4";
-			}}
-			onMouseLeave={(e) => {
-				if (active) return;
-				e.currentTarget.style.background = "transparent";
-				e.currentTarget.style.color = "#6a9590";
-			}}
+					? "border-[var(--bone)] bg-[var(--bone)] text-black"
+					: "border-[var(--hairline)] text-[var(--bone-muted)] hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
+			}`}
 		>
 			{children}
 		</button>
@@ -759,37 +656,20 @@ function FilterDrawer({
 				type="button"
 				onClick={onClose}
 				aria-label="Close filters"
-				className="fixed inset-0 z-[60] cursor-default bg-[rgba(7,19,22,0.55)] backdrop-blur-[2px]"
+				className="fixed inset-0 z-[60] cursor-default bg-black/80 backdrop-blur-[2px]"
 				style={{ animation: "fade-in 200ms ease both" }}
 			/>
 
 			{/* Drawer */}
 			<aside
-				className="fixed top-0 right-0 z-[70] flex h-dvh w-full max-w-[380px] flex-col border-l border-[rgba(141,229,219,0.1)] bg-[rgba(10,20,24,0.96)] shadow-[-30px_0_60px_rgba(0,0,0,0.4)] backdrop-blur-xl"
+				className="fixed top-0 right-0 z-[70] flex h-dvh w-full max-w-[400px] flex-col border-l border-[var(--hairline)] bg-[var(--surface-01)]"
 				style={{ animation: "slide-in-right 350ms cubic-bezier(0.16,1,0.3,1) both" }}
 			>
-				{/* Drawer aurora glow */}
-				<div
-					aria-hidden
-					className="pointer-events-none absolute -top-24 -right-16 size-[280px] rounded-full opacity-40"
-					style={{ background: "radial-gradient(circle, rgba(192,132,252,0.18) 0%, transparent 65%)" }}
-				/>
-				<div
-					aria-hidden
-					className="pointer-events-none absolute -bottom-24 -left-16 size-[260px] rounded-full opacity-40"
-					style={{ background: "radial-gradient(circle, rgba(94,234,212,0.16) 0%, transparent 65%)" }}
-				/>
-
 				{/* Header */}
-				<div className="relative z-10 flex items-start justify-between border-b border-[rgba(141,229,219,0.08)] px-6 py-5">
+				<div className="flex items-start justify-between border-b border-[var(--hairline)] px-8 py-7">
 					<div>
-						<span
-							className="bg-clip-text text-[0.66rem] font-bold tracking-[0.18em] text-transparent uppercase"
-							style={{ backgroundImage: "linear-gradient(90deg, #5eead4 0%, #c084fc 100%)" }}
-						>
-							Refine
-						</span>
-						<h3 className="mt-1 font-['Fraunces'] text-[1.5rem] font-normal italic text-[#e8dfd4]">
+						<p className="eyebrow eyebrow-gold">Refine</p>
+						<h3 className="mt-2 display-italic text-[1.7rem] leading-none text-[var(--bone)]">
 							Filters
 						</h3>
 					</div>
@@ -797,21 +677,20 @@ function FilterDrawer({
 						type="button"
 						onClick={onClose}
 						aria-label="Close"
-						className="flex size-8 cursor-pointer items-center justify-center rounded-lg text-[#6a9590] transition-all hover:bg-[rgba(94,234,212,0.08)] hover:text-[#8de5db]"
+						className="flex size-8 cursor-pointer items-center justify-center border border-transparent text-[var(--bone-dim)] transition-all hover:border-[var(--hairline)] hover:text-[var(--bone)]"
 					>
-						<X className="size-4" />
+						<X className="size-4" strokeWidth={1.4} />
 					</button>
 				</div>
 
 				{/* Body */}
-				<div className="relative z-10 flex-1 overflow-y-auto px-6 py-6">
-					<div className="space-y-7">
-						<FilterGroup icon={Users} label="Min. Capacity" accent={FILTER_THEMES.capacity}>
+				<div className="flex-1 overflow-y-auto px-8 py-8">
+					<div className="space-y-6">
+						<FilterGroup label="Minimum Capacity">
 							{[0, 4, 6, 8, 12, 20].map((n) => (
 								<Chip
 									key={n}
 									active={capacityFilter === n}
-									accent={FILTER_THEMES.capacity}
 									onClick={() => setCapacityFilter(n)}
 								>
 									{n === 0 ? "Any" : `${n}+`}
@@ -819,12 +698,11 @@ function FilterDrawer({
 							))}
 						</FilterGroup>
 
-						<FilterGroup icon={Monitor} label="Equipment" accent={FILTER_THEMES.equipment}>
+						<FilterGroup label="Equipment">
 							{ALL_EQUIPMENT.map((eq) => (
 								<Chip
 									key={eq}
 									active={equipmentFilter.includes(eq)}
-									accent={FILTER_THEMES.equipment}
 									onClick={() => toggleEquipment(eq)}
 								>
 									{eq}
@@ -832,12 +710,11 @@ function FilterDrawer({
 							))}
 						</FilterGroup>
 
-						<FilterGroup icon={MapPin} label="Location" accent={FILTER_THEMES.location}>
+						<FilterGroup label="Location">
 							{ALL_LOCATIONS.map((loc) => (
 								<Chip
 									key={loc}
 									active={locationFilter.includes(loc)}
-									accent={FILTER_THEMES.location}
 									onClick={() => toggleLocation(loc)}
 								>
 									{loc}
@@ -848,22 +725,26 @@ function FilterDrawer({
 				</div>
 
 				{/* Footer */}
-				<div className="relative z-10 flex items-center gap-3 border-t border-[rgba(141,229,219,0.08)] px-6 py-4">
+				<div className="flex items-center gap-3 border-t border-[var(--hairline)] px-8 py-5">
 					<button
 						type="button"
 						onClick={clearFilters}
 						disabled={!hasActiveFilters}
-						className="cursor-pointer rounded-lg px-4 py-2 text-[0.72rem] font-semibold tracking-[0.06em] uppercase text-[#6a9590] transition-all hover:bg-[rgba(94,234,212,0.06)] hover:text-[#8de5db] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-[#6a9590]"
+						className="cursor-pointer px-3 py-2 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-[var(--bone-dim)] transition-colors hover:text-[var(--bone)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-[var(--bone-dim)]"
 					>
 						Reset
 					</button>
-					<Button
+					<button
+						type="button"
 						onClick={onClose}
-						className="flex-1 cursor-pointer text-[0.78rem] font-semibold tracking-[0.04em] uppercase text-[#0a1418] shadow-[0_8px_24px_rgba(94,234,212,0.25)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(94,234,212,0.35)]"
-						style={{ background: "linear-gradient(135deg, #5eead4 0%, #2dd4bf 50%, #0d9488 100%)" }}
+						className="group flex flex-1 cursor-pointer items-center justify-center gap-2 border border-[var(--bone)] bg-[var(--bone)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-black transition-all hover:bg-white hover:tracking-[0.32em]"
 					>
-						Show {roomsShown} of {totalRooms} rooms
-					</Button>
+						<span>Show</span>
+						<span className="tabular-num tracking-normal">
+							{roomsShown} / {totalRooms}
+						</span>
+						<span>rooms</span>
+					</button>
 				</div>
 			</aside>
 		</>
