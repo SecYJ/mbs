@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 @plugin '@tailwindcss/typography';
 
@@ -63,58 +63,89 @@
 }
 
 .dark {
-	--sea-ink: #d7ece8;
-	--sea-ink-soft: #afcdc8;
-	--lagoon: #60d7cf;
-	--lagoon-deep: #8de5db;
-	--palm: #6ec89a;
-	--sand: #0f1a1e;
-	--foam: #101d22;
-	--surface: rgba(16, 30, 34, 0.8);
-	--surface-strong: rgba(15, 27, 31, 0.92);
-	--line: rgba(141, 229, 219, 0.18);
-	--inset-glint: rgba(194, 247, 238, 0.14);
-	--kicker: #b8efe5;
-	--bg-base: #0a1418;
-	--header-bg: rgba(10, 20, 24, 0.8);
-	--chip-bg: rgba(13, 28, 32, 0.9);
-	--chip-line: rgba(141, 229, 219, 0.24);
-	--link-bg-hover: rgba(24, 44, 49, 0.8);
-	--hero-a: rgba(96, 215, 207, 0.18);
-	--hero-b: rgba(110, 200, 154, 0.12);
+	/* ── Obsidian Editorial palette ── */
+	--canvas: #000000;
+	--surface-01: #0a0a0a;
+	--surface-02: #121212;
+	--surface-03: #1a1a1a;
+	--hairline: rgba(255, 255, 255, 0.08);
+	--hairline-strong: rgba(255, 255, 255, 0.16);
+	--hairline-bold: rgba(255, 255, 255, 0.24);
 
-	--background: oklch(0.141 0.005 285.823);
-	--foreground: oklch(0.985 0 0);
-	--card: oklch(0.141 0.005 285.823);
-	--card-foreground: oklch(0.985 0 0);
-	--popover: oklch(0.141 0.005 285.823);
-	--popover-foreground: oklch(0.985 0 0);
-	--primary: oklch(0.985 0 0);
-	--primary-foreground: oklch(0.21 0.006 285.885);
-	--secondary: oklch(0.274 0.006 286.033);
-	--secondary-foreground: oklch(0.985 0 0);
-	--muted: oklch(0.274 0.006 286.033);
-	--muted-foreground: oklch(0.705 0.015 286.067);
-	--accent: oklch(0.274 0.006 286.033);
-	--accent-foreground: oklch(0.985 0 0);
-	--destructive: oklch(0.396 0.141 25.723);
-	--destructive-foreground: oklch(0.637 0.237 25.331);
-	--border: oklch(0.274 0.006 286.033);
-	--input: oklch(0.274 0.006 286.033);
-	--ring: oklch(0.442 0.017 285.786);
-	--chart-1: oklch(0.488 0.243 264.376);
-	--chart-2: oklch(0.696 0.17 162.48);
-	--chart-3: oklch(0.769 0.188 70.08);
-	--chart-4: oklch(0.627 0.265 303.9);
-	--chart-5: oklch(0.645 0.246 16.439);
-	--sidebar: oklch(0.21 0.006 285.885);
-	--sidebar-foreground: oklch(0.985 0 0);
-	--sidebar-primary: oklch(0.488 0.243 264.376);
-	--sidebar-primary-foreground: oklch(0.985 0 0);
-	--sidebar-accent: oklch(0.274 0.006 286.033);
-	--sidebar-accent-foreground: oklch(0.985 0 0);
-	--sidebar-border: oklch(0.274 0.006 286.033);
-	--sidebar-ring: oklch(0.442 0.017 285.786);
+	--bone: #f0ebe0;
+	--bone-muted: #a6a29a;
+	--bone-dim: #6f6f6b;
+	--bone-faint: #3a3a38;
+
+	--gold: #dcc4a0;
+	--gold-soft: #b79e7a;
+	--gold-wash: rgba(220, 196, 160, 0.08);
+	--gold-wash-strong: rgba(220, 196, 160, 0.14);
+
+	--signal: #d7ff3d;
+	--signal-glow: rgba(215, 255, 61, 0.45);
+
+	/* Room accents — jewel tones on #000 */
+	--room-aurora: #e8c29a;
+	--room-horizon: #b66a4a;
+	--room-nimbus: #7a8fa8;
+	--room-summit: #6a8a6e;
+	--room-cascade: #8a6a8a;
+
+	/* Legacy tokens (kept aliased so other routes don't break) */
+	--sea-ink: var(--bone);
+	--sea-ink-soft: var(--bone-muted);
+	--lagoon: var(--gold);
+	--lagoon-deep: var(--gold-soft);
+	--palm: var(--gold-soft);
+	--sand: var(--canvas);
+	--foam: var(--surface-01);
+	--surface: rgba(10, 10, 10, 0.82);
+	--surface-strong: rgba(10, 10, 10, 0.94);
+	--line: var(--hairline);
+	--inset-glint: rgba(255, 255, 255, 0.04);
+	--kicker: var(--gold);
+	--bg-base: var(--canvas);
+	--header-bg: rgba(0, 0, 0, 0.78);
+	--chip-bg: var(--surface-01);
+	--chip-line: var(--hairline);
+	--link-bg-hover: var(--surface-02);
+	--hero-a: rgba(220, 196, 160, 0);
+	--hero-b: rgba(220, 196, 160, 0);
+
+	/* shadcn/ui tokens mapped to the obsidian palette */
+	--background: oklch(0 0 0);
+	--foreground: oklch(0.928 0.016 85);
+	--card: oklch(0.03 0 0);
+	--card-foreground: oklch(0.928 0.016 85);
+	--popover: oklch(0.045 0 0);
+	--popover-foreground: oklch(0.928 0.016 85);
+	--primary: oklch(0.928 0.016 85);
+	--primary-foreground: oklch(0 0 0);
+	--secondary: oklch(0.08 0 0);
+	--secondary-foreground: oklch(0.928 0.016 85);
+	--muted: oklch(0.06 0 0);
+	--muted-foreground: oklch(0.665 0.006 85);
+	--accent: oklch(0.08 0 0);
+	--accent-foreground: oklch(0.928 0.016 85);
+	--destructive: oklch(0.55 0.18 30);
+	--destructive-foreground: oklch(0.98 0 0);
+	--border: rgba(255, 255, 255, 0.08);
+	--input: rgba(255, 255, 255, 0.08);
+	--ring: oklch(0.815 0.055 80);
+	--chart-1: oklch(0.815 0.055 80);
+	--chart-2: oklch(0.72 0.055 175);
+	--chart-3: oklch(0.65 0.08 260);
+	--chart-4: oklch(0.72 0.06 135);
+	--chart-5: oklch(0.65 0.08 340);
+	--sidebar: oklch(0.03 0 0);
+	--sidebar-foreground: oklch(0.928 0.016 85);
+	--sidebar-primary: oklch(0.815 0.055 80);
+	--sidebar-primary-foreground: oklch(0 0 0);
+	--sidebar-accent: oklch(0.08 0 0);
+	--sidebar-accent-foreground: oklch(0.928 0.016 85);
+	--sidebar-border: rgba(255, 255, 255, 0.08);
+	--sidebar-ring: oklch(0.815 0.055 80);
 }
 
 @theme inline {
@@ -165,44 +196,52 @@ body,
 
 body {
 	margin: 0;
-	color: var(--sea-ink);
+	color: var(--bone);
 	font-family: var(--font-sans);
-	background-color: var(--bg-base);
-	background:
-		radial-gradient(1100px 620px at -8% -10%, var(--hero-a), transparent 58%),
-		radial-gradient(1050px 620px at 112% -12%, var(--hero-b), transparent 62%),
-		radial-gradient(720px 380px at 50% 115%, rgba(79, 184, 178, 0.1), transparent 68%),
-		linear-gradient(180deg, color-mix(in oklab, var(--sand) 68%, white) 0%, var(--foam) 44%, var(--bg-base) 100%);
+	background: var(--canvas);
 	overflow-x: hidden;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
 
+/* Edge vignette — barely-there inward shadow that makes the canvas feel framed */
 body::before {
 	content: "";
 	position: fixed;
 	inset: 0;
 	pointer-events: none;
 	z-index: -1;
-	opacity: 0.28;
-	background:
-		radial-gradient(circle at 20% 15%, rgba(255, 255, 255, 0.8), transparent 34%),
-		radial-gradient(circle at 78% 26%, rgba(79, 184, 178, 0.2), transparent 42%),
-		radial-gradient(circle at 42% 82%, rgba(47, 106, 74, 0.14), transparent 36%);
+	background: radial-gradient(
+		ellipse at center,
+		transparent 55%,
+		rgba(0, 0, 0, 0.7) 100%
+	);
 }
 
+/* Film grain — very subtle on pure black */
 body::after {
 	content: "";
 	position: fixed;
 	inset: 0;
 	pointer-events: none;
 	z-index: -1;
-	opacity: 0.14;
+	opacity: 0.035;
 	background-image:
-		linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
-		linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
-	background-size: 28px 28px;
-	mask-image: radial-gradient(circle at 50% 30%, black, transparent 78%);
+		repeating-linear-gradient(
+			0deg,
+			rgba(255, 255, 255, 0.6) 0px,
+			rgba(255, 255, 255, 0.6) 1px,
+			transparent 1px,
+			transparent 3px
+		),
+		repeating-linear-gradient(
+			90deg,
+			rgba(255, 255, 255, 0.6) 0px,
+			rgba(255, 255, 255, 0.6) 1px,
+			transparent 1px,
+			transparent 3px
+		);
+	mix-blend-mode: overlay;
 }
 
 a {
@@ -440,72 +479,137 @@ a {
 
 .login-input-underline {
 	border: 0;
-	border-bottom: 1px solid rgba(141, 229, 219, 0.16);
+	border-bottom: 1px solid var(--hairline);
 	border-radius: 0;
 	background: transparent;
-	padding-left: 0.35rem;
-	padding-right: 0.35rem;
+	padding-left: 0.15rem;
+	padding-right: 0.15rem;
 	transition:
-		border-color 300ms ease,
-		box-shadow 300ms ease;
+		border-color 320ms ease,
+		box-shadow 320ms ease;
 }
 
 .login-input-underline:focus {
-	border-color: #60d7cf;
-	box-shadow: 0 4px 16px -4px rgba(96, 215, 207, 0.2);
+	border-color: var(--gold);
+	box-shadow: 0 1px 0 0 var(--gold);
 	outline: none;
 	--tw-ring-shadow: none;
 }
 
-/* ── FullCalendar dark atmospheric theme ── */
-
-.fc-dark-theme {
-	--fc-border-color: rgba(141, 229, 219, 0.08);
-	--fc-page-bg-color: transparent;
-	--fc-neutral-bg-color: rgba(12, 27, 31, 0.4);
-	--fc-list-event-hover-bg-color: rgba(96, 215, 207, 0.06);
-	--fc-today-bg-color: rgba(96, 215, 207, 0.03);
-	--fc-now-indicator-color: #60d7cf;
-	--fc-event-bg-color: rgba(96, 215, 207, 0.12);
-	--fc-event-border-color: rgba(96, 215, 207, 0.25);
-	--fc-event-text-color: #e8dfd4;
-	--fc-non-business-color: rgba(7, 19, 22, 0.3);
-	--fc-highlight-color: rgba(96, 215, 207, 0.08);
-	--fc-small-font-size: 0.75rem;
+.login-input-underline::placeholder {
+	color: var(--bone-faint);
 }
 
-/* Table structure */
+/* ── Editorial utilities ── */
+
+.eyebrow {
+	font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+	font-size: 0.64rem;
+	font-weight: 600;
+	letter-spacing: 0.3em;
+	text-transform: uppercase;
+	color: var(--bone-dim);
+}
+
+.eyebrow-gold {
+	color: var(--gold);
+}
+
+.tabular-num {
+	font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-variant-numeric: tabular-nums;
+	font-feature-settings: "tnum";
+}
+
+.display-italic {
+	font-family: "Fraunces", Georgia, serif;
+	font-style: italic;
+	font-weight: 400;
+}
+
+.hairline-draw-in {
+	animation: hairline-draw 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+	transform-origin: top;
+}
+
+@keyframes hairline-draw {
+	from {
+		transform: scaleY(0);
+		opacity: 0;
+	}
+	to {
+		transform: scaleY(1);
+		opacity: 1;
+	}
+}
+
+@keyframes signal-pulse {
+	0%,
+	100% {
+		opacity: 0.9;
+		box-shadow: 0 0 8px var(--signal-glow);
+	}
+	50% {
+		opacity: 1;
+		box-shadow: 0 0 14px var(--signal-glow);
+	}
+}
+
+/* ── FullCalendar — Obsidian Editorial skin ── */
+
+.fc-dark-theme {
+	--fc-border-color: var(--hairline);
+	--fc-page-bg-color: transparent;
+	--fc-neutral-bg-color: var(--surface-01);
+	--fc-list-event-hover-bg-color: var(--gold-wash);
+	--fc-today-bg-color: rgba(220, 196, 160, 0.03);
+	--fc-now-indicator-color: var(--signal);
+	--fc-event-bg-color: var(--surface-02);
+	--fc-event-border-color: var(--hairline);
+	--fc-event-text-color: var(--bone);
+	--fc-non-business-color: rgba(0, 0, 0, 0.5);
+	--fc-highlight-color: var(--gold-wash);
+	--fc-small-font-size: 0.72rem;
+}
+
 .fc-dark-theme .fc-scrollgrid {
 	border: none;
 }
 
 .fc-dark-theme .fc-scrollgrid td,
 .fc-dark-theme .fc-scrollgrid th {
-	border-color: rgba(141, 229, 219, 0.06);
+	border-color: var(--hairline);
 }
 
 .fc-dark-theme .fc-scrollgrid-sync-inner {
 	padding: 0;
 }
 
-/* Column headers (resource labels) */
+/* Column headers */
 .fc-dark-theme .fc-col-header-cell {
-	background: rgba(12, 27, 31, 0.6);
-	border-color: rgba(141, 229, 219, 0.06);
-	padding: 8px 12px;
+	background: transparent;
+	border-color: var(--hairline);
+	padding: 10px 12px;
 }
 
 .fc-dark-theme .fc-col-header-cell-cushion {
-	color: #e8dfd4;
-	font-size: 0.8rem;
+	color: var(--bone-dim);
+	font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+	font-size: 0.6rem;
 	font-weight: 600;
+	letter-spacing: 0.24em;
+	text-transform: uppercase;
 	padding: 6px 4px;
 	text-decoration: none;
 }
 
+.fc-dark-theme .fc-day-today .fc-col-header-cell-cushion {
+	color: var(--gold);
+}
+
 /* Resource label column */
 .fc-dark-theme .fc-datagrid-cell-frame {
-	padding: 4px 12px;
+	padding: 4px 10px;
 }
 
 .fc-dark-theme .fc-datagrid-cell-cushion {
@@ -513,21 +617,21 @@ a {
 }
 
 .fc-dark-theme .fc-datagrid-header .fc-datagrid-cell-frame {
-	background: rgba(12, 27, 31, 0.6);
+	background: transparent;
 }
 
 .fc-dark-theme .fc-resource-group {
-	background: rgba(12, 27, 31, 0.5);
+	background: transparent;
 }
 
 /* Time slots */
 .fc-dark-theme .fc-timegrid-slot {
 	height: 40px;
-	border-color: rgba(141, 229, 219, 0.04);
+	border-color: var(--hairline);
 }
 
 .fc-dark-theme .fc-timegrid-slot-minor {
-	border-color: rgba(141, 229, 219, 0.02);
+	border-color: rgba(255, 255, 255, 0.03);
 }
 
 .fc-dark-theme .fc-timegrid-slot-label {
@@ -535,63 +639,59 @@ a {
 }
 
 .fc-dark-theme .fc-timegrid-slot-label-cushion {
-	color: #5a7e79;
-	font-size: 0.7rem;
-	font-weight: 500;
-	letter-spacing: 0.04em;
-	padding: 4px 10px 0 0;
+	color: var(--bone-dim);
+	font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+	font-variant-numeric: tabular-nums;
+	font-size: 0.68rem;
+	font-weight: 400;
+	letter-spacing: 0.02em;
+	padding: 4px 12px 0 0;
 }
 
 .fc-dark-theme .fc-timegrid-axis-cushion {
-	color: #5a7e79;
-	font-size: 0.7rem;
+	color: var(--bone-dim);
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 0.64rem;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
 }
 
-/* Now indicator */
+/* Now indicator — signal lime */
 .fc-dark-theme .fc-timegrid-now-indicator-line {
-	border-color: #60d7cf;
-	border-width: 1.5px 0 0 0;
-	box-shadow: 0 0 8px rgba(96, 215, 207, 0.3);
+	border-color: var(--signal);
+	border-width: 1px 0 0 0;
+	box-shadow: 0 0 10px var(--signal-glow);
 }
 
 .fc-dark-theme .fc-timegrid-now-indicator-arrow {
-	border-color: #60d7cf;
+	border-color: var(--signal);
 	border-top-color: transparent;
 	border-bottom-color: transparent;
 }
 
-/* Events — per-event accent driven by CSS variables set in eventDidMount */
+/* Events — 2px left stripe in room accent, warm wash, no glow */
 .fc-dark-theme .fc-timegrid-event {
-	border-radius: 8px;
-	border-left: 3px solid var(--accent-stripe, rgba(96, 215, 207, 0.5));
-	border-top: none;
-	border-right: none;
-	border-bottom: none;
-	background:
-		linear-gradient(135deg, var(--accent-wash, rgba(96, 215, 207, 0.14)) 0%, rgba(7, 19, 22, 0.35) 100%);
-	box-shadow:
-		0 2px 10px rgba(0, 0, 0, 0.2),
-		inset 0 1px 0 rgba(255, 255, 255, 0.04);
+	border-radius: 2px;
+	border: 1px solid transparent;
+	border-left: 2px solid var(--accent-stripe, var(--gold));
+	background: var(--accent-wash, rgba(255, 255, 255, 0.04));
+	box-shadow: none;
 	transition:
-		background 220ms ease,
-		box-shadow 220ms ease,
-		transform 220ms ease;
+		background 200ms ease,
+		border-color 200ms ease;
 	cursor: pointer;
 	overflow: hidden;
 }
 
 .fc-dark-theme .fc-timegrid-event:hover {
-	background:
-		linear-gradient(135deg, var(--accent-wash-hover, rgba(96, 215, 207, 0.22)) 0%, rgba(7, 19, 22, 0.4) 100%);
-	box-shadow:
-		0 6px 18px rgba(0, 0, 0, 0.28),
-		0 0 18px var(--accent-glow, rgba(96, 215, 207, 0.3));
-	transform: translateY(-1px) scale(1.012);
+	background: var(--accent-wash-hover, rgba(255, 255, 255, 0.08));
+	border-color: var(--hairline-strong);
+	border-left-color: var(--accent-stripe, var(--gold));
 }
 
 .fc-dark-theme .fc-timegrid-event .fc-event-main {
 	padding: 0;
-	color: #e8dfd4;
+	color: var(--bone);
 }
 
 .fc-dark-theme .fc-event-time {
@@ -599,73 +699,63 @@ a {
 }
 
 .fc-dark-theme .fc-event-title {
-	font-weight: 600;
+	font-weight: 500;
+	letter-spacing: 0;
 }
 
 /* Selection mirror */
 .fc-dark-theme .fc-highlight {
-	background: rgba(96, 215, 207, 0.08);
-	border: 1px dashed rgba(96, 215, 207, 0.25);
-	border-radius: 6px;
+	background: var(--gold-wash);
+	border: 1px dashed var(--gold-soft);
+	border-radius: 2px;
 }
 
-/* Day-grid (month view) events — accent colors still apply via CSS vars */
+/* Day-grid (month view) */
 .fc-dark-theme .fc-daygrid-day {
-	background: rgba(7, 19, 22, 0.2);
+	background: transparent;
 	transition: background 180ms ease;
 }
 
 .fc-dark-theme .fc-daygrid-day:hover {
-	background: rgba(94, 234, 212, 0.04);
+	background: rgba(255, 255, 255, 0.02);
 }
 
 .fc-dark-theme .fc-day-today {
-	background: rgba(94, 234, 212, 0.05) !important;
+	background: rgba(220, 196, 160, 0.03) !important;
 }
 
 .fc-dark-theme .fc-daygrid-day-number {
-	color: #afcdc8;
-	font-size: 0.78rem;
-	font-weight: 600;
+	color: var(--bone-muted);
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 0.72rem;
+	font-weight: 400;
 	padding: 6px 8px;
 	text-decoration: none;
 }
 
 .fc-dark-theme .fc-day-today .fc-daygrid-day-number {
-	color: #5eead4;
+	color: var(--gold);
 }
 
 .fc-dark-theme .fc-day-other .fc-daygrid-day-number {
-	color: #3e5e58;
+	color: var(--bone-faint);
 }
 
 .fc-dark-theme .fc-daygrid-event {
-	border-radius: 6px;
+	border-radius: 2px;
 	border: none;
-	border-left: 3px solid var(--accent-stripe, rgba(94, 234, 212, 0.5));
-	background: linear-gradient(
-		135deg,
-		var(--accent-wash, rgba(94, 234, 212, 0.14)) 0%,
-		rgba(7, 19, 22, 0.2) 100%
-	);
-	color: #e8dfd4;
+	border-left: 2px solid var(--accent-stripe, var(--gold));
+	background: var(--accent-wash, rgba(255, 255, 255, 0.04));
+	color: var(--bone);
 	margin: 1px 4px;
 	padding: 1px 0;
 	cursor: pointer;
 	transition:
-		background 200ms ease,
-		box-shadow 200ms ease,
-		transform 200ms ease;
+		background 180ms ease;
 }
 
 .fc-dark-theme .fc-daygrid-event:hover {
-	background: linear-gradient(
-		135deg,
-		var(--accent-wash-hover, rgba(94, 234, 212, 0.22)) 0%,
-		rgba(7, 19, 22, 0.25) 100%
-	);
-	box-shadow: 0 0 12px var(--accent-glow, rgba(94, 234, 212, 0.3));
-	transform: translateY(-1px);
+	background: var(--accent-wash-hover, rgba(255, 255, 255, 0.08));
 }
 
 .fc-dark-theme .fc-daygrid-event-dot {
@@ -674,66 +764,65 @@ a {
 
 .fc-dark-theme .fc-daygrid-event .fc-event-time {
 	display: inline;
-	color: rgba(232, 223, 212, 0.55);
-	font-size: 0.65rem;
-	font-weight: 500;
+	color: var(--bone-dim);
+	font-family: "JetBrains Mono", ui-monospace, monospace;
+	font-size: 0.6rem;
+	font-weight: 400;
 	margin-right: 4px;
 }
 
 .fc-dark-theme .fc-daygrid-event .fc-event-title {
-	color: #e8dfd4;
+	color: var(--bone);
 	font-size: 0.68rem;
-	font-weight: 600;
+	font-weight: 500;
 }
 
 .fc-dark-theme .fc-daygrid-more-link {
-	color: #6a9590;
-	font-size: 0.65rem;
+	color: var(--bone-dim);
+	font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+	font-size: 0.6rem;
 	font-weight: 600;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
 	padding: 2px 6px;
 	transition: color 180ms ease;
 }
 
 .fc-dark-theme .fc-daygrid-more-link:hover {
-	color: #5eead4;
+	color: var(--gold);
 	text-decoration: none;
 }
 
-/* Week / day-grid header polish */
-.fc-dark-theme .fc-day-today .fc-col-header-cell-cushion {
-	color: #5eead4;
-}
-
-/* Multi-month (year) view */
+/* Multi-month view */
 .fc-dark-theme .fc-multimonth {
 	border: none;
 	background: transparent;
 }
 
 .fc-dark-theme .fc-multimonth-month {
-	border: 1px solid rgba(141, 229, 219, 0.06);
-	border-radius: 12px;
-	background: rgba(7, 19, 22, 0.4);
+	border: 1px solid var(--hairline);
+	border-radius: 0;
+	background: transparent;
 	margin: 6px;
-	padding: 6px 4px 4px;
+	padding: 8px 6px 4px;
 	width: calc(33.3333% - 12px) !important;
 	box-sizing: border-box;
 }
 
 .fc-dark-theme .fc-multimonth-title {
-	color: #e8dfd4;
+	color: var(--bone);
 	font-family: "Fraunces", Georgia, serif;
-	font-size: 0.95rem;
+	font-size: 1rem;
 	font-style: italic;
-	font-weight: 500;
-	padding: 6px 8px 8px;
+	font-weight: 400;
+	padding: 6px 8px 10px;
 }
 
 .fc-dark-theme .fc-multimonth-header-table .fc-col-header-cell-cushion {
-	color: #5a7e79;
-	font-size: 0.62rem;
+	color: var(--bone-dim);
+	font-size: 0.56rem;
 	font-weight: 600;
-	letter-spacing: 0.06em;
+	letter-spacing: 0.2em;
 	padding: 4px 0;
 	text-transform: uppercase;
 }
@@ -744,27 +833,26 @@ a {
 
 .fc-dark-theme .fc-multimonth-daygrid-table td,
 .fc-dark-theme .fc-multimonth-daygrid-table th {
-	border-color: rgba(141, 229, 219, 0.04);
+	border-color: rgba(255, 255, 255, 0.03);
 }
 
 .fc-dark-theme .fc-multimonth-daygrid .fc-daygrid-day-number {
-	color: #afcdc8;
-	font-size: 0.7rem;
-	font-weight: 500;
+	color: var(--bone-muted);
+	font-size: 0.68rem;
 	padding: 2px 4px;
 }
 
 .fc-dark-theme .fc-multimonth-daygrid .fc-day-today {
-	background: rgba(94, 234, 212, 0.08) !important;
+	background: var(--gold-wash) !important;
 }
 
 .fc-dark-theme .fc-multimonth-daygrid .fc-day-today .fc-daygrid-day-number {
-	color: #5eead4;
-	font-weight: 700;
+	color: var(--gold);
+	font-weight: 600;
 }
 
 .fc-dark-theme .fc-multimonth-daygrid .fc-day-other .fc-daygrid-day-number {
-	color: #3e5e58;
+	color: var(--bone-faint);
 }
 
 /* Scrollbar */
@@ -778,17 +866,16 @@ a {
 }
 
 .fc-dark-theme .fc-scroller::-webkit-scrollbar-thumb {
-	background: rgba(141, 229, 219, 0.1);
+	background: rgba(255, 255, 255, 0.08);
 	border-radius: 3px;
 }
 
 .fc-dark-theme .fc-scroller::-webkit-scrollbar-thumb:hover {
-	background: rgba(141, 229, 219, 0.18);
+	background: rgba(255, 255, 255, 0.16);
 }
 
-/* Remove default FullCalendar license message styling clutter */
 .fc-dark-theme .fc-license-message {
-	color: #3e5e58;
-	font-size: 0.65rem;
-	opacity: 0.5;
+	color: var(--bone-faint);
+	font-size: 0.6rem;
+	opacity: 0.4;
 }
