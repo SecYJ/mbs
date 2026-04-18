@@ -1,0 +1,436 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&display=swap");
+
+/* ── Admin shell — deep blue-purple ink base ── */
+
+.admin-shell {
+    /* ── Background layers: each step clearly distinguishable ── */
+    --a-bg: #0f1117;
+    --a-surface-0: #181c28;
+    --a-surface-1: #1f2435;
+    --a-surface-2: #282e42;
+    --a-surface-3: #323a52;
+
+    /* ── Text: high-contrast primary, readable secondary ── */
+    --a-text: #f1f3f8;
+    --a-text-secondary: #959db6;
+    --a-text-muted: #5e6784;
+
+    /* ── Accent: indigo ── */
+    --a-accent: #6366f1;
+    --a-accent-hover: #818cf8;
+    --a-accent-subtle: rgba(99, 102, 241, 0.12);
+    --a-accent-border: rgba(99, 102, 241, 0.3);
+
+    /* ── Borders: visible but not heavy ── */
+    --a-border: rgba(150, 160, 190, 0.14);
+    --a-border-hover: rgba(150, 160, 190, 0.26);
+
+    /* ── Semantic colors ── */
+    --a-success: #34d399;
+    --a-success-subtle: rgba(52, 211, 153, 0.12);
+    --a-danger: #d4544a;
+    --a-danger-subtle: rgba(212, 84, 74, 0.12);
+    --a-info: #60a5fa;
+    --a-info-subtle: rgba(96, 165, 250, 0.12);
+
+    /* ── Equipment badge palette ── */
+    --a-eq-blue: #7cb8ff;
+    --a-eq-blue-bg: rgba(96, 165, 250, 0.13);
+    --a-eq-blue-border: rgba(96, 165, 250, 0.28);
+    --a-eq-violet: #b4a0ff;
+    --a-eq-violet-bg: rgba(167, 139, 250, 0.13);
+    --a-eq-violet-border: rgba(167, 139, 250, 0.28);
+    --a-eq-emerald: #5ee8b0;
+    --a-eq-emerald-bg: rgba(52, 211, 153, 0.13);
+    --a-eq-emerald-border: rgba(52, 211, 153, 0.28);
+    --a-eq-cyan: #4ee4f5;
+    --a-eq-cyan-bg: rgba(34, 211, 238, 0.13);
+    --a-eq-cyan-border: rgba(34, 211, 238, 0.28);
+    --a-eq-rose: #ffa0af;
+    --a-eq-rose-bg: rgba(251, 113, 133, 0.13);
+    --a-eq-rose-border: rgba(251, 113, 133, 0.28);
+
+    font-family: "Inter Tight", "Manrope", system-ui, sans-serif;
+    background: var(--a-bg);
+    color: var(--a-text);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* ── Sidebar collapse ── */
+
+.admin-sidebar {
+    width: 240px;
+    transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.admin-sidebar[data-collapsed] {
+    width: 72px;
+}
+
+.admin-sidebar-label {
+    opacity: 1;
+    transition: opacity 200ms ease;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.admin-sidebar[data-collapsed] .admin-sidebar-label {
+    opacity: 0;
+    pointer-events: none;
+    width: 0;
+}
+
+.admin-main {
+    margin-left: 240px;
+    transition: margin-left 250ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-main[data-collapsed] {
+    margin-left: 72px;
+}
+
+/* ── Scrollbar ── */
+
+.admin-shell ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.admin-shell ::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.admin-shell ::-webkit-scrollbar-thumb {
+    background: rgba(124, 132, 152, 0.18);
+    border-radius: 3px;
+}
+
+.admin-shell ::-webkit-scrollbar-thumb:hover {
+    background: rgba(124, 132, 152, 0.32);
+}
+
+/* ── Sidebar nav item ── */
+
+.admin-nav-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--a-text-secondary);
+    text-decoration: none;
+    transition:
+        color 150ms ease,
+        background-color 150ms ease,
+        justify-content 250ms ease;
+}
+
+.admin-sidebar[data-collapsed] .admin-nav-item {
+    justify-content: center;
+    padding: 0.5rem;
+}
+
+.admin-nav-item::before {
+    content: "";
+    position: absolute;
+    left: -0.125rem;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 1.125rem;
+    border-radius: 2px;
+    background: var(--a-accent);
+    transition:
+        transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+        opacity 150ms ease;
+    opacity: 0;
+}
+
+.admin-nav-item:hover {
+    color: var(--a-text);
+    background: var(--a-surface-2);
+}
+
+.admin-nav-item[data-status="active"] {
+    color: var(--a-accent);
+    background: var(--a-accent-subtle);
+    font-weight: 600;
+}
+
+.admin-nav-item[data-status="active"] svg {
+    color: var(--a-accent);
+}
+
+.admin-nav-item[data-status="active"]::before {
+    transform: translateY(-50%) scaleY(1);
+    opacity: 1;
+}
+
+/* ── Status toggle ── */
+
+.admin-toggle {
+    position: relative;
+    width: 2.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    border: 0;
+    cursor: pointer;
+    transition: background-color 200ms ease;
+    background: var(--a-surface-3);
+    flex-shrink: 0;
+}
+
+.admin-toggle[data-state="on"] {
+    background: var(--a-success);
+}
+
+.admin-toggle::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background: #fff;
+    transition:
+        transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 200ms ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.admin-toggle[data-state="on"]::after {
+    transform: translateX(1rem);
+}
+
+/* ── Toast ── */
+
+@keyframes admin-toast-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes admin-toast-out {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
+    }
+}
+
+.admin-toast {
+    animation: admin-toast-in 280ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.admin-toast[data-leaving="true"] {
+    animation: admin-toast-out 200ms ease both;
+}
+
+/* ── Table ── */
+
+.admin-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.8125rem;
+}
+
+.admin-table th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.6875rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--a-text-muted);
+    padding: 0.75rem 0.75rem;
+    border-bottom: 1px solid var(--a-border-hover);
+    white-space: nowrap;
+    user-select: none;
+    background: var(--a-surface-1);
+}
+
+.admin-table th[data-sortable] {
+    cursor: pointer;
+    transition: color 150ms ease;
+}
+
+.admin-table th[data-sortable]:hover {
+    color: var(--a-accent);
+}
+
+.admin-table td {
+    padding: 0.6875rem 0.75rem;
+    border-bottom: 1px solid var(--a-border);
+    vertical-align: middle;
+}
+
+.admin-table tr {
+    transition: background-color 120ms ease;
+}
+
+.admin-table tbody tr:nth-child(even) {
+    background: rgba(150, 160, 190, 0.03);
+}
+
+.admin-table tbody tr:hover {
+    background: var(--a-surface-2);
+}
+
+.admin-table tbody tr[data-disabled] {
+    opacity: 0.45;
+}
+
+.admin-table tbody tr[data-disabled]:hover {
+    opacity: 0.55;
+}
+
+/* ── Number formatting ── */
+
+.tabular-nums {
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── Inline confirm ── */
+
+@keyframes admin-confirm-in {
+    from {
+        opacity: 0;
+        transform: scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.admin-confirm {
+    animation: admin-confirm-in 180ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Subtle gradient accent for stat cards ── */
+
+.admin-stat-card {
+    background: linear-gradient(135deg, var(--a-surface-1) 0%, var(--a-surface-2) 100%);
+    border: 1px solid var(--a-border);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    transition:
+        border-color 150ms ease,
+        transform 150ms ease;
+}
+
+.admin-stat-card:hover {
+    border-color: var(--a-border-hover);
+    transform: translateY(-1px);
+}
+
+/* ── Badge ── */
+
+.admin-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    line-height: 1.5;
+}
+
+/* ── Rule card ── */
+
+.admin-rule-card {
+    background: var(--a-surface-1);
+    border: 1px solid var(--a-border);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    transition: border-color 150ms ease;
+}
+
+.admin-rule-card:hover {
+    border-color: var(--a-border-hover);
+}
+
+/* ── Admin input ── */
+
+.admin-input {
+    height: 2.25rem;
+    background: var(--a-bg);
+    border: 1px solid var(--a-border-hover);
+    border-radius: 0.5rem;
+    padding: 0 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--a-text);
+    outline: none;
+    transition:
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+    font-family: inherit;
+}
+
+.admin-input::placeholder {
+    color: var(--a-text-muted);
+}
+
+.admin-input:focus {
+    border-color: var(--a-accent-border);
+    box-shadow: 0 0 0 3px var(--a-accent-subtle);
+}
+
+/* ── Admin select ── */
+
+.admin-select {
+    height: 2.25rem;
+    background: var(--a-bg);
+    border: 1px solid var(--a-border-hover);
+    border-radius: 0.5rem;
+    padding: 0 2rem 0 0.75rem;
+    font-size: 0.8125rem;
+    color: var(--a-text);
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23959db6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    cursor: pointer;
+    font-family: inherit;
+    transition:
+        border-color 150ms ease,
+        box-shadow 150ms ease;
+}
+
+.admin-select:focus {
+    border-color: var(--a-accent-border);
+    box-shadow: 0 0 0 3px var(--a-accent-subtle);
+}
+
+/* ── Expandable row detail ── */
+
+@keyframes admin-expand {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 500px;
+    }
+}
+
+.admin-expand-row {
+    animation: admin-expand 250ms ease both;
+    overflow: hidden;
+}
