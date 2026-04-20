@@ -15,6 +15,20 @@
       "when": 1775996869782,
       "tag": "0001_shocking_lady_mastermind",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776495918508,
+      "tag": "0002_mature_hobgoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1776496393302,
+      "tag": "0003_sweet_dust",
+      "breakpoints": true
     }
   ]
 }

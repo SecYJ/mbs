@@ -9,7 +9,7 @@ export const users = pgTable("users", {
     title: text(),
     role: text().notNull(),
     active: boolean().default(true).notNull(),
-    avatarUrl: text(),
+    avatarUrl: text("avatar_url"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
