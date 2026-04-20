@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AppRouteImport } from './routes/_app'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -19,8 +20,6 @@ import { Route as AdminRulesRouteImport } from './routes/admin/rules'
 import { Route as AdminRoomsRouteImport } from './routes/admin/rooms'
 import { Route as AdminEquipmentRouteImport } from './routes/admin/equipment'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
-import { Route as AppRouteImport } from './routes/_app'
-import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
@@ -37,6 +36,8 @@ const LoginRoute = LoginRouteImport.update({
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
@@ -75,6 +76,7 @@ const AdminBookingsRoute = AdminBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
   getParentRoute: () => AdminRoute,
+} as any)
 const AppBookingsRoute = AppBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -90,44 +92,43 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/bookings': typeof AppBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
-  '/register': typeof RegisterRoute
-  '/bookings': typeof AppBookingsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/bookings': typeof AppBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
-  '/register': typeof RegisterRoute
-  '/bookings': typeof AppBookingsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/_app/bookings': typeof AppBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/rules': typeof AdminRulesRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
-  '/_app': typeof AppRouteWithChildren
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
-  '/_app/bookings': typeof AppBookingsRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -136,6 +137,8 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/login'
+    | '/register'
+    | '/bookings'
     | '/admin/bookings'
     | '/admin/equipment'
     | '/admin/rooms'
@@ -147,6 +150,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/register'
+    | '/bookings'
     | '/admin/bookings'
     | '/admin/equipment'
     | '/admin/rooms'
@@ -157,31 +162,24 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/_app'
     | '/admin'
     | '/login'
+    | '/register'
+    | '/_app/bookings'
     | '/admin/bookings'
     | '/admin/equipment'
     | '/admin/rooms'
     | '/admin/rules'
     | '/admin/users'
     | '/admin/'
-  fullPaths: '/' | '/login' | '/register' | '/bookings' | '/api/auth/$'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/login' | '/register' | '/bookings' | '/api/auth/$'
-  id:
-    | '__root__'
-    | '/'
-    | '/_app'
-    | '/login'
-    | '/register'
-    | '/_app/bookings'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
   AppRoute: typeof AppRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -208,6 +206,8 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_app': {
       id: '/_app'
       path: ''
@@ -263,6 +263,7 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/bookings'
       preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof AdminRoute
+    }
     '/_app/bookings': {
       id: '/_app/bookings'
       path: '/bookings'
@@ -279,6 +280,16 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AppRouteChildren {
+  AppBookingsRoute: typeof AppBookingsRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppBookingsRoute: AppBookingsRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface AdminRouteChildren {
   AdminBookingsRoute: typeof AdminBookingsRoute
@@ -302,20 +313,8 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
-interface AppRouteChildren {
-  AppBookingsRoute: typeof AppBookingsRoute
-}
-
-const AppRouteChildren: AppRouteChildren = {
-  AppBookingsRoute: AppBookingsRoute,
-}
-
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
-
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
