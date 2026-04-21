@@ -13,7 +13,7 @@ function RegisterPage() {
 	const year = new Date().getFullYear();
 
 	return (
-		<div className="relative flex min-h-dvh bg-black text-[var(--bone)]">
+		<div className="relative flex min-h-dvh bg-black text-(--bone)">
 			{/* Film grain overlay */}
 			<svg
 				aria-hidden
@@ -36,7 +36,7 @@ function RegisterPage() {
 				{/* Margin rule — 96px from left this time (mirrors login) */}
 				<div
 					aria-hidden
-					className="hairline-draw-in pointer-events-none absolute top-0 bottom-0 left-24 w-px bg-[var(--hairline)]"
+					className="hairline-draw-in pointer-events-none absolute top-0 bottom-0 left-24 w-px bg-(--hairline)"
 					style={{ animationDelay: "300ms" }}
 				/>
 
@@ -46,7 +46,7 @@ function RegisterPage() {
 					style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
 				>
 					<span className="eyebrow eyebrow-gold mt-1">Admission · Meridian</span>
-					<span className="font-['Fraunces'] text-[22px] leading-none text-[var(--gold)]">
+					<span className="font-['Fraunces'] text-[22px] leading-none text-(--gold)">
 						&#9488;
 					</span>
 				</div>
@@ -57,7 +57,7 @@ function RegisterPage() {
 					style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 200ms both" }}
 				>
 					<span className="eyebrow">Chapter</span>
-					<span className="tabular-num text-[0.7rem] tracking-[0.2em] text-[var(--bone-muted)]">
+					<span className="tabular-num text-[0.7rem] tracking-[0.2em] text-(--bone-muted)">
 						II / III
 					</span>
 				</div>
@@ -72,7 +72,7 @@ function RegisterPage() {
 					</p>
 
 					<h2
-						className="display-italic pl-[22%] text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-[var(--bone)]"
+						className="display-italic pl-[22%] text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone)"
 						style={{ animation: "fade-up 900ms cubic-bezier(0.16,1,0.3,1) 450ms both" }}
 					>
 						Compose
@@ -80,7 +80,7 @@ function RegisterPage() {
 						the ledger.
 					</h2>
 					<h2
-						className="display-italic mt-4 text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-[var(--bone-dim)]"
+						className="display-italic mt-4 text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone-dim)"
 						style={{ animation: "fade-up 900ms cubic-bezier(0.16,1,0.3,1) 650ms both" }}
 					>
 						Keep
@@ -91,12 +91,12 @@ function RegisterPage() {
 					{/* Hairline rule below the statement */}
 					<div
 						aria-hidden
-						className="hairline-draw-in mt-14 h-px w-48 bg-[var(--hairline-strong)]"
+						className="hairline-draw-in mt-14 h-px w-48 bg-(--hairline-strong)"
 						style={{ animationDelay: "900ms" }}
 					/>
 
 					<p
-						className="mt-6 max-w-[44ch] text-[0.88rem] leading-relaxed text-[var(--bone-muted)]"
+						className="mt-6 max-w-[44ch] text-[0.88rem] leading-relaxed text-(--bone-muted)"
 						style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 1000ms both" }}
 					>
 						A quiet enrolment &mdash; your credentials are the only key you&rsquo;ll need to
@@ -110,7 +110,7 @@ function RegisterPage() {
 					style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 1100ms both" }}
 				>
 					<span className="eyebrow">Folio</span>
-					<span className="tabular-num text-[0.7rem] tracking-[0.2em] text-[var(--bone-muted)]">
+					<span className="tabular-num text-[0.7rem] tracking-[0.2em] text-(--bone-muted)">
 						002 &middot; {year}
 					</span>
 				</div>
@@ -125,25 +125,25 @@ function RegisterPage() {
 					className="absolute left-8 top-8 flex items-center gap-3 lg:hidden"
 					style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
 				>
-					<span className="font-['Fraunces'] text-[18px] leading-none text-[var(--gold)]">
+					<span className="font-['Fraunces'] text-[18px] leading-none text-(--gold)">
 						&#9488;
 					</span>
 					<span className="eyebrow eyebrow-gold">Admission · Meridian</span>
 				</div>
 
-				<div className="relative mx-auto w-full max-w-[400px] py-20">
+				<div className="relative mx-auto w-full max-w-100 py-20">
 					{/* Monogram */}
 					<div
 						className="mb-14 flex items-center gap-4"
 						style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 150ms both" }}
 					>
-						<div className="inline-flex size-11 items-center justify-center border border-[var(--gold)]">
-							<span className="display-italic text-[1.35rem] leading-none text-[var(--gold)]">
+						<div className="inline-flex size-11 items-center justify-center border border-(--gold)">
+							<span className="display-italic text-[1.35rem] leading-none text-(--gold)">
 								M
 							</span>
 						</div>
 						<div className="flex flex-col leading-tight">
-							<span className="text-[0.78rem] font-semibold tracking-[0.24em] uppercase text-[var(--bone)]">
+							<span className="text-[0.78rem] font-semibold tracking-[0.24em] uppercase text-(--bone)">
 								Meridian
 							</span>
 							<span className="eyebrow mt-0.5">Est. {year}</span>
@@ -155,10 +155,10 @@ function RegisterPage() {
 						style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 250ms both" }}
 					>
 						<p className="eyebrow eyebrow-gold">Request your suite</p>
-						<h1 className="mt-3 display-italic text-[2.6rem] leading-[1] tracking-[-0.02em] text-[var(--bone)]">
+						<h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
 							A new ledger.
 						</h1>
-						<p className="mt-4 text-[0.9rem] leading-relaxed text-[var(--bone-muted)]">
+						<p className="mt-4 text-[0.9rem] leading-relaxed text-(--bone-muted)">
 							Begin your concierge account &mdash; a few quiet lines, then every hour is yours
 							to reserve.
 						</p>
@@ -179,7 +179,7 @@ function RegisterPage() {
 								type="text"
 								placeholder="Jane Doe"
 								autoComplete="name"
-								className="login-input-underline h-11 rounded-none bg-transparent text-[0.95rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0"
+								className="login-input-underline h-11 rounded-none bg-transparent text-[0.95rem] text-(--bone) shadow-none placeholder:text-(--bone-faint) focus-visible:ring-0"
 							/>
 						</div>
 
@@ -192,7 +192,7 @@ function RegisterPage() {
 								type="email"
 								placeholder="you@company.com"
 								autoComplete="email"
-								className="login-input-underline h-11 rounded-none bg-transparent text-[0.95rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0"
+								className="login-input-underline h-11 rounded-none bg-transparent text-[0.95rem] text-(--bone) shadow-none placeholder:text-(--bone-faint) focus-visible:ring-0"
 							/>
 						</div>
 
@@ -206,19 +206,19 @@ function RegisterPage() {
 									type={showPassword ? "text" : "password"}
 									placeholder="Minimum eight characters"
 									autoComplete="new-password"
-									className="login-input-underline h-11 rounded-none bg-transparent pr-12 text-[0.95rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0"
+									className="login-input-underline h-11 rounded-none bg-transparent pr-12 text-[0.95rem] text-(--bone) shadow-none placeholder:text-(--bone-faint) focus-visible:ring-0"
 								/>
 								<button
 									type="button"
 									onClick={() => setShowPassword((prev) => !prev)}
 									aria-label={showPassword ? "Hide passphrase" : "Show passphrase"}
-									className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center cursor-pointer text-[var(--bone-dim)] transition-colors hover:text-[var(--gold)]"
+									className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center cursor-pointer text-(--bone-dim) transition-colors hover:text-(--gold)"
 									tabIndex={-1}
 								>
 									{showPassword ? (
-										<EyeOff className="size-[17px]" strokeWidth={1.4} />
+										<EyeOff className="size-4.25" strokeWidth={1.4} />
 									) : (
-										<Eye className="size-[17px]" strokeWidth={1.4} />
+										<Eye className="size-4.25" strokeWidth={1.4} />
 									)}
 								</button>
 							</div>
@@ -234,30 +234,30 @@ function RegisterPage() {
 									type={showConfirm ? "text" : "password"}
 									placeholder="Repeat to confirm"
 									autoComplete="new-password"
-									className="login-input-underline h-11 rounded-none bg-transparent pr-12 text-[0.95rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0"
+									className="login-input-underline h-11 rounded-none bg-transparent pr-12 text-[0.95rem] text-(--bone) shadow-none placeholder:text-(--bone-faint) focus-visible:ring-0"
 								/>
 								<button
 									type="button"
 									onClick={() => setShowConfirm((prev) => !prev)}
 									aria-label={showConfirm ? "Hide passphrase" : "Show passphrase"}
-									className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center cursor-pointer text-[var(--bone-dim)] transition-colors hover:text-[var(--gold)]"
+									className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center cursor-pointer text-(--bone-dim) transition-colors hover:text-(--gold)"
 									tabIndex={-1}
 								>
 									{showConfirm ? (
-										<EyeOff className="size-[17px]" strokeWidth={1.4} />
+										<EyeOff className="size-4.25" strokeWidth={1.4} />
 									) : (
-										<Eye className="size-[17px]" strokeWidth={1.4} />
+										<Eye className="size-4.25" strokeWidth={1.4} />
 									)}
 								</button>
 							</div>
 						</div>
 
 						{/* Terms — hairline note */}
-						<p className="text-[0.72rem] leading-relaxed text-[var(--bone-dim)]">
+						<p className="text-[0.72rem] leading-relaxed text-(--bone-dim)">
 							By requesting a suite, you accept the{" "}
 							<Link
 								to="/"
-								className="text-[var(--bone-muted)] no-underline transition-colors hover:text-[var(--gold)]"
+								className="text-(--bone-muted) no-underline transition-colors hover:text-(--gold)"
 								style={{
 									textUnderlineOffset: "3px",
 									textDecoration: "underline",
@@ -269,7 +269,7 @@ function RegisterPage() {
 							and our{" "}
 							<Link
 								to="/"
-								className="text-[var(--bone-muted)] no-underline transition-colors hover:text-[var(--gold)]"
+								className="text-(--bone-muted) no-underline transition-colors hover:text-(--gold)"
 								style={{
 									textUnderlineOffset: "3px",
 									textDecoration: "underline",
@@ -285,7 +285,7 @@ function RegisterPage() {
 						<div className="pt-2">
 							<button
 								type="submit"
-								className="group relative flex h-12 w-full cursor-pointer items-center justify-center gap-3 border border-[var(--bone)] bg-[var(--bone)] text-[0.72rem] font-semibold tracking-[0.3em] uppercase text-black transition-all duration-300 hover:bg-white hover:border-white hover:tracking-[0.34em]"
+								className="group relative flex h-12 w-full cursor-pointer items-center justify-center gap-3 border border-(--bone) bg-(--bone) text-[0.72rem] font-semibold tracking-[0.3em] uppercase text-black transition-all duration-300 hover:bg-white hover:border-white hover:tracking-[0.34em]"
 							>
 								<span>Open Ledger</span>
 								<ArrowRight
@@ -302,15 +302,15 @@ function RegisterPage() {
 						style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 600ms both" }}
 					>
 						<div className="flex items-center gap-4">
-							<div aria-hidden className="h-px flex-1 bg-[var(--hairline)]" />
+							<div aria-hidden className="h-px flex-1 bg-(--hairline)" />
 							<span className="eyebrow">Or</span>
-							<div aria-hidden className="h-px flex-1 bg-[var(--hairline)]" />
+							<div aria-hidden className="h-px flex-1 bg-(--hairline)" />
 						</div>
-						<p className="mt-6 text-center text-[0.84rem] text-[var(--bone-muted)]">
+						<p className="mt-6 text-center text-[0.84rem] text-(--bone-muted)">
 							Already enrolled?{" "}
 							<Link
 								to="/login"
-								className="font-medium text-[var(--gold)] no-underline transition-colors hover:text-[var(--bone)]"
+								className="font-medium text-(--gold) no-underline transition-colors hover:text-(--bone)"
 								style={{
 									textUnderlineOffset: "4px",
 									textDecoration: "underline",
@@ -328,10 +328,10 @@ function RegisterPage() {
 					className="absolute bottom-6 left-0 right-0 flex items-center justify-between px-8 sm:px-14 lg:px-16 xl:px-20"
 					style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 1100ms both" }}
 				>
-					<span className="tabular-num text-[0.62rem] tracking-[0.2em] text-[var(--bone-faint)]">
+					<span className="tabular-num text-[0.62rem] tracking-[0.2em] text-(--bone-faint)">
 						&copy; {year}
 					</span>
-					<span className="tabular-num text-[0.62rem] tracking-[0.2em] text-[var(--bone-faint)]">
+					<span className="tabular-num text-[0.62rem] tracking-[0.2em] text-(--bone-faint)">
 						Meridian / v1.0
 					</span>
 				</div>
