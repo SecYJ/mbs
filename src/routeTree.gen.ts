@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AdminRouteImport } from './routes/admin'
-import { Route as AppRouteImport } from './routes/_app'
+import { Route as BookingsRouteRouteImport } from './routes/_bookings/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -20,7 +20,7 @@ import { Route as AdminRulesRouteImport } from './routes/admin/rules'
 import { Route as AdminRoomsRouteImport } from './routes/admin/rooms'
 import { Route as AdminEquipmentRouteImport } from './routes/admin/equipment'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
-import { Route as AppBookingsRouteImport } from './routes/_app/bookings'
+import { Route as BookingsBookingsRouteImport } from './routes/_bookings/bookings'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const RegisterRoute = RegisterRouteImport.update({
@@ -38,8 +38,8 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppRoute = AppRouteImport.update({
-  id: '/_app',
+const BookingsRouteRoute = BookingsRouteRouteImport.update({
+  id: '/_bookings',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -77,10 +77,10 @@ const AdminBookingsRoute = AdminBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AdminRoute,
 } as any)
-const AppBookingsRoute = AppBookingsRouteImport.update({
+const BookingsBookingsRoute = BookingsBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => BookingsRouteRoute,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -93,7 +93,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/bookings': typeof AppBookingsRoute
+  '/bookings': typeof BookingsBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -106,7 +106,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/bookings': typeof AppBookingsRoute
+  '/bookings': typeof BookingsBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -118,11 +118,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_app': typeof AppRouteWithChildren
+  '/_bookings': typeof BookingsRouteRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/register': typeof RegisterRoute
-  '/_app/bookings': typeof AppBookingsRoute
+  '/_bookings/bookings': typeof BookingsBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -162,11 +162,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
-    | '/_app'
+    | '/_bookings'
     | '/admin'
     | '/login'
     | '/register'
-    | '/_app/bookings'
+    | '/_bookings/bookings'
     | '/admin/bookings'
     | '/admin/equipment'
     | '/admin/rooms'
@@ -178,7 +178,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
+  BookingsRouteRoute: typeof BookingsRouteRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
   RegisterRoute: typeof RegisterRoute
@@ -208,11 +208,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_app': {
-      id: '/_app'
+    '/_bookings': {
+      id: '/_bookings'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AppRouteImport
+      preLoaderRoute: typeof BookingsRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -264,12 +264,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/_app/bookings': {
-      id: '/_app/bookings'
+    '/_bookings/bookings': {
+      id: '/_bookings/bookings'
       path: '/bookings'
       fullPath: '/bookings'
-      preLoaderRoute: typeof AppBookingsRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof BookingsBookingsRouteImport
+      parentRoute: typeof BookingsRouteRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -281,15 +281,17 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AppRouteChildren {
-  AppBookingsRoute: typeof AppBookingsRoute
+interface BookingsRouteRouteChildren {
+  BookingsBookingsRoute: typeof BookingsBookingsRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppBookingsRoute: AppBookingsRoute,
+const BookingsRouteRouteChildren: BookingsRouteRouteChildren = {
+  BookingsBookingsRoute: BookingsBookingsRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const BookingsRouteRouteWithChildren = BookingsRouteRoute._addFileChildren(
+  BookingsRouteRouteChildren,
+)
 
 interface AdminRouteChildren {
   AdminBookingsRoute: typeof AdminBookingsRoute
@@ -313,7 +315,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
+  BookingsRouteRoute: BookingsRouteRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   RegisterRoute: RegisterRoute,
