@@ -43,38 +43,38 @@ token — never hard-code a hex.
 
 ### Canvas & surfaces
 
-| Token           | Value     | Usage                                    |
-| --------------- | --------- | ---------------------------------------- |
-| `--canvas`      | `#000000` | Page background. Everywhere.             |
-| `--surface-01`  | `#0a0a0a` | Dialogs, drawers, elevated cards         |
-| `--surface-02`  | `#121212` | Nested / hovered cards                   |
-| `--surface-03`  | `#1a1a1a` | Most-elevated tertiary surfaces (rare)   |
+| Token          | Value     | Usage                                  |
+| -------------- | --------- | -------------------------------------- |
+| `--canvas`     | `#000000` | Page background. Everywhere.           |
+| `--surface-01` | `#0a0a0a` | Dialogs, drawers, elevated cards       |
+| `--surface-02` | `#121212` | Nested / hovered cards                 |
+| `--surface-03` | `#1a1a1a` | Most-elevated tertiary surfaces (rare) |
 
 ### Hairlines
 
-| Token                | Value                       | Usage                                 |
-| -------------------- | --------------------------- | ------------------------------------- |
-| `--hairline`         | `rgba(255,255,255,0.08)`    | Default rules, dividers, borders      |
-| `--hairline-strong`  | `rgba(255,255,255,0.16)`    | Section dividers, focused edges       |
-| `--hairline-bold`    | `rgba(255,255,255,0.24)`    | Rare — emphasis under titles          |
+| Token               | Value                    | Usage                            |
+| ------------------- | ------------------------ | -------------------------------- |
+| `--hairline`        | `rgba(255,255,255,0.08)` | Default rules, dividers, borders |
+| `--hairline-strong` | `rgba(255,255,255,0.16)` | Section dividers, focused edges  |
+| `--hairline-bold`   | `rgba(255,255,255,0.24)` | Rare — emphasis under titles     |
 
 ### Foreground (bone palette)
 
-| Token           | Value     | Usage                                   |
-| --------------- | --------- | --------------------------------------- |
-| `--bone`        | `#f0ebe0` | Primary text, headings, inputs          |
-| `--bone-muted`  | `#a6a29a` | Supporting copy, descriptions           |
-| `--bone-dim`    | `#6f6f6b` | Eyebrow labels, inactive nav, meta      |
-| `--bone-faint`  | `#3a3a38` | Placeholders, footer colophon           |
+| Token          | Value     | Usage                              |
+| -------------- | --------- | ---------------------------------- |
+| `--bone`       | `#f0ebe0` | Primary text, headings, inputs     |
+| `--bone-muted` | `#a6a29a` | Supporting copy, descriptions      |
+| `--bone-dim`   | `#6f6f6b` | Eyebrow labels, inactive nav, meta |
+| `--bone-faint` | `#3a3a38` | Placeholders, footer colophon      |
 
 ### Gold (champagne accent)
 
-| Token                 | Value                       | Usage                                      |
-| --------------------- | --------------------------- | ------------------------------------------ |
-| `--gold`              | `#dcc4a0`                   | The **only** interactive accent colour     |
-| `--gold-soft`         | `#b79e7a`                   | Deeper hover tint                          |
-| `--gold-wash`         | `rgba(220,196,160,0.08)`    | Subtle fills, today-highlight              |
-| `--gold-wash-strong`  | `rgba(220,196,160,0.14)`    | Hovered wash on data surfaces              |
+| Token                | Value                    | Usage                                  |
+| -------------------- | ------------------------ | -------------------------------------- |
+| `--gold`             | `#dcc4a0`                | The **only** interactive accent colour |
+| `--gold-soft`        | `#b79e7a`                | Deeper hover tint                      |
+| `--gold-wash`        | `rgba(220,196,160,0.08)` | Subtle fills, today-highlight          |
+| `--gold-wash-strong` | `rgba(220,196,160,0.14)` | Hovered wash on data surfaces          |
 
 Use gold for focus states, active indicators, data emphasis (times, selected
 tabs, live flourishes), and nothing else. Never as a solid fill on a large
@@ -82,10 +82,10 @@ surface.
 
 ### Signal (live-state only)
 
-| Token           | Value                       | Usage                                       |
-| --------------- | --------------------------- | ------------------------------------------- |
-| `--signal`      | `#d7ff3d`                   | "Live" dot, now-indicator, in-progress      |
-| `--signal-glow` | `rgba(215,255,61,0.45)`     | Glow on `@keyframes signal-pulse`           |
+| Token           | Value                   | Usage                                  |
+| --------------- | ----------------------- | -------------------------------------- |
+| `--signal`      | `#d7ff3d`               | "Live" dot, now-indicator, in-progress |
+| `--signal-glow` | `rgba(215,255,61,0.45)` | Glow on `@keyframes signal-pulse`      |
 
 **Rule:** `--signal` appears at most once or twice per screen, and only on
 something that is genuinely live (currently running, currently pulsing).
@@ -93,13 +93,13 @@ If it shows up on three elements, step back — something is being misused.
 
 ### Categorical accents (jewel tones)
 
-| Token             | Value     | Sample role             |
-| ----------------- | --------- | ----------------------- |
-| `--room-aurora`   | `#e8c29a` | Amber category          |
-| `--room-horizon`  | `#b66a4a` | Rust category           |
-| `--room-nimbus`   | `#7a8fa8` | Steel category          |
-| `--room-summit`   | `#6a8a6e` | Sage category           |
-| `--room-cascade`  | `#8a6a8a` | Plum category           |
+| Token            | Value     | Sample role    |
+| ---------------- | --------- | -------------- |
+| `--room-aurora`  | `#e8c29a` | Amber category |
+| `--room-horizon` | `#b66a4a` | Rust category  |
+| `--room-nimbus`  | `#7a8fa8` | Steel category |
+| `--room-summit`  | `#6a8a6e` | Sage category  |
+| `--room-cascade` | `#8a6a8a` | Plum category  |
 
 Prefixed `--room-` because rooms are the current categorical axis, but the
 palette applies to any categorical surface (projects, teams, statuses).
@@ -111,28 +111,28 @@ palette applies to any categorical surface (projects, teams, statuses).
 
 ### Font families
 
-| Role         | Family         | Weights                          | Notes                                  |
-| ------------ | -------------- | -------------------------------- | -------------------------------------- |
-| Display      | Fraunces       | 400 italic                       | **Always italic, never bold.**         |
-| UI / body    | Manrope        | 400 / 500 / 600 / 700 / 800      | Default on `<body>`                    |
-| Tabular      | JetBrains Mono | 400 / 500                        | Times, counts, indices, dates          |
+| Role      | Family         | Weights                     | Notes                          |
+| --------- | -------------- | --------------------------- | ------------------------------ |
+| Display   | Fraunces       | 400 italic                  | **Always italic, never bold.** |
+| UI / body | Manrope        | 400 / 500 / 600 / 700 / 800 | Default on `<body>`            |
+| Tabular   | JetBrains Mono | 400 / 500                   | Times, counts, indices, dates  |
 
 All three load from a single Google Fonts `@import` at the top of
 `src/styles.css`. Do not add a fourth family.
 
 ### Type scale
 
-| Element                      | Size                        | Weight | Tracking        | Case      | Line |
-| ---------------------------- | --------------------------- | ------ | --------------- | --------- | ---- |
-| Hero statement (immersive)   | `clamp(3.5rem, 7vw, 6rem)`  | 400i   | `-0.02em`       | none      | 0.9  |
-| Page heading (serif)         | `2.4rem` – `3rem`           | 400i   | `-0.02em`       | none      | 1.0  |
-| Section heading (serif)      | `1.6rem` – `2rem`           | 400i   | `-0.01em`       | none      | 1.1  |
-| Body                         | `0.88rem` – `0.95rem`       | 400    | default         | none      | 1.55 |
-| Eyebrow label                | `0.64rem`                   | 600    | `0.3em`         | uppercase | —    |
-| Nav / small eyebrow          | `0.68rem` – `0.72rem`       | 600    | `0.24em`        | uppercase | —    |
-| Button label                 | `0.72rem`                   | 600    | `0.3em`         | uppercase | —    |
-| Tabular figure               | `0.7rem` – `1.75rem`        | 500    | `0.1em`–`0.24em`| none      | 1.0  |
-| Footer colophon              | `0.62rem`                   | 400    | `0.2em`         | none      | —    |
+| Element                    | Size                       | Weight | Tracking         | Case      | Line |
+| -------------------------- | -------------------------- | ------ | ---------------- | --------- | ---- |
+| Hero statement (immersive) | `clamp(3.5rem, 7vw, 6rem)` | 400i   | `-0.02em`        | none      | 0.9  |
+| Page heading (serif)       | `2.4rem` – `3rem`          | 400i   | `-0.02em`        | none      | 1.0  |
+| Section heading (serif)    | `1.6rem` – `2rem`          | 400i   | `-0.01em`        | none      | 1.1  |
+| Body                       | `0.88rem` – `0.95rem`      | 400    | default          | none      | 1.55 |
+| Eyebrow label              | `0.64rem`                  | 600    | `0.3em`          | uppercase | —    |
+| Nav / small eyebrow        | `0.68rem` – `0.72rem`      | 600    | `0.24em`         | uppercase | —    |
+| Button label               | `0.72rem`                  | 600    | `0.3em`          | uppercase | —    |
+| Tabular figure             | `0.7rem` – `1.75rem`       | 500    | `0.1em`–`0.24em` | none      | 1.0  |
+| Footer colophon            | `0.62rem`                  | 400    | `0.2em`          | none      | —    |
 
 ### Utility classes (in `src/styles.css`)
 
@@ -225,17 +225,19 @@ Inputs are the only form element style in the system. Built on the shadcn
 
 ```css
 .login-input-underline {
-  border: 0;
-  border-bottom: 1px solid var(--hairline);
-  border-radius: 0;
-  background: transparent;
-  padding-inline: 0.15rem;
-  transition: border-color 320ms ease, box-shadow 320ms ease;
+    border: 0;
+    border-bottom: 1px solid var(--hairline);
+    border-radius: 0;
+    background: transparent;
+    padding-inline: 0.15rem;
+    transition:
+        border-color 320ms ease,
+        box-shadow 320ms ease;
 }
 .login-input-underline:focus {
-  border-color: var(--gold);
-  box-shadow: 0 1px 0 0 var(--gold);
-  outline: none;
+    border-color: var(--gold);
+    box-shadow: 0 1px 0 0 var(--gold);
+    outline: none;
 }
 ```
 
@@ -249,13 +251,15 @@ Inputs are the only form element style in the system. Built on the shadcn
 ### Primary CTA — inverted bone
 
 ```html
-<button class="group relative flex h-12 w-full items-center justify-center gap-3
+<button
+    class="group relative flex h-12 w-full items-center justify-center gap-3
   border border-[var(--bone)] bg-[var(--bone)]
   text-[0.72rem] font-semibold tracking-[0.3em] uppercase text-black
   transition-all duration-300
-  hover:bg-white hover:border-white hover:tracking-[0.34em]">
-  <span>Label</span>
-  <ArrowRight class="size-4 transition-transform group-hover:translate-x-1" />
+  hover:bg-white hover:border-white hover:tracking-[0.34em]"
+>
+    <span>Label</span>
+    <ArrowRight class="size-4 transition-transform group-hover:translate-x-1" />
 </button>
 ```
 
@@ -284,7 +288,7 @@ Two sizes in the system:
 
 ```html
 <div class="inline-flex size-11 items-center justify-center border border-[var(--gold)]">
-  <span class="display-italic text-[1.35rem] leading-none text-[var(--gold)]">M</span>
+    <span class="display-italic text-[1.35rem] leading-none text-[var(--gold)]">M</span>
 </div>
 ```
 
@@ -335,10 +339,10 @@ with a unique `<filter id>` to avoid collisions:
 
 ```html
 <svg aria-hidden class="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-[0.016]">
-  <filter id="grain-{unique}">
-    <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
-  </filter>
-  <rect width="100%" height="100%" filter="url(#grain-{unique})" />
+    <filter id="grain-{unique}">
+        <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+    </filter>
+    <rect width="100%" height="100%" filter="url(#grain-{unique})" />
 </svg>
 ```
 
@@ -388,8 +392,14 @@ content pages — they would compete with the data.
 
 ```css
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 ```
 
@@ -404,12 +414,18 @@ content pages — they would compete with the data.
 
 ```css
 @keyframes hairline-draw {
-  from { transform: scaleY(0); opacity: 0; }
-  to   { transform: scaleY(1); opacity: 1; }
+    from {
+        transform: scaleY(0);
+        opacity: 0;
+    }
+    to {
+        transform: scaleY(1);
+        opacity: 1;
+    }
 }
 .hairline-draw-in {
-  animation: hairline-draw 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
-  transform-origin: top;
+    animation: hairline-draw 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    transform-origin: top;
 }
 ```
 
@@ -419,8 +435,15 @@ Use on vertical margin rules and section dividers under display headings.
 
 ```css
 @keyframes signal-pulse {
-  0%, 100% { opacity: 0.9; box-shadow: 0 0 8px var(--signal-glow); }
-  50%      { opacity: 1;   box-shadow: 0 0 14px var(--signal-glow); }
+    0%,
+    100% {
+        opacity: 0.9;
+        box-shadow: 0 0 8px var(--signal-glow);
+    }
+    50% {
+        opacity: 1;
+        box-shadow: 0 0 14px var(--signal-glow);
+    }
 }
 ```
 
@@ -445,18 +468,18 @@ cannot express the intent.
 
 ## 8. Spacing conventions
 
-| Context                              | Spacing                             |
-| ------------------------------------ | ----------------------------------- |
-| Logo block → heading                 | `mb-14` (56px)                      |
-| Eyebrow → serif title                | `mt-3` (12px)                       |
-| Title → supporting copy              | `mt-4` (16px)                       |
-| Supporting copy → form / content     | `mt-10` – `mt-12` (40–48px)         |
-| Between form field groups            | `space-y-7` / `space-y-8` (28–32px) |
-| Label → input                        | `space-y-3` (12px)                  |
-| CTA container top padding            | `pt-2` – `pt-4`                     |
-| Content block → secondary divider    | `mt-10` – `mt-12`                   |
-| Immersive canvas inner padding       | `px-20 pb-20`                       |
-| Hairline rule length under headings  | `w-48`                              |
+| Context                             | Spacing                             |
+| ----------------------------------- | ----------------------------------- |
+| Logo block → heading                | `mb-14` (56px)                      |
+| Eyebrow → serif title               | `mt-3` (12px)                       |
+| Title → supporting copy             | `mt-4` (16px)                       |
+| Supporting copy → form / content    | `mt-10` – `mt-12` (40–48px)         |
+| Between form field groups           | `space-y-7` / `space-y-8` (28–32px) |
+| Label → input                       | `space-y-3` (12px)                  |
+| CTA container top padding           | `pt-2` – `pt-4`                     |
+| Content block → secondary divider   | `mt-10` – `mt-12`                   |
+| Immersive canvas inner padding      | `px-20 pb-20`                       |
+| Hairline rule length under headings | `w-48`                              |
 
 Rule of thumb: **generous between sections (40–56px), tight within groups
 (12–16px).** Use `space-y-*` for vertical stacks so visual weight reads

@@ -36,14 +36,14 @@ Internal web application for employees to view room availability, create booking
 
 Required fields:
 
-| Field       | Type     | Notes                                      |
-| ----------- | -------- | ------------------------------------------ |
-| Title       | text     | Meeting title                              |
-| Room        | select   | From available rooms list                  |
-| Start time  | datetime |                                            |
-| End time    | datetime |                                            |
-| Attendees   | multi-select | From registered users                  |
-| Description | text     | Optional                                   |
+| Field       | Type         | Notes                     |
+| ----------- | ------------ | ------------------------- |
+| Title       | text         | Meeting title             |
+| Room        | select       | From available rooms list |
+| Start time  | datetime     |                           |
+| End time    | datetime     |                           |
+| Attendees   | multi-select | From registered users     |
+| Description | text         | Optional                  |
 
 ### 3.2 Booking Rules
 
@@ -97,9 +97,9 @@ Required fields:
 
 - Lists all bookings for the current user
 - Grouped into three categories:
-  - **Upcoming** — future bookings not yet started
-  - **In Progress** — currently active bookings
-  - **Past** — completed bookings
+    - **Upcoming** — future bookings not yet started
+    - **In Progress** — currently active bookings
+    - **Past** — completed bookings
 - Quick actions to edit or cancel from the list
 
 ---
@@ -113,11 +113,11 @@ Required fields:
 
 ### 6.2 Trigger Events
 
-| Event                                  | Recipients          |
-| -------------------------------------- | ------------------- |
-| Added as attendee to a booking         | The added user      |
-| Booking modified (time, room, etc.)    | All attendees       |
-| Booking cancelled                      | All attendees       |
+| Event                               | Recipients     |
+| ----------------------------------- | -------------- |
+| Added as attendee to a booking      | The added user |
+| Booking modified (time, room, etc.) | All attendees  |
+| Booking cancelled                   | All attendees  |
 
 ### 6.3 Notification Center UI
 
@@ -133,13 +133,13 @@ Required fields:
 
 Each room has the following attributes:
 
-| Property    | Type    | Notes                                             |
-| ----------- | ------- | ------------------------------------------------- |
-| Name        | text    | Required                                          |
-| Location    | text    | e.g. "3F East Wing". Required                     |
-| Capacity    | integer | Number of people. Required                        |
-| Equipment   | list    | Projector, video conferencing, whiteboard, TV, etc. Via facilities join table |
-| Description | text    | Optional                                          |
+| Property    | Type    | Notes                                                                          |
+| ----------- | ------- | ------------------------------------------------------------------------------ |
+| Name        | text    | Required                                                                       |
+| Location    | text    | e.g. "3F East Wing". Required                                                  |
+| Capacity    | integer | Number of people. Required                                                     |
+| Equipment   | list    | Projector, video conferencing, whiteboard, TV, etc. Via facilities join table  |
+| Description | text    | Optional                                                                       |
 | Active      | boolean | Inactive rooms cannot receive new bookings but existing bookings are preserved |
 
 ---

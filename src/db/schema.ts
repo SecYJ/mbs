@@ -1,16 +1,72 @@
 import { id } from "@/db/helpers";
 import { boolean, foreignKey, integer, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
-export const users = pgTable("users", {
-    userId: id("user_id"),
-    username: text().notNull(),
-    password: text().notNull(),
+export const user = pgTable("user", {
+    id: text().primaryKey(),
+    name: text().notNull(),
     email: text().unique().notNull(),
-    title: text(),
-    role: text().notNull(),
-    active: boolean().default(true).notNull(),
-    avatarUrl: text("avatar_url"),
+    emailVerified: boolean("email_verified").default(false).notNull(),
+    image: text(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
+export const session = pgTable(
+    "session",
+    {
+        id: text().primaryKey(),
+        userId: text("user_id").notNull(),
+        token: text().unique().notNull(),
+        expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+        ipAddress: text("ip_address"),
+        userAgent: text("user_agent"),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => {
+        return [
+            foreignKey({
+                columns: [table.userId],
+                foreignColumns: [user.id],
+                name: "session_user_id_fk",
+            }).onDelete("cascade"),
+        ];
+    },
+);
+
+export const account = pgTable(
+    "account",
+    {
+        id: text().primaryKey(),
+        accountId: text("account_id").notNull(),
+        providerId: text("provider_id").notNull(),
+        userId: text("user_id").notNull(),
+        accessToken: text("access_token"),
+        refreshToken: text("refresh_token"),
+        idToken: text("id_token"),
+        accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+        refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+        scope: text(),
+        password: text(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => {
+        return [
+            foreignKey({
+                columns: [table.userId],
+                foreignColumns: [user.id],
+                name: "account_user_id_fk",
+            }).onDelete("cascade"),
+        ];
+    },
+);
+
+export const verification = pgTable("verification", {
+    id: text().primaryKey(),
+    identifier: text().notNull(),
+    value: text().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });
@@ -31,7 +87,7 @@ export const bookings = pgTable(
     {
         bookingId: id("booking_id"),
         roomId: uuid("room_id").notNull(),
-        userId: uuid("user_id").notNull(),
+        userId: text("user_id").notNull(),
         startTime: timestamp("start_time", { withTimezone: true }).notNull(),
         endTime: timestamp("end_time", { withTimezone: true }).notNull(),
         title: text().notNull(),
@@ -49,7 +105,7 @@ export const bookings = pgTable(
             }),
             foreignKey({
                 columns: [table.userId],
-                foreignColumns: [users.userId],
+                foreignColumns: [user.id],
                 name: "bookings_user_id_fk",
             }),
         ];
@@ -59,7 +115,7 @@ export const bookings = pgTable(
 export const attendees = pgTable(
     "attendees",
     {
-        userId: uuid("user_id").notNull(),
+        userId: text("user_id").notNull(),
         bookingId: uuid("booking_id").notNull(),
         accepted: boolean().default(false).notNull(),
     },
@@ -75,7 +131,7 @@ export const attendees = pgTable(
             }),
             foreignKey({
                 columns: [table.userId],
-                foreignColumns: [users.userId],
+                foreignColumns: [user.id],
                 name: "attendees_user_id_fk",
             }),
         ];
