@@ -5,8 +5,7 @@ import { RegisterForm } from "@/features/register/components/RegisterForm";
 import { getRegisterPage } from "@/features/register/rsc/register";
 import { redirectAuthenticatedUser } from "@/lib/session";
 
-
-export const Route = createFileRoute("/register")({
+export const Route = createFileRoute("/_auth/register")({
     beforeLoad: redirectAuthenticatedUser,
     loader: async () => await getRegisterPage(),
     component: RegisterPage,

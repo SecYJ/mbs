@@ -1,7 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/")({ component: App });
+import { getCurrentSession } from "@/lib/session";
 
-function App() {
-    return <div>hi</div>;
-}
+export const Route = createFileRoute("/")({
+    beforeLoad: async () => {
+        const session = await getCurrentSession();
+        throw redirect({ to: session ? "/bookings" : "/login" });
+    },
+});

@@ -4,7 +4,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useForm } from "react-hook-form";
 
-import { registerUser } from "@/features/register/functions/register";
+import { registerUserFn } from "@/features/register/functions/register";
 import { registerSchema } from "@/features/register/schema/register.schema";
 
 export const useRegister = () => {
@@ -19,7 +19,7 @@ export const useRegister = () => {
     });
 
     const navigate = useNavigate();
-    const registerFn = useServerFn(registerUser);
+    const registerFn = useServerFn(registerUserFn);
 
     const { mutate: submitRegister } = useMutation({
         mutationFn: registerFn,

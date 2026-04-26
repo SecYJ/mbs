@@ -22,3 +22,13 @@ export const redirectAuthenticatedUser = async () => {
         }
     }
 };
+
+export const requireAuthenticatedUser = async () => {
+    const session = await getCurrentSession();
+
+    if (!session) {
+        throw redirect({ to: "/login" });
+    }
+
+    return session;
+};

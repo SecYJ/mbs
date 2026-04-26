@@ -1,4 +1,4 @@
-import { Link, Outlet, useMatches } from "@tanstack/react-router";
+import { Link, Outlet, linkOptions, useMatches } from "@tanstack/react-router";
 import { Building2, Users, Settings, Wrench, CalendarDays, LogOut, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { useState, useCallback, createContext, useContext } from "react";
 import "@/features/admin/admin.css";
@@ -31,17 +31,31 @@ export const useSidebar = () => useContext(SidebarContext);
 
 /* ── Nav config ── */
 
-const navItems = [
-    { to: "/admin/rooms" as const, label: "Rooms", icon: Building2 },
-    { to: "/admin/users" as const, label: "Users", icon: Users },
-    { to: "/admin/rules" as const, label: "Rules", icon: Settings },
-    { to: "/admin/equipment" as const, label: "Equipment", icon: Wrench },
-    { to: "/admin/bookings" as const, label: "All Bookings", icon: CalendarDays },
-];
+const navItems = linkOptions([
+    { to: "/admin/rooms", label: "Rooms", icon: Building2 },
+    { to: "/admin/users", label: "Users", icon: Users },
+    { to: "/admin/rules", label: "Rules", icon: Settings },
+    { to: "/admin/equipment", label: "Equipment", icon: Wrench },
+    { to: "/admin/bookings", label: "All Bookings", icon: CalendarDays },
+]);
 
 /* ── Layout ── */
 
-export function AdminLayout() {
+interface AdminLayoutProps {
+    user: { name: string; email: string };
+    onSignOut: () => void;
+}
+
+const getInitials = (name: string) =>
+    name
+        .split(" ")
+        .map((part) => part[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join("")
+        .toUpperCase() || "?";
+
+export const AdminLayout = ({ user, onSignOut }: AdminLayoutProps) => {
     const matches = useMatches();
     const [toasts, setToasts] = useState<Toast[]>([]);
     const [collapsed, setCollapsed] = useState(false);
@@ -154,19 +168,21 @@ export function AdminLayout() {
                                     border: "1px solid var(--a-accent-border)",
                                 }}
                             >
-                                A
+                                {getInitials(user.name)}
                             </div>
                             <div className="admin-sidebar-label min-w-0 flex-1">
                                 <p className="truncate text-xs font-semibold" style={{ color: "var(--a-text)" }}>
-                                    Admin User
+                                    {user.name}
                                 </p>
                                 <p className="truncate text-[0.65rem]" style={{ color: "var(--a-text-muted)" }}>
-                                    admin@company.com
+                                    {user.email}
                                 </p>
                             </div>
                             <button
                                 type="button"
-                                className="admin-sidebar-label flex size-7 shrink-0 items-center justify-center rounded-md transition-colors"
+                                onClick={onSignOut}
+                                aria-label="Sign out"
+                                className="admin-sidebar-label flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md transition-colors"
                                 style={{ color: "var(--a-text-muted)" }}
                                 title="Sign out"
                                 onMouseEnter={(e) => (e.currentTarget.style.color = "var(--a-danger)")}
@@ -201,7 +217,7 @@ export function AdminLayout() {
             </SidebarContext.Provider>
         </ToastContext.Provider>
     );
-}
+};
 
 function ToastItem({ toast }: { toast: Toast }) {
     const colorMap = {

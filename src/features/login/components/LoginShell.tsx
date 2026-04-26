@@ -1,26 +1,21 @@
-"use client";
+import type { ReactNode } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
-import { Controller } from "react-hook-form";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { useLogin } from "@/features/login/hooks/useLogin";
+type Props = {
+    children: ReactNode;
+};
 
-export const LoginPage = () => {
-    const [showPassword, setShowPassword] = useState(false);
-    const { form, onSubmit, isPending } = useLogin();
+export const LoginShell = ({ children }: Props) => {
     const year = new Date().getFullYear();
 
     return (
         <div className="relative flex min-h-dvh bg-black text-(--bone)">
             <svg aria-hidden className="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-[0.016]">
-                <filter id="grain">
+                <filter id="grain-login">
                     <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
                 </filter>
-                <rect width="100%" height="100%" filter="url(#grain)" />
+                <rect width="100%" height="100%" filter="url(#grain-login)" />
             </svg>
 
             <aside className="relative hidden overflow-hidden bg-black lg:flex lg:w-[58%]">
@@ -132,93 +127,7 @@ export const LoginPage = () => {
                         </p>
                     </div>
 
-                    <form
-                        onSubmit={onSubmit}
-                        noValidate
-                        className="mt-12 space-y-8"
-                        style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
-                    >
-                        <Controller
-                            control={form.control}
-                            name="email"
-                            render={({ field, fieldState: { error } }) => (
-                                <div className="space-y-3">
-                                    <Label htmlFor="email" className="eyebrow block">
-                                        Email Address
-                                    </Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        placeholder="you@company.com"
-                                        autoComplete="email"
-                                        aria-invalid={error ? true : undefined}
-                                        className="login-input-underline h-11 rounded-none bg-transparent text-[0.95rem] text-(--bone) shadow-none placeholder:text-(--bone-faint) focus-visible:ring-0"
-                                        {...field}
-                                    />
-                                    {error ? <p className="text-[0.72rem] text-red-400/80">{error.message}</p> : null}
-                                </div>
-                            )}
-                        />
-
-                        <Controller
-                            control={form.control}
-                            name="password"
-                            render={({ field, fieldState: { error } }) => (
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="password" className="eyebrow block">
-                                            Passphrase
-                                        </Label>
-                                        <Link
-                                            to="/"
-                                            className="text-[0.68rem] font-semibold tracking-[0.2em] uppercase text-(--bone-dim) no-underline transition-colors hover:text-(--gold)"
-                                        >
-                                            Forgot?
-                                        </Link>
-                                    </div>
-                                    <div className="relative">
-                                        <Input
-                                            id="password"
-                                            type={showPassword ? "text" : "password"}
-                                            placeholder="&bull; &bull; &bull; &bull; &bull; &bull; &bull; &bull;"
-                                            autoComplete="current-password"
-                                            aria-invalid={error ? true : undefined}
-                                            className="login-input-underline h-11 rounded-none bg-transparent pr-12 text-[0.95rem] text-(--bone) shadow-none placeholder:text-(--bone-faint) focus-visible:ring-0"
-                                            {...field}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword((prev) => !prev)}
-                                            aria-label={showPassword ? "Hide password" : "Show password"}
-                                            className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center cursor-pointer text-(--bone-dim) transition-colors hover:text-(--gold)"
-                                            tabIndex={-1}
-                                        >
-                                            {showPassword ? (
-                                                <EyeOff className="size-4.25" strokeWidth={1.4} />
-                                            ) : (
-                                                <Eye className="size-4.25" strokeWidth={1.4} />
-                                            )}
-                                        </button>
-                                    </div>
-                                    {error ? <p className="text-[0.72rem] text-red-400/80">{error.message}</p> : null}
-                                </div>
-                            )}
-                        />
-
-                        <div className="pt-4">
-                            <button
-                                type="submit"
-                                disabled={isPending || form.formState.isSubmitting}
-                                className="group relative flex h-12 w-full cursor-pointer items-center justify-center gap-3 border border-(--bone) bg-(--bone) text-[0.72rem] font-semibold tracking-[0.3em] uppercase text-black transition-all duration-300 hover:bg-white hover:border-white hover:tracking-[0.34em] disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                <span>Continue</span>
-                                <ArrowRight
-                                    className="size-4 transition-transform duration-300 group-hover:translate-x-1"
-                                    strokeWidth={1.6}
-                                />
-                            </button>
-                        </div>
-                    </form>
+                    {children}
 
                     <div className="mt-12" style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 600ms both" }}>
                         <div className="flex items-center gap-4">
