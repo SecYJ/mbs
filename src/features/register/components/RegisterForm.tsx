@@ -3,12 +3,11 @@
 import { Link } from "@tanstack/react-router";
 import { Controller } from "react-hook-form";
 
+import { PasswordInput } from "@/components/password-input";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRegister } from "@/features/register/hooks/useRegister";
-
-import { PasswordInput } from "@/features/register/components/PasswordInput";
 import { RegisterSubmitAction } from "@/features/register/components/RegisterSubmitAction";
+import { useRegister } from "@/features/register/hooks/useRegister";
 
 export const RegisterForm = () => {
     const { form, onSubmit } = useRegister();
@@ -20,7 +19,6 @@ export const RegisterForm = () => {
             className="mt-10 space-y-7"
             style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
         >
-            <p>bodoh</p>
             <div className="space-y-3">
                 <Label htmlFor="name" className="eyebrow block">
                     Full Name

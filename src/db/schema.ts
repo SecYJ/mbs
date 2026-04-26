@@ -1,5 +1,16 @@
 import { id } from "@/db/helpers";
-import { boolean, foreignKey, integer, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+    bigint,
+    boolean,
+    foreignKey,
+    integer,
+    pgEnum,
+    pgTable,
+    primaryKey,
+    text,
+    timestamp,
+    uuid,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
     id: text().primaryKey(),
@@ -69,6 +80,13 @@ export const verification = pgTable("verification", {
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+export const rateLimit = pgTable("rateLimit", {
+    id: text().primaryKey(),
+    key: text().unique().notNull(),
+    count: integer().notNull(),
+    lastRequest: bigint("last_request", { mode: "number" }).notNull(),
 });
 
 export const rooms = pgTable("rooms", {

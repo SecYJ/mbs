@@ -1,10 +1,35 @@
-import { createFileRoute, Link, linkOptions, Outlet } from "@tanstack/react-router";
-import { Bell } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, Link, linkOptions, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
+import { Bell, LogOut } from "lucide-react";
+
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { authClient } from "@/lib/auth-client";
+import { requireAuthenticatedUser } from "@/lib/session";
 
 const navItems = linkOptions([{ to: "/bookings", label: "Bookings" }]);
 
+const getInitials = (name: string) =>
+    name
+        .split(" ")
+        .map((part) => part[0])
+        .filter(Boolean)
+        .slice(0, 2)
+        .join("")
+        .toUpperCase() || "?";
+
 const AppLayout = () => {
+    const { user } = Route.useLoaderData();
     const year = new Date().getFullYear();
+    const navigate = useNavigate();
+    const router = useRouter();
+    const queryClient = useQueryClient();
+
+    const handleSignOut = async () => {
+        await authClient.signOut();
+        queryClient.clear();
+        await router.invalidate();
+        navigate({ to: "/login" });
+    };
 
     return (
         <div className="relative min-h-dvh bg-black text-(--bone)">
@@ -61,13 +86,32 @@ const AppLayout = () => {
                             />
                         </button>
 
-                        <button
-                            type="button"
-                            aria-label="Account"
-                            className="flex size-9 cursor-pointer items-center justify-center border border-(--hairline) bg-(--surface-01) text-[0.7rem] font-semibold tracking-widest text-(--bone) transition-all duration-200 hover:border-(--hairline-strong) hover:bg-(--surface-02)"
-                        >
-                            JD
-                        </button>
+                        <Popover>
+                            <PopoverTrigger
+                                aria-label="Account"
+                                className="flex size-9 cursor-pointer items-center justify-center border border-(--hairline) bg-(--surface-01) text-[0.7rem] font-semibold tracking-widest text-(--bone) transition-all duration-200 hover:border-(--hairline-strong) hover:bg-(--surface-02) data-[popup-open]:border-(--hairline-strong) data-[popup-open]:bg-(--surface-02)"
+                            >
+                                {getInitials(user.name)}
+                            </PopoverTrigger>
+                            <PopoverContent
+                                align="end"
+                                sideOffset={10}
+                                className="w-56 rounded-none border-(--hairline) bg-(--surface-01) p-1 text-(--bone) shadow-[0_18px_40px_rgba(0,0,0,0.6)]"
+                            >
+                                <div className="border-b border-(--hairline) px-3 py-2.5">
+                                    <p className="truncate text-[0.78rem] font-semibold text-(--bone)">{user.name}</p>
+                                    <p className="truncate text-[0.66rem] text-(--bone-muted)">{user.email}</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={handleSignOut}
+                                    className="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-[0.66rem] font-semibold tracking-[0.24em] text-(--bone-dim) uppercase transition-colors hover:bg-(--surface-02) hover:text-(--bone)"
+                                >
+                                    <LogOut className="size-4" strokeWidth={1.4} />
+                                    <span>Sign Out</span>
+                                </button>
+                            </PopoverContent>
+                        </Popover>
                     </div>
                 </div>
             </nav>
@@ -80,4 +124,8 @@ const AppLayout = () => {
     );
 };
 
-export const Route = createFileRoute("/_bookings")({ component: AppLayout });
+export const Route = createFileRoute("/_bookings")({
+    beforeLoad: async () => ({ session: await requireAuthenticatedUser() }),
+    loader: ({ context }) => context.session,
+    component: AppLayout,
+});

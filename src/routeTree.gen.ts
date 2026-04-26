@@ -9,9 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as RegisterRouteImport } from './routes/register'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AdminRouteRouteImport } from './routes/admin/route'
 import { Route as BookingsRouteRouteImport } from './routes/_bookings/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -21,19 +19,13 @@ import { Route as AdminRoomsRouteImport } from './routes/admin/rooms'
 import { Route as AdminEquipmentRouteImport } from './routes/admin/equipment'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
 import { Route as BookingsBookingsRouteImport } from './routes/_bookings/bookings'
+import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
+import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
+import { Route as AuthLoginRouteImport } from './routes/_auth/login'
+import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
-const RegisterRoute = RegisterRouteImport.update({
-  id: '/register',
-  path: '/register',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
+const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => rootRouteImport,
@@ -50,37 +42,57 @@ const IndexRoute = IndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminRulesRoute = AdminRulesRouteImport.update({
   id: '/rules',
   path: '/rules',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminRoomsRoute = AdminRoomsRouteImport.update({
   id: '/rooms',
   path: '/rooms',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminEquipmentRoute = AdminEquipmentRouteImport.update({
   id: '/equipment',
   path: '/equipment',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminBookingsRoute = AdminBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => AdminRouteRoute,
 } as any)
 const BookingsBookingsRoute = BookingsBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
   getParentRoute: () => BookingsRouteRoute,
+} as any)
+const AuthResetPasswordRoute = AuthResetPasswordRouteImport.update({
+  id: '/_auth/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRegisterRoute = AuthRegisterRouteImport.update({
+  id: '/_auth/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthLoginRoute = AuthLoginRouteImport.update({
+  id: '/_auth/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/_auth/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
@@ -90,9 +102,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteWithChildren
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/login': typeof AuthLoginRoute
+  '/register': typeof AuthRegisterRoute
+  '/reset-password': typeof AuthResetPasswordRoute
   '/bookings': typeof BookingsBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
@@ -104,8 +118,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/forgot-password': typeof AuthForgotPasswordRoute
+  '/login': typeof AuthLoginRoute
+  '/register': typeof AuthRegisterRoute
+  '/reset-password': typeof AuthResetPasswordRoute
   '/bookings': typeof BookingsBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
@@ -119,9 +135,11 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_bookings': typeof BookingsRouteRouteWithChildren
-  '/admin': typeof AdminRouteWithChildren
-  '/login': typeof LoginRoute
-  '/register': typeof RegisterRoute
+  '/admin': typeof AdminRouteRouteWithChildren
+  '/_auth/forgot-password': typeof AuthForgotPasswordRoute
+  '/_auth/login': typeof AuthLoginRoute
+  '/_auth/register': typeof AuthRegisterRoute
+  '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_bookings/bookings': typeof BookingsBookingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
@@ -136,8 +154,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/forgot-password'
     | '/login'
     | '/register'
+    | '/reset-password'
     | '/bookings'
     | '/admin/bookings'
     | '/admin/equipment'
@@ -149,8 +169,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/forgot-password'
     | '/login'
     | '/register'
+    | '/reset-password'
     | '/bookings'
     | '/admin/bookings'
     | '/admin/equipment'
@@ -164,8 +186,10 @@ export interface FileRouteTypes {
     | '/'
     | '/_bookings'
     | '/admin'
-    | '/login'
-    | '/register'
+    | '/_auth/forgot-password'
+    | '/_auth/login'
+    | '/_auth/register'
+    | '/_auth/reset-password'
     | '/_bookings/bookings'
     | '/admin/bookings'
     | '/admin/equipment'
@@ -179,33 +203,21 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BookingsRouteRoute: typeof BookingsRouteRouteWithChildren
-  AdminRoute: typeof AdminRouteWithChildren
-  LoginRoute: typeof LoginRoute
-  RegisterRoute: typeof RegisterRoute
+  AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
+  AuthLoginRoute: typeof AuthLoginRoute
+  AuthRegisterRoute: typeof AuthRegisterRoute
+  AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/register': {
-      id: '/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof RegisterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/admin': {
       id: '/admin'
       path: '/admin'
       fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+      preLoaderRoute: typeof AdminRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_bookings': {
@@ -227,42 +239,42 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/rules': {
       id: '/admin/rules'
       path: '/rules'
       fullPath: '/admin/rules'
       preLoaderRoute: typeof AdminRulesRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/rooms': {
       id: '/admin/rooms'
       path: '/rooms'
       fullPath: '/admin/rooms'
       preLoaderRoute: typeof AdminRoomsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/equipment': {
       id: '/admin/equipment'
       path: '/equipment'
       fullPath: '/admin/equipment'
       preLoaderRoute: typeof AdminEquipmentRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/admin/bookings': {
       id: '/admin/bookings'
       path: '/bookings'
       fullPath: '/admin/bookings'
       preLoaderRoute: typeof AdminBookingsRouteImport
-      parentRoute: typeof AdminRoute
+      parentRoute: typeof AdminRouteRoute
     }
     '/_bookings/bookings': {
       id: '/_bookings/bookings'
@@ -270,6 +282,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/bookings'
       preLoaderRoute: typeof BookingsBookingsRouteImport
       parentRoute: typeof BookingsRouteRoute
+    }
+    '/_auth/reset-password': {
+      id: '/_auth/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof AuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/register': {
+      id: '/_auth/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof AuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/login': {
+      id: '/_auth/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof AuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_auth/forgot-password': {
+      id: '/_auth/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -293,7 +333,7 @@ const BookingsRouteRouteWithChildren = BookingsRouteRoute._addFileChildren(
   BookingsRouteRouteChildren,
 )
 
-interface AdminRouteChildren {
+interface AdminRouteRouteChildren {
   AdminBookingsRoute: typeof AdminBookingsRoute
   AdminEquipmentRoute: typeof AdminEquipmentRoute
   AdminRoomsRoute: typeof AdminRoomsRoute
@@ -302,7 +342,7 @@ interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
-const AdminRouteChildren: AdminRouteChildren = {
+const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBookingsRoute: AdminBookingsRoute,
   AdminEquipmentRoute: AdminEquipmentRoute,
   AdminRoomsRoute: AdminRoomsRoute,
@@ -311,14 +351,18 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
 }
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
+  AdminRouteRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BookingsRouteRoute: BookingsRouteRouteWithChildren,
-  AdminRoute: AdminRouteWithChildren,
-  LoginRoute: LoginRoute,
-  RegisterRoute: RegisterRoute,
+  AdminRouteRoute: AdminRouteRouteWithChildren,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
+  AuthLoginRoute: AuthLoginRoute,
+  AuthRegisterRoute: AuthRegisterRoute,
+  AuthResetPasswordRoute: AuthResetPasswordRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
