@@ -189,22 +189,24 @@ const toSeed = requested.length > 0 ? requested : Object.keys(sections);
 for (const key of toSeed) {
     const rows = sections[key];
     if (!rows) {
-        console.error(`Unknown section: ${key}. Available: ${Object.keys(sections).join(", ")}`);
-        continue;
+        throw new Error(`Unknown section: ${key}. Available: ${Object.keys(sections).join(", ")}`);
     }
-    if (reset) {
-        let deleted = 0;
-        for (const row of rows) {
-            const removed = await db
-                .delete(equipment)
-                .where(and(eq(equipment.brand, row.brand), eq(equipment.model, row.model)))
-                .returning({ id: equipment.equipmentId });
-            deleted += removed.length;
+
+    await db.transaction(async (tx) => {
+        if (reset) {
+            let deleted = 0;
+            for (const row of rows) {
+                const removed = await tx
+                    .delete(equipment)
+                    .where(and(eq(equipment.brand, row.brand), eq(equipment.model, row.model)))
+                    .returning({ id: equipment.equipmentId });
+                deleted += removed.length;
+            }
+            console.log(`[${key}] reset deleted ${deleted} rows`);
         }
-        console.log(`[${key}] reset deleted ${deleted} rows`);
-    }
-    const inserted = await db.insert(equipment).values(rows).returning();
-    console.log(`[${key}] inserted ${inserted.length} rows`);
+        const inserted = await tx.insert(equipment).values(rows).returning();
+        console.log(`[${key}] inserted ${inserted.length} rows`);
+    });
 }
 
 process.exit(0);

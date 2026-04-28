@@ -56,8 +56,13 @@ export const CreateRoomDialog = () => {
                             control={form.control}
                             name="name"
                             render={({ field, fieldState: { error } }) => (
-                                <Field label="Room Name" error={error?.message}>
-                                    <input {...field} className={`${adminInputClasses} w-full`} placeholder="Horizon Hall" />
+                                <Field label="Room Name" error={error?.message} inputId="create-room-name">
+                                    <input
+                                        {...field}
+                                        id="create-room-name"
+                                        className={`${adminInputClasses} w-full`}
+                                        placeholder="Horizon Hall"
+                                    />
                                 </Field>
                             )}
                         />
@@ -70,9 +75,15 @@ export const CreateRoomDialog = () => {
                                     <Field
                                         label="Location"
                                         error={error?.message}
+                                        inputId="create-room-location"
                                         icon={<MapPin className="size-3" strokeWidth={1.6} />}
                                     >
-                                        <input {...field} className={`${adminInputClasses} w-full`} placeholder="3F East Wing" />
+                                        <input
+                                            {...field}
+                                            id="create-room-location"
+                                            className={`${adminInputClasses} w-full`}
+                                            placeholder="3F East Wing"
+                                        />
                                     </Field>
                                 )}
                             />
@@ -83,14 +94,20 @@ export const CreateRoomDialog = () => {
                                     <Field
                                         label="Capacity"
                                         error={error?.message}
+                                        inputId="create-room-capacity"
                                         icon={<UsersRound className="size-3" strokeWidth={1.6} />}
                                     >
                                         <input
                                             {...field}
+                                            id="create-room-capacity"
                                             type="number"
                                             min={1}
-                                            value={field.value}
-                                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                            value={Number.isFinite(field.value) ? field.value : ""}
+                                            onChange={(e) =>
+                                                field.onChange(
+                                                    e.target.value === "" ? undefined : e.target.valueAsNumber,
+                                                )
+                                            }
                                             className={`${adminInputClasses} w-24 text-center tabular-nums`}
                                         />
                                     </Field>
@@ -161,15 +178,20 @@ const Field = ({
     label,
     error,
     icon,
+    inputId,
     children,
 }: {
     label: string;
     error?: string;
     icon?: ReactNode;
+    inputId: string;
     children: ReactNode;
 }) => (
     <div>
-        <label className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
+        <label
+            htmlFor={inputId}
+            className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
+        >
             {icon}
             {label}
         </label>

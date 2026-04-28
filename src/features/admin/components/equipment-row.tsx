@@ -1,27 +1,9 @@
-import {
-    CalendarDays,
-    ChevronDown,
-    ChevronUp,
-    DollarSign,
-    Hash,
-    MoreHorizontal,
-    Package,
-    ShieldCheck,
-    Trash2,
-} from "lucide-react";
+import { CalendarDays, ChevronDown, ChevronUp, DollarSign, Hash, Package, ShieldCheck } from "lucide-react";
 
 import { adminBadgeClasses, adminExpandRowClasses, adminInputClasses } from "@/features/admin/admin-classes";
+import type { Equipment } from "@/features/admin/types";
 
-export interface Equipment {
-    id: string;
-    name: string;
-    brand: string;
-    model: string;
-    price: number;
-    quantity: number;
-    purchaseDate: string;
-    warrantyExpiry: string | null;
-}
+export type { Equipment };
 
 const priceFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 export const formatPrice = (n: number) => priceFormatter.format(n);
@@ -50,9 +32,15 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
 
     return (
         <>
-            <tr className="cursor-pointer" onClick={onToggleExpand}>
+            <tr>
                 <td>
-                    <div className="flex items-start gap-2">
+                    <button
+                        type="button"
+                        onClick={onToggleExpand}
+                        aria-expanded={isExpanded}
+                        aria-label={`${item.name} (${item.brand} ${item.model}) — toggle details`}
+                        className="flex w-full items-start gap-2 text-left"
+                    >
                         <div
                             className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md"
                             style={{ background: palette.bg, color: palette.color }}
@@ -75,7 +63,7 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                             </div>
                             <div className="mt-0.5 text-[0.6875rem] text-(--a-text-muted)">{item.model}</div>
                         </div>
-                    </div>
+                    </button>
                 </td>
                 <td>
                     <span
@@ -92,14 +80,7 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                 <td className="text-right">
                     <span className="tabular-nums font-semibold text-(--a-text)">{formatPrice(item.price)}</span>
                 </td>
-                <td onClick={(e) => e.stopPropagation()}>
-                    <button
-                        type="button"
-                        className="flex size-7 items-center justify-center rounded-md text-(--a-text-muted) transition-colors hover:bg-(--a-surface-2)"
-                    >
-                        <MoreHorizontal className="size-4" />
-                    </button>
-                </td>
+                <td />
             </tr>
 
             {isExpanded && (
@@ -116,8 +97,9 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                     </label>
                                     <input
                                         id={`equipment-name-${item.id}`}
+                                        readOnly
                                         className={`${adminInputClasses} w-full`}
-                                        defaultValue={item.name}
+                                        value={item.name}
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -130,8 +112,9 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                         </label>
                                         <input
                                             id={`equipment-brand-${item.id}`}
+                                            readOnly
                                             className={`${adminInputClasses} w-full`}
-                                            defaultValue={item.brand}
+                                            value={item.brand}
                                         />
                                     </div>
                                     <div>
@@ -143,8 +126,9 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                         </label>
                                         <input
                                             id={`equipment-model-${item.id}`}
+                                            readOnly
                                             className={`${adminInputClasses} w-full`}
-                                            defaultValue={item.model}
+                                            value={item.model}
                                         />
                                     </div>
                                 </div>
@@ -160,10 +144,9 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                         <input
                                             id={`equipment-price-${item.id}`}
                                             type="number"
-                                            step="0.01"
-                                            min={0}
+                                            readOnly
                                             className={`${adminInputClasses} w-full tabular-nums`}
-                                            defaultValue={item.price}
+                                            value={item.price}
                                         />
                                     </div>
                                     <div>
@@ -177,10 +160,9 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                         <input
                                             id={`equipment-quantity-${item.id}`}
                                             type="number"
-                                            step="1"
-                                            min={1}
+                                            readOnly
                                             className={`${adminInputClasses} w-full tabular-nums`}
-                                            defaultValue={item.quantity}
+                                            value={item.quantity}
                                         />
                                     </div>
                                 </div>
@@ -196,8 +178,9 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                         <input
                                             id={`equipment-purchase-${item.id}`}
                                             type="date"
+                                            readOnly
                                             className={`${adminInputClasses} w-full tabular-nums`}
-                                            defaultValue={item.purchaseDate}
+                                            value={item.purchaseDate}
                                         />
                                     </div>
                                     <div>
@@ -214,34 +197,21 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                         <input
                                             id={`equipment-warranty-${item.id}`}
                                             type="date"
+                                            readOnly
                                             className={`${adminInputClasses} w-full tabular-nums`}
-                                            defaultValue={item.warrantyExpiry ?? ""}
+                                            value={item.warrantyExpiry ?? ""}
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-5 flex items-center gap-3 border-t border-(--a-border) pt-4">
-                                <button
-                                    type="button"
-                                    className="rounded-lg bg-(--a-accent) px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-(--a-accent-hover)"
-                                >
-                                    Save Changes
-                                </button>
+                            <div className="mt-5 flex items-center justify-end gap-3 border-t border-(--a-border) pt-4">
                                 <button
                                     type="button"
                                     onClick={onToggleExpand}
                                     className="rounded-lg bg-(--a-surface-2) px-4 py-1.5 text-xs font-medium text-(--a-text-secondary) transition-colors hover:text-(--a-text)"
                                 >
-                                    Cancel
-                                </button>
-                                <div className="flex-1" />
-                                <button
-                                    type="button"
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-(--a-danger-subtle) px-3 py-1.5 text-xs font-medium text-(--a-danger) transition-colors"
-                                >
-                                    <Trash2 className="size-3" />
-                                    Delete
+                                    Close
                                 </button>
                             </div>
                         </div>

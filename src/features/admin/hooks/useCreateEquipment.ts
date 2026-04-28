@@ -13,6 +13,13 @@ type Options = {
     onSuccess?: () => void;
 };
 
+const formatLocalDate = (date: Date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+};
+
 export const useCreateEquipment = ({ onSuccess }: Options = {}) => {
     const form = useForm({
         resolver: zodResolver(createEquipmentSchema),
@@ -22,7 +29,7 @@ export const useCreateEquipment = ({ onSuccess }: Options = {}) => {
             model: "",
             price: 0,
             quantity: 1,
-            purchaseDate: new Date().toISOString().slice(0, 10),
+            purchaseDate: formatLocalDate(new Date()),
             warrantyExpiry: "",
         },
     });

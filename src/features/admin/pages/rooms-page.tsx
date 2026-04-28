@@ -2,11 +2,10 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { EmptyState } from "@/features/admin/components/empty-state";
-import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { Building2 } from "lucide-react";
 import { CreateRoomDialog } from "@/features/admin/components/create-room-dialog";
-import { EmptyStateCreateButton } from "@/features/admin/components/empty-state-create-button";
-import { RoomRow, type Room } from "@/features/admin/components/room-row";
+import { RoomsEmptyStateCreateButton } from "@/features/admin/components/empty-state-create-button";
+import { RoomRow } from "@/features/admin/components/room-row";
 import { RoomsPageHeader } from "@/features/admin/components/rooms-page-header";
 import { roomsQueryOptions } from "@/features/admin/services/rooms/queries";
 import { RoomsCreateStoreProvider } from "@/features/admin/stores/rooms-create-store";
@@ -24,8 +23,6 @@ export const RoomsPage = () => {
 };
 
 const RoomsContent = () => {
-    const { toast } = useAdminToast();
-
     const { data: rooms } = useSuspenseQuery(roomsQueryOptions());
     const { q = "", sort, dir, expanded } = useSearch({ from: "/admin/rooms" });
     const navigate = useNavigate({ from: "/admin/rooms" });
@@ -66,15 +63,25 @@ const RoomsContent = () => {
         });
     };
 
-    const handleVisualToggle = (room: Room) => {
-        toast(`${room.name} status update is not wired up yet`, "info");
-    };
-
     const SortIndicator = ({ field }: { field: SortField }) => {
         if (sort !== field || !dir) return null;
 
         return <span className="ml-1 inline-block text-[0.5rem] text-(--a-accent)">{dir === "asc" ? "▲" : "▼"}</span>;
     };
+
+    const SortHeader = ({ field, label, width }: { field: SortField; label: string; width: string }) => (
+        <th style={{ width }}>
+            <button
+                type="button"
+                data-sortable
+                onClick={() => toggleSort(field)}
+                className="flex w-full items-center gap-1 text-left font-inherit"
+            >
+                {label}
+                <SortIndicator field={field} />
+            </button>
+        </th>
+    );
 
     return (
         <div className="p-6">
@@ -83,7 +90,7 @@ const RoomsContent = () => {
                     icon={Building2}
                     title="No rooms yet"
                     description="Create your first meeting room to get started with the booking system."
-                    action={<EmptyStateCreateButton />}
+                    action={<RoomsEmptyStateCreateButton />}
                 />
             ) : filtered.length === 0 ? (
                 <p className="py-12 text-center text-sm text-(--a-text-muted)">No rooms match "{q}"</p>
@@ -92,15 +99,9 @@ const RoomsContent = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th data-sortable onClick={() => toggleSort("name")} style={{ width: "32%" }}>
-                                    Name <SortIndicator field="name" />
-                                </th>
-                                <th data-sortable onClick={() => toggleSort("location")} style={{ width: "30%" }}>
-                                    Location <SortIndicator field="location" />
-                                </th>
-                                <th data-sortable onClick={() => toggleSort("capacity")} style={{ width: "14%" }}>
-                                    Capacity <SortIndicator field="capacity" />
-                                </th>
+                                <SortHeader field="name" label="Name" width="32%" />
+                                <SortHeader field="location" label="Location" width="30%" />
+                                <SortHeader field="capacity" label="Capacity" width="14%" />
                                 <th style={{ width: "12%" }}>Status</th>
                                 <th style={{ width: "12%" }} />
                             </tr>
@@ -114,7 +115,6 @@ const RoomsContent = () => {
                                         room={room}
                                         isExpanded={isExpanded}
                                         onToggleExpand={() => setExpanded(isExpanded ? null : room.id)}
-                                        onToggleActive={() => handleVisualToggle(room)}
                                     />
                                 );
                             })}

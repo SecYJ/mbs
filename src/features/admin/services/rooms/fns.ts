@@ -4,8 +4,11 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { equipment, roomEquipment, rooms } from "@/db/schema";
 import { createRoomSchema } from "@/features/admin/schema/room.schema";
+import { requireAdminUser } from "@/lib/session";
 
 export const getRoomsFn = createServerFn({ method: "GET" }).handler(async () => {
+    await requireAdminUser();
+
     const rows = await db
         .select({
             room: rooms,
@@ -48,6 +51,8 @@ export const getRoomsFn = createServerFn({ method: "GET" }).handler(async () => 
 export const createRoomFn = createServerFn({ method: "POST" })
     .inputValidator(createRoomSchema)
     .handler(async ({ data }) => {
+        await requireAdminUser();
+
         const [room] = await db.insert(rooms).values(data).returning();
 
         return { room };

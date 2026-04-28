@@ -6,7 +6,7 @@ interface StatusToggleProps {
     label?: string;
 }
 
-export function StatusToggle({ checked, onChange, label }: StatusToggleProps) {
+export const StatusToggle = ({ checked, onChange, label }: StatusToggleProps) => {
     return (
         <button
             type="button"
@@ -24,4 +24,4 @@ export function StatusToggle({ checked, onChange, label }: StatusToggleProps) {
             }}
         />
     );
-}
+};

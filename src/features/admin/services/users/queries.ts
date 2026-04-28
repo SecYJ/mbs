@@ -1,7 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import type { AdminUser } from "@/features/admin/pages/users-page";
 import { getUsersFn } from "@/features/admin/services/users/fns";
+import type { AdminUser } from "@/features/admin/types";
 
 const avatarColors = ["#e4a441", "#539bf5", "#34d399", "#c084fc", "#f97066", "#2dd4bf"];
 
@@ -29,13 +29,12 @@ export const usersQueryOptions = () =>
     queryOptions({
         queryKey: ["admin", "users"],
         queryFn: getUsersFn,
-        select: (rows): AdminUser[] =>
-            rows.map((row) => ({
+        select: (rows) =>
+            rows.map<AdminUser>((row) => ({
                 id: row.id,
                 name: row.name,
                 email: row.email,
-                role: "user",
-                active: true,
+                role: row.role,
                 lastLogin: formatLastLogin(row.lastLoginAt),
                 lastLoginAt: row.lastLoginAt,
                 image: row.image,

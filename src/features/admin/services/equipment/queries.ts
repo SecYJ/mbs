@@ -1,14 +1,14 @@
 import { queryOptions } from "@tanstack/react-query";
 
-import type { Equipment } from "@/features/admin/components/equipment-row";
 import { getEquipmentFn } from "@/features/admin/services/equipment/fns";
+import type { Equipment } from "@/features/admin/types";
 
 export const equipmentQueryOptions = () =>
     queryOptions({
         queryKey: ["admin", "equipment"],
         queryFn: getEquipmentFn,
-        select: (rows): Equipment[] =>
-            rows.map((row) => ({
+        select: (rows) =>
+            rows.map<Equipment>((row) => ({
                 id: row.equipmentId,
                 name: row.name,
                 brand: row.brand,

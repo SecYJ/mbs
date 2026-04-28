@@ -1,45 +1,35 @@
-import { ChevronDown, ChevronUp, MapPin, MoreHorizontal, Package, Trash2, UsersRound } from "lucide-react";
+import { ChevronDown, ChevronUp, MapPin, Package, UsersRound } from "lucide-react";
 
 import { adminExpandRowClasses, adminInputClasses } from "@/features/admin/admin-classes";
-import { StatusToggle } from "@/features/admin/components/status-toggle";
+import type { Room, RoomEquipmentLine } from "@/features/admin/types";
 
-export interface RoomEquipmentLine {
-    id: string;
-    name: string;
-    brand: string;
-    model: string;
-    quantity: number;
-}
-
-export interface Room {
-    id: string;
-    name: string;
-    location: string;
-    capacity: number;
-    active: boolean;
-    equipment: RoomEquipmentLine[];
-}
+export type { Room, RoomEquipmentLine };
 
 type Props = {
     room: Room;
     isExpanded: boolean;
     onToggleExpand: () => void;
-    onToggleActive: () => void;
 };
 
-export const RoomRow = ({ room, isExpanded, onToggleExpand, onToggleActive }: Props) => {
+export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
     return (
         <>
-            <tr className="cursor-pointer" onClick={onToggleExpand} data-disabled={!room.active || undefined}>
+            <tr data-disabled={!room.active || undefined}>
                 <td>
-                    <div className="flex items-center gap-2">
+                    <button
+                        type="button"
+                        onClick={onToggleExpand}
+                        aria-expanded={isExpanded}
+                        aria-label={`${room.name} — toggle details`}
+                        className="flex w-full items-center gap-2 text-left"
+                    >
                         <span className="font-semibold text-(--a-text)">{room.name}</span>
                         {isExpanded ? (
                             <ChevronUp className="size-3.5 text-(--a-text-muted)" />
                         ) : (
                             <ChevronDown className="size-3.5 text-(--a-text-muted)" />
                         )}
-                    </div>
+                    </button>
                 </td>
                 <td>
                     <span className="flex items-center gap-1.5 text-(--a-text-secondary)">
@@ -53,17 +43,23 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand, onToggleActive }: Pr
                         {room.capacity}
                     </span>
                 </td>
-                <td onClick={(e) => e.stopPropagation()}>
-                    <StatusToggle checked={room.active} onChange={onToggleActive} label={`${room.name} status`} />
-                </td>
-                <td onClick={(e) => e.stopPropagation()}>
-                    <button
-                        type="button"
-                        className="flex size-7 items-center justify-center rounded-md text-(--a-text-muted) transition-colors hover:bg-(--a-surface-2)"
+                <td>
+                    <span
+                        className="inline-flex items-center gap-1.5 text-xs font-medium"
+                        style={{
+                            color: room.active ? "var(--a-success)" : "var(--a-text-muted)",
+                        }}
                     >
-                        <MoreHorizontal className="size-4" />
-                    </button>
+                        <span
+                            className="size-1.5 rounded-full"
+                            style={{
+                                background: room.active ? "var(--a-success)" : "var(--a-text-muted)",
+                            }}
+                        />
+                        {room.active ? "Available" : "Disabled"}
+                    </span>
                 </td>
+                <td />
             </tr>
 
             {isExpanded && (
@@ -81,8 +77,9 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand, onToggleActive }: Pr
                                         </label>
                                         <input
                                             id={`room-name-${room.id}`}
+                                            readOnly
                                             className={`${adminInputClasses} w-full`}
-                                            defaultValue={room.name}
+                                            value={room.name}
                                         />
                                     </div>
                                     <div>
@@ -94,8 +91,9 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand, onToggleActive }: Pr
                                         </label>
                                         <input
                                             id={`room-location-${room.id}`}
+                                            readOnly
                                             className={`${adminInputClasses} w-full`}
-                                            defaultValue={room.location}
+                                            value={room.location}
                                         />
                                     </div>
                                 </div>
@@ -110,8 +108,9 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand, onToggleActive }: Pr
                                         <input
                                             id={`room-capacity-${room.id}`}
                                             type="number"
+                                            readOnly
                                             className={`${adminInputClasses} w-24`}
-                                            defaultValue={room.capacity}
+                                            value={room.capacity}
                                         />
                                     </div>
                                 </div>
@@ -153,27 +152,13 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand, onToggleActive }: Pr
                                 )}
                             </div>
 
-                            <div className="mt-5 flex items-center gap-3 border-t border-(--a-border) pt-4">
-                                <button
-                                    type="button"
-                                    className="rounded-lg bg-(--a-accent) px-4 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-(--a-accent-hover)"
-                                >
-                                    Save Changes
-                                </button>
+                            <div className="mt-5 flex items-center justify-end gap-3 border-t border-(--a-border) pt-4">
                                 <button
                                     type="button"
                                     onClick={onToggleExpand}
                                     className="rounded-lg bg-(--a-surface-2) px-4 py-1.5 text-xs font-medium text-(--a-text-secondary) transition-colors hover:text-(--a-text)"
                                 >
-                                    Cancel
-                                </button>
-                                <div className="flex-1" />
-                                <button
-                                    type="button"
-                                    className="inline-flex items-center gap-1.5 rounded-lg bg-(--a-danger-subtle) px-3 py-1.5 text-xs font-medium text-(--a-danger) transition-colors"
-                                >
-                                    <Trash2 className="size-3" />
-                                    Delete Room
+                                    Close
                                 </button>
                             </div>
                         </div>

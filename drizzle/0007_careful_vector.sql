@@ -5,5 +5,6 @@ CREATE TABLE "equipment" (
 	"model" text NOT NULL,
 	"price" numeric(10, 2) NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now(),
-	"updated_at" timestamp with time zone DEFAULT now()
+	"updated_at" timestamp with time zone DEFAULT now(),
+	CONSTRAINT "equipment_price_non_negative" CHECK ("equipment"."price" >= 0)
 );

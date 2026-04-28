@@ -11,13 +11,13 @@ interface AdminHeaderProps {
     onSearchChange?: (value: string) => void;
 }
 
-export function AdminHeader({
+export const AdminHeader = ({
     title,
     children,
     searchPlaceholder = "Search...",
     searchValue,
     onSearchChange,
-}: AdminHeaderProps) {
+}: AdminHeaderProps) => {
     return (
         <header
             className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-(--a-border-hover) px-6"
@@ -41,6 +41,7 @@ export function AdminHeader({
                             type="text"
                             className={adminInputClasses}
                             style={{ width: 200, paddingLeft: "2rem" }}
+                            aria-label={searchPlaceholder}
                             placeholder={searchPlaceholder}
                             value={searchValue}
                             onChange={(e) => onSearchChange(e.target.value)}
@@ -51,4 +52,4 @@ export function AdminHeader({
             </div>
         </header>
     );
-}
+};

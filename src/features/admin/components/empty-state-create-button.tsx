@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 
 import { useRoomsCreateStore } from "@/features/admin/stores/rooms-create-store";
 
-export const EmptyStateCreateButton = () => {
+export const RoomsEmptyStateCreateButton = () => {
     const { setOpen } = useRoomsCreateStore((s) => s.actions);
 
     return (

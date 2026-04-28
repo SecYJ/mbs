@@ -74,6 +74,20 @@ const EquipmentContent = () => {
         return <span className="ml-1 inline-block text-[0.5rem] text-(--a-accent)">{dir === "asc" ? "▲" : "▼"}</span>;
     };
 
+    const SortHeader = ({ field, label, width, align }: { field: SortField; label: string; width: string; align?: "right" }) => (
+        <th style={{ width, textAlign: align }}>
+            <button
+                type="button"
+                data-sortable
+                onClick={() => toggleSort(field)}
+                className={`flex w-full items-center gap-1 font-inherit ${align === "right" ? "justify-end" : "text-left"}`}
+            >
+                {label}
+                <SortIndicator field={field} />
+            </button>
+        </th>
+    );
+
     return (
         <div className="p-6">
             {filtered.length === 0 && !q ? (
@@ -90,19 +104,9 @@ const EquipmentContent = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th data-sortable onClick={() => toggleSort("name")} style={{ width: "48%" }}>
-                                    Name <SortIndicator field="name" />
-                                </th>
-                                <th data-sortable onClick={() => toggleSort("brand")} style={{ width: "22%" }}>
-                                    Brand <SortIndicator field="brand" />
-                                </th>
-                                <th
-                                    data-sortable
-                                    onClick={() => toggleSort("price")}
-                                    style={{ width: "18%", textAlign: "right" }}
-                                >
-                                    Price <SortIndicator field="price" />
-                                </th>
+                                <SortHeader field="name" label="Name" width="48%" />
+                                <SortHeader field="brand" label="Brand" width="22%" />
+                                <SortHeader field="price" label="Price" width="18%" align="right" />
                                 <th style={{ width: "12%" }} />
                             </tr>
                         </thead>

@@ -55,9 +55,10 @@ export const CreateEquipmentDialog = () => {
                             control={form.control}
                             name="name"
                             render={({ field, fieldState: { error } }) => (
-                                <Field label="Name" error={error?.message}>
+                                <Field label="Name" error={error?.message} inputId="create-equipment-name">
                                     <input
                                         {...field}
+                                        id="create-equipment-name"
                                         className={`${adminInputClasses} w-full`}
                                         placeholder="Conference Speaker"
                                     />
@@ -73,9 +74,15 @@ export const CreateEquipmentDialog = () => {
                                     <Field
                                         label="Brand"
                                         error={error?.message}
+                                        inputId="create-equipment-brand"
                                         icon={<Building2 className="size-3" strokeWidth={1.6} />}
                                     >
-                                        <input {...field} className={`${adminInputClasses} w-full`} placeholder="Logitech" />
+                                        <input
+                                            {...field}
+                                            id="create-equipment-brand"
+                                            className={`${adminInputClasses} w-full`}
+                                            placeholder="Logitech"
+                                        />
                                     </Field>
                                 )}
                             />
@@ -86,9 +93,15 @@ export const CreateEquipmentDialog = () => {
                                     <Field
                                         label="Model"
                                         error={error?.message}
+                                        inputId="create-equipment-model"
                                         icon={<Tag className="size-3" strokeWidth={1.6} />}
                                     >
-                                        <input {...field} className={`${adminInputClasses} w-full`} placeholder="MX-200" />
+                                        <input
+                                            {...field}
+                                            id="create-equipment-model"
+                                            className={`${adminInputClasses} w-full`}
+                                            placeholder="MX-200"
+                                        />
                                     </Field>
                                 )}
                             />
@@ -102,15 +115,21 @@ export const CreateEquipmentDialog = () => {
                                     <Field
                                         label="Price"
                                         error={error?.message}
+                                        inputId="create-equipment-price"
                                         icon={<DollarSign className="size-3" strokeWidth={1.6} />}
                                     >
                                         <input
                                             {...field}
+                                            id="create-equipment-price"
                                             type="number"
                                             step="0.01"
                                             min={0}
-                                            value={field.value}
-                                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                            value={Number.isFinite(field.value) ? field.value : ""}
+                                            onChange={(e) =>
+                                                field.onChange(
+                                                    e.target.value === "" ? undefined : e.target.valueAsNumber,
+                                                )
+                                            }
                                             className={`${adminInputClasses} w-full tabular-nums`}
                                         />
                                     </Field>
@@ -123,15 +142,21 @@ export const CreateEquipmentDialog = () => {
                                     <Field
                                         label="Quantity"
                                         error={error?.message}
+                                        inputId="create-equipment-quantity"
                                         icon={<Hash className="size-3" strokeWidth={1.6} />}
                                     >
                                         <input
                                             {...field}
+                                            id="create-equipment-quantity"
                                             type="number"
                                             step="1"
                                             min={1}
-                                            value={field.value}
-                                            onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                                            value={Number.isFinite(field.value) ? field.value : ""}
+                                            onChange={(e) =>
+                                                field.onChange(
+                                                    e.target.value === "" ? undefined : e.target.valueAsNumber,
+                                                )
+                                            }
                                             className={`${adminInputClasses} w-full tabular-nums`}
                                         />
                                     </Field>
@@ -147,10 +172,12 @@ export const CreateEquipmentDialog = () => {
                                     <Field
                                         label="Purchase Date"
                                         error={error?.message}
+                                        inputId="create-equipment-purchase"
                                         icon={<CalendarDays className="size-3" strokeWidth={1.6} />}
                                     >
                                         <input
                                             {...field}
+                                            id="create-equipment-purchase"
                                             type="date"
                                             className={`${adminInputClasses} w-full tabular-nums`}
                                         />
@@ -165,10 +192,12 @@ export const CreateEquipmentDialog = () => {
                                         label="Warranty Expiry"
                                         optional
                                         error={error?.message}
+                                        inputId="create-equipment-warranty"
                                         icon={<ShieldCheck className="size-3" strokeWidth={1.6} />}
                                     >
                                         <input
                                             {...field}
+                                            id="create-equipment-warranty"
                                             value={field.value ?? ""}
                                             type="date"
                                             className={`${adminInputClasses} w-full tabular-nums`}
@@ -220,16 +249,21 @@ const Field = ({
     error,
     icon,
     optional,
+    inputId,
     children,
 }: {
     label: string;
     error?: string;
     icon?: ReactNode;
     optional?: boolean;
+    inputId: string;
     children: ReactNode;
 }) => (
     <div>
-        <label className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
+        <label
+            htmlFor={inputId}
+            className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
+        >
             {icon}
             {label}
             {optional ? (

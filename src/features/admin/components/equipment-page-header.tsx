@@ -10,7 +10,10 @@ export const EquipmentPageHeader = () => {
     const { setOpen } = useEquipmentCreateStore((s) => s.actions);
 
     const setSearch = (value: string) => {
-        navigate({ search: (prev) => ({ ...prev, q: value }), replace: true });
+        navigate({
+            search: (prev) => ({ ...prev, q: value.trim() ? value : undefined }),
+            replace: true,
+        });
     };
 
     return (

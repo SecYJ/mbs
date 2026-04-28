@@ -53,9 +53,10 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                             control={form.control}
                             name="name"
                             render={({ field, fieldState: { error } }) => (
-                                <Field label="Full Name" error={error?.message}>
+                                <Field label="Full Name" error={error?.message} inputId="create-user-name">
                                     <input
                                         {...field}
+                                        id="create-user-name"
                                         autoComplete="off"
                                         className={`${adminInputClasses} w-full`}
                                         placeholder="Jane Doe"
@@ -71,10 +72,12 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                 <Field
                                     label="Email"
                                     error={error?.message}
+                                    inputId="create-user-email"
                                     icon={<Mail className="size-3" strokeWidth={1.6} />}
                                 >
                                     <input
                                         {...field}
+                                        id="create-user-email"
                                         type="email"
                                         autoComplete="off"
                                         className={`${adminInputClasses} w-full`}
@@ -92,10 +95,12 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                     <Field
                                         label="Password"
                                         error={error?.message}
+                                        inputId="create-user-password"
                                         icon={<KeyRound className="size-3" strokeWidth={1.6} />}
                                     >
                                         <input
                                             {...field}
+                                            id="create-user-password"
                                             type="password"
                                             className={`${adminInputClasses} w-full`}
                                             autoComplete="new-password"
@@ -107,9 +112,10 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                 control={form.control}
                                 name="confirmPassword"
                                 render={({ field, fieldState: { error } }) => (
-                                    <Field label="Confirm" error={error?.message}>
+                                    <Field label="Confirm" error={error?.message} inputId="create-user-confirm">
                                         <input
                                             {...field}
+                                            id="create-user-confirm"
                                             type="password"
                                             className={`${adminInputClasses} w-full`}
                                             autoComplete="new-password"
@@ -160,15 +166,20 @@ const Field = ({
     label,
     error,
     icon,
+    inputId,
     children,
 }: {
     label: string;
     error?: string;
     icon?: ReactNode;
+    inputId: string;
     children: ReactNode;
 }) => (
     <div>
-        <label className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
+        <label
+            htmlFor={inputId}
+            className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
+        >
             {icon}
             {label}
         </label>

@@ -3,5 +3,6 @@ CREATE TABLE "booking_rules" (
 	"max_booking_duration_hours" integer DEFAULT 8 NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now(),
 	"updated_at" timestamp with time zone DEFAULT now(),
-	CONSTRAINT "booking_rules_singleton" CHECK ("booking_rules"."id" = 1)
+	CONSTRAINT "booking_rules_singleton" CHECK ("booking_rules"."id" = 1),
+	CONSTRAINT "booking_rules_duration_positive" CHECK ("booking_rules"."max_booking_duration_hours" > 0)
 );

@@ -185,18 +185,29 @@ export const notifications = pgTable(
     },
 );
 
-export const equipment = pgTable("equipment", {
-    equipmentId: id("equipment_id"),
-    name: text().notNull(),
-    brand: text().notNull(),
-    model: text().notNull(),
-    price: numeric({ precision: 10, scale: 2, mode: "number" }).notNull(),
-    quantity: integer().default(1).notNull(),
-    purchaseDate: date("purchase_date").notNull(),
-    warrantyExpiry: date("warranty_expiry"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-});
+export const equipment = pgTable(
+    "equipment",
+    {
+        equipmentId: id("equipment_id"),
+        name: text().notNull(),
+        brand: text().notNull(),
+        model: text().notNull(),
+        price: numeric({ precision: 10, scale: 2, mode: "number" }).notNull(),
+        quantity: integer().default(1).notNull(),
+        purchaseDate: date("purchase_date").notNull(),
+        warrantyExpiry: date("warranty_expiry"),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    },
+    (table) => [
+        check("equipment_price_non_negative", sql`${table.price} >= 0`),
+        check("equipment_quantity_positive", sql`${table.quantity} >= 1`),
+        check(
+            "equipment_warranty_not_before_purchase",
+            sql`${table.warrantyExpiry} IS NULL OR ${table.warrantyExpiry} >= ${table.purchaseDate}`,
+        ),
+    ],
+);
 
 export const facilities = pgTable("facilities", {
     facilityId: id("facility_id"),
@@ -242,9 +253,10 @@ export const bookingRules = pgTable(
         createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
         updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
     },
-    (table) => {
-        return [check("booking_rules_singleton", sql`${table.id} = 1`)];
-    },
+    (table) => [
+        check("booking_rules_singleton", sql`${table.id} = 1`),
+        check("booking_rules_duration_positive", sql`${table.maxBookingDurationHours} > 0`),
+    ],
 );
 
 export const roomEquipment = pgTable(
@@ -256,21 +268,20 @@ export const roomEquipment = pgTable(
         createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
         updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
     },
-    (table) => {
-        return [
-            primaryKey({
-                columns: [table.roomId, table.equipmentId],
-            }),
-            foreignKey({
-                columns: [table.roomId],
-                foreignColumns: [rooms.roomId],
-                name: "room_equipment_room_id_fk",
-            }),
-            foreignKey({
-                columns: [table.equipmentId],
-                foreignColumns: [equipment.equipmentId],
-                name: "room_equipment_equipment_id_fk",
-            }),
-        ];
-    },
+    (table) => [
+        primaryKey({
+            columns: [table.roomId, table.equipmentId],
+        }),
+        foreignKey({
+            columns: [table.roomId],
+            foreignColumns: [rooms.roomId],
+            name: "room_equipment_room_id_fk",
+        }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.equipmentId],
+            foreignColumns: [equipment.equipmentId],
+            name: "room_equipment_equipment_id_fk",
+        }).onDelete("cascade"),
+        check("room_equipment_quantity_positive", sql`${table.quantity} >= 1`),
+    ],
 );

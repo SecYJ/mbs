@@ -17,8 +17,14 @@ export function getRouter() {
         scrollRestoration: true,
         defaultPreload: "intent",
         defaultPreloadStaleTime: 0,
-        parseSearch: parseSearchWith((value) => value),
-        stringifySearch: stringifySearchWith((value) => String(value)),
+        parseSearch: parseSearchWith((value) => {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return value;
+            }
+        }),
+        stringifySearch: stringifySearchWith((value) => JSON.stringify(value)),
     });
 
     setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient });

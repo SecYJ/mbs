@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { equipment, roomEquipment, rooms } from "@/db/schema";
@@ -58,21 +58,31 @@ const reset = process.argv.includes("--reset");
 
 for (const { roomName, items } of assignments) {
     const room = await findRoom(roomName);
-    if (reset) {
-        const removed = await db
-            .delete(roomEquipment)
-            .where(eq(roomEquipment.roomId, room.roomId))
-            .returning();
-        console.log(`[${roomName}] reset deleted ${removed.length} assignments`);
-    }
     const rows = await Promise.all(
         items.map(async (it) => {
             const equip = await findEquipment(it.brand, it.model);
             return { roomId: room.roomId, equipmentId: equip.equipmentId, quantity: it.quantity };
         }),
     );
-    const inserted = await db.insert(roomEquipment).values(rows).returning();
-    console.log(`[${roomName}] assigned ${inserted.length} equipment line(s)`);
+
+    await db.transaction(async (tx) => {
+        if (reset) {
+            const removed = await tx
+                .delete(roomEquipment)
+                .where(eq(roomEquipment.roomId, room.roomId))
+                .returning();
+            console.log(`[${roomName}] reset deleted ${removed.length} assignments`);
+        }
+        const inserted = await tx
+            .insert(roomEquipment)
+            .values(rows)
+            .onConflictDoUpdate({
+                target: [roomEquipment.roomId, roomEquipment.equipmentId],
+                set: { quantity: sql`excluded.quantity` },
+            })
+            .returning();
+        console.log(`[${roomName}] upserted ${inserted.length} equipment line(s)`);
+    });
 }
 
 process.exit(0);

@@ -1,1 +1,3 @@
-ALTER TABLE "equipment" ADD COLUMN "quantity" integer DEFAULT 1 NOT NULL;
+ALTER TABLE "equipment" ADD COLUMN "quantity" integer DEFAULT 1 NOT NULL;--> statement-breakpoint
+ALTER TABLE "equipment" ADD CONSTRAINT "equipment_quantity_positive" CHECK ("equipment"."quantity" >= 1);--> statement-breakpoint
+ALTER TABLE "equipment" ADD CONSTRAINT "equipment_warranty_not_before_purchase" CHECK ("equipment"."warranty_expiry" IS NULL OR "equipment"."warranty_expiry" >= "equipment"."purchase_date");
