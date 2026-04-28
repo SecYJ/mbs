@@ -14,14 +14,28 @@ Before substantial work:
 
 ## Coding Style
 
-- Use arrow functions instead of function declarations.
+- Use arrow functions instead of function declarations except the page under createFileRoute from tanstack/router.
 
 ## TypeScript
 
 - prefer auto-inferred return types over explicit return type annotations.
 
+## React
+
+- Using React v19
+- Skip `useMemo`, `useCallback`, and `memo` — react-compiler handles memoization.
+- For filter/sort/search/pagination state, use URL search params (e.g. TanStack Router `useSearch`) instead of `useState`.
+
+## Dev Server
+
+- If you start a dev server manually (e.g. `bun run dev`) for verification, stop it once the task is complete. Don't leave it running in the background.
+
 ## Research & Documentation
 
-- For up-to-date library/framework/SDK/API/CLI docs (e.g. React, TanStack, Prisma, Tailwind), use the `context7` MCP server. Prefer it over web search and over relying on training knowledge — even for well-known libraries — since versions and APIs drift.
-- For general web search (news, blog posts, articles, non-library lookups), use the `exa` MCP server instead of generic web search tools.
-- Rule of thumb: library/API specifics → `context7`; everything else on the open web → `exa`.
+Resolution priority for library/framework docs:
+
+1. **TanStack libraries** → use the TanStack intent skill first (`bunx @tanstack/intent@latest list` / `load`). If the issue persists after consulting the loaded `SKILL.md`, fall back to `context7` MCP.
+2. **Other libraries** (React, Prisma, Tailwind, etc.) → use `context7` MCP directly.
+3. **Still stuck** → use web search (`exa` MCP for general web; generic web search as last resort).
+
+Prefer these over relying on training knowledge — even for well-known libraries — since versions and APIs drift. For general web lookups (news, blog posts, articles, non-library questions), use the `exa` MCP server instead of generic web search.

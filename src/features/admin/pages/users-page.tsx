@@ -1,116 +1,78 @@
-import { useState, useMemo } from "react";
-import { Users, Shield, ShieldOff, KeyRound, UserX, UserCheck, Check, X } from "lucide-react";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useNavigate, useSearch } from "@tanstack/react-router";
+import { Users, Shield, ShieldOff, KeyRound, UserX, UserCheck, Check, X, Plus, type LucideIcon } from "lucide-react";
+import { useState } from "react";
+
+import { adminBadgeClasses, adminConfirmClasses } from "@/features/admin/admin-classes";
+import { CreateUserDialog } from "@/features/admin/components/create-user-dialog";
 import { AdminHeader } from "@/features/admin/components/admin-header";
 import { EmptyState } from "@/features/admin/components/empty-state";
 import { useAdminToast } from "@/features/admin/components/admin-layout";
+import { usersQueryOptions } from "@/features/admin/services/users/queries";
 
-/* ── Mock data ── */
-
-interface User {
+export interface AdminUser {
     id: string;
     name: string;
     email: string;
     role: "admin" | "user";
     active: boolean;
     lastLogin: string;
+    lastLoginAt: string | null;
+    image: string | null;
     avatarColor: string;
 }
 
-const initialUsers: User[] = [
-    {
-        id: "1",
-        name: "Alice Chen",
-        email: "alice@company.com",
-        role: "admin",
-        active: true,
-        lastLogin: "2 hours ago",
-        avatarColor: "#e4a441",
-    },
-    {
-        id: "2",
-        name: "Bob Wang",
-        email: "bob@company.com",
-        role: "user",
-        active: true,
-        lastLogin: "1 day ago",
-        avatarColor: "#539bf5",
-    },
-    {
-        id: "3",
-        name: "Carol Liu",
-        email: "carol@company.com",
-        role: "user",
-        active: false,
-        lastLogin: "30 days ago",
-        avatarColor: "#34d399",
-    },
-    {
-        id: "4",
-        name: "David Zhang",
-        email: "david@company.com",
-        role: "admin",
-        active: true,
-        lastLogin: "5 min ago",
-        avatarColor: "#c084fc",
-    },
-    {
-        id: "5",
-        name: "Eve Huang",
-        email: "eve@company.com",
-        role: "user",
-        active: true,
-        lastLogin: "3 hours ago",
-        avatarColor: "#f97066",
-    },
-    {
-        id: "6",
-        name: "Frank Li",
-        email: "frank@company.com",
-        role: "user",
-        active: true,
-        lastLogin: "6 hours ago",
-        avatarColor: "#2dd4bf",
-    },
-];
-
 type SortField = "name" | "email" | "role" | "lastLogin";
-type SortDir = "asc" | "desc" | null;
 
-export function UsersPage() {
+export const UsersPage = () => {
     const { toast } = useAdminToast();
-    const [users, setUsers] = useState(initialUsers);
-    const [search, setSearch] = useState("");
-    const [sortField, setSortField] = useState<SortField | null>(null);
-    const [sortDir, setSortDir] = useState<SortDir>(null);
+    const { data: users } = useSuspenseQuery(usersQueryOptions());
+    const { q = "", sort, dir } = useSearch({ from: "/admin/users" });
+    const navigate = useNavigate({ from: "/admin/users" });
+    const [createOpen, setCreateOpen] = useState(false);
     const [confirmAction, setConfirmAction] = useState<{
         userId: string;
         type: "reset" | "toggleAdmin" | "toggleActive";
     } | null>(null);
 
     const toggleSort = (field: SortField) => {
-        if (sortField === field) {
-            setSortDir((d) => (d === "asc" ? "desc" : d === "desc" ? null : "asc"));
-            if (sortDir === "desc") setSortField(null);
-        } else {
-            setSortField(field);
-            setSortDir("asc");
-        }
+        navigate({
+            search: (prev) => {
+                if (prev.sort !== field) return { ...prev, sort: field, dir: "asc" };
+                if (prev.dir === "asc") return { ...prev, sort: field, dir: "desc" };
+                return { ...prev, sort: undefined, dir: undefined };
+            },
+            replace: true,
+        });
     };
 
-    const filtered = useMemo(() => {
-        let list = users;
-        if (search) {
-            const q = search.toLowerCase();
-            list = list.filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q));
-        }
-        if (sortField && sortDir) {
-            list = [...list].sort((a, b) => {
-                const cmp = String(a[sortField]).localeCompare(String(b[sortField]));
-                return sortDir === "asc" ? cmp : -cmp;
-            });
-        }
-        return list;
-    }, [users, search, sortField, sortDir]);
+    const setSearch = (value: string) => {
+        navigate({
+            search: (prev) => ({ ...prev, q: value || undefined }),
+            replace: true,
+        });
+    };
+
+    let filtered = users;
+    if (q) {
+        const needle = q.toLowerCase();
+        filtered = filtered.filter(
+            (u) => u.name.toLowerCase().includes(needle) || u.email.toLowerCase().includes(needle),
+        );
+    }
+    if (sort && dir) {
+        // oxlint-disable-next-line unicorn/no-array-sort -- tsconfig targets ES2022, so Array#toSorted is not typed.
+        filtered = [...filtered].sort((a, b) => {
+            if (sort === "lastLogin") {
+                const aTime = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
+                const bTime = b.lastLoginAt ? new Date(b.lastLoginAt).getTime() : 0;
+                return dir === "asc" ? aTime - bTime : bTime - aTime;
+            }
+
+            const cmp = String(a[sort]).localeCompare(String(b[sort]));
+            return dir === "asc" ? cmp : -cmp;
+        });
+    }
 
     const handleConfirm = () => {
         if (!confirmAction) return;
@@ -119,47 +81,49 @@ export function UsersPage() {
         if (!user) return;
 
         if (type === "reset") {
-            toast(`Password reset link sent to ${user.email}`, "success");
+            toast(`Password reset for ${user.email} is not wired up yet`, "info");
         } else if (type === "toggleAdmin") {
-            setUsers((prev) =>
-                prev.map((u) => (u.id === userId ? { ...u, role: u.role === "admin" ? "user" : "admin" } : u)),
-            );
-            toast(`${user.name} is now ${user.role === "admin" ? "a regular user" : "an admin"}`, "success");
+            toast(`Role management for ${user.name} is not wired up yet`, "info");
         } else if (type === "toggleActive") {
-            setUsers((prev) => prev.map((u) => (u.id === userId ? { ...u, active: !u.active } : u)));
-            toast(`${user.name}'s account ${user.active ? "disabled" : "enabled"}`, user.active ? "danger" : "success");
+            toast(`Account status management for ${user.name} is not wired up yet`, "info");
         }
         setConfirmAction(null);
     };
 
     const SortIndicator = ({ field }: { field: SortField }) => {
-        if (sortField !== field || !sortDir) return null;
+        if (sort !== field || !dir) return null;
         return (
             <span className="ml-1 text-[0.5rem]" style={{ color: "var(--a-accent)" }}>
-                {sortDir === "asc" ? "▲" : "▼"}
+                {dir === "asc" ? "▲" : "▼"}
             </span>
         );
     };
 
     return (
         <div>
-            <AdminHeader
-                title="Users"
-                searchPlaceholder="Search users..."
-                searchValue={search}
-                onSearchChange={setSearch}
-            />
+            <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
+            <AdminHeader title="Users" searchPlaceholder="Search users..." searchValue={q} onSearchChange={setSearch}>
+                <button
+                    type="button"
+                    onClick={() => setCreateOpen(true)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-(--a-accent) px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-(--a-accent-hover)"
+                >
+                    <Plus className="size-3.5" strokeWidth={2.2} />
+                    New User
+                </button>
+            </AdminHeader>
 
             <div className="p-6">
-                {filtered.length === 0 && !search ? (
+                {filtered.length === 0 && !q ? (
                     <EmptyState
                         icon={Users}
                         title="No users found"
                         description="Users who register for the booking system will appear here."
+                        action={<EmptyStateCreateUserButton onClick={() => setCreateOpen(true)} />}
                     />
                 ) : filtered.length === 0 ? (
                     <p className="py-12 text-center text-sm" style={{ color: "var(--a-text-muted)" }}>
-                        No users match "{search}"
+                        No users match "{q}"
                     </p>
                 ) : (
                     <div
@@ -193,18 +157,26 @@ export function UsersPage() {
                                     <tr key={user.id} style={{ opacity: user.active ? 1 : 0.55 }}>
                                         <td>
                                             <div className="flex items-center gap-2.5">
-                                                <div
-                                                    className="flex size-7 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold"
-                                                    style={{
-                                                        background: `${user.avatarColor}18`,
-                                                        color: user.avatarColor,
-                                                    }}
-                                                >
-                                                    {user.name
-                                                        .split(" ")
-                                                        .map((w) => w[0])
-                                                        .join("")}
-                                                </div>
+                                                {user.image ? (
+                                                    <img
+                                                        className="size-7 shrink-0 rounded-full object-cover"
+                                                        src={user.image}
+                                                        alt=""
+                                                    />
+                                                ) : (
+                                                    <div
+                                                        className="flex size-7 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold"
+                                                        style={{
+                                                            background: `${user.avatarColor}18`,
+                                                            color: user.avatarColor,
+                                                        }}
+                                                    >
+                                                        {user.name
+                                                            .split(" ")
+                                                            .map((w) => w[0])
+                                                            .join("")}
+                                                    </div>
+                                                )}
                                                 <span className="font-medium" style={{ color: "var(--a-text)" }}>
                                                     {user.name}
                                                 </span>
@@ -213,7 +185,7 @@ export function UsersPage() {
                                         <td style={{ color: "var(--a-text-secondary)" }}>{user.email}</td>
                                         <td>
                                             <span
-                                                className="admin-badge"
+                                                className={adminBadgeClasses}
                                                 style={
                                                     user.role === "admin"
                                                         ? {
@@ -304,21 +276,32 @@ export function UsersPage() {
             </div>
         </div>
     );
-}
+};
+
+const EmptyStateCreateUserButton = ({ onClick }: { onClick: () => void }) => (
+    <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex items-center gap-1.5 rounded-lg bg-(--a-accent) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--a-accent-hover)"
+    >
+        <Plus className="size-4" strokeWidth={2} />
+        Create User
+    </button>
+);
 
 /* ── Action button ── */
 
-function ActionButton({
+const ActionButton = ({
     icon: Icon,
     label,
     danger,
     onClick,
 }: {
-    icon: typeof Shield;
+    icon: LucideIcon;
     label: string;
     danger?: boolean;
     onClick: () => void;
-}) {
+}) => {
     return (
         <button
             type="button"
@@ -338,11 +321,11 @@ function ActionButton({
             <Icon className="size-3.5" strokeWidth={1.6} />
         </button>
     );
-}
+};
 
 /* ── Inline confirm ── */
 
-function InlineConfirm({
+const InlineConfirm = ({
     type,
     onConfirm,
     onCancel,
@@ -350,7 +333,7 @@ function InlineConfirm({
     type: "reset" | "toggleAdmin" | "toggleActive";
     onConfirm: () => void;
     onCancel: () => void;
-}) {
+}) => {
     const labels = {
         reset: "Reset password?",
         toggleAdmin: "Change role?",
@@ -358,7 +341,7 @@ function InlineConfirm({
     };
 
     return (
-        <div className="admin-confirm flex items-center gap-2">
+        <div className={`${adminConfirmClasses} flex items-center gap-2`}>
             <span className="text-[0.6875rem] font-medium" style={{ color: "var(--a-text-secondary)" }}>
                 {labels[type]}
             </span>
@@ -386,4 +369,4 @@ function InlineConfirm({
             </button>
         </div>
     );
-}
+};

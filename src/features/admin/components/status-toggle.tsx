@@ -1,3 +1,5 @@
+import { adminToggleClasses } from "@/features/admin/admin-classes";
+
 interface StatusToggleProps {
     checked: boolean;
     onChange: (checked: boolean) => void;
@@ -11,7 +13,7 @@ export function StatusToggle({ checked, onChange, label }: StatusToggleProps) {
             role="switch"
             aria-checked={checked}
             aria-label={label ?? (checked ? "Active" : "Inactive")}
-            className="admin-toggle"
+            className={adminToggleClasses}
             data-state={checked ? "on" : "off"}
             onClick={() => onChange(!checked)}
             onKeyDown={(e) => {

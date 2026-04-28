@@ -1,5 +1,12 @@
 import { useState, useMemo } from "react";
 import { CalendarDays, TrendingUp, Building2, Eye, Ban, Check, Filter } from "lucide-react";
+import {
+    adminBadgeClasses,
+    adminConfirmClasses,
+    adminInputClasses,
+    adminSelectClasses,
+    adminStatCardClasses,
+} from "@/features/admin/admin-classes";
 import { AdminHeader } from "@/features/admin/components/admin-header";
 import { EmptyState } from "@/features/admin/components/empty-state";
 import { useAdminToast } from "@/features/admin/components/admin-layout";
@@ -171,7 +178,7 @@ export function BookingsPage() {
             <div className="p-6">
                 {/* ── Stats strip ── */}
                 <div className="mb-6 grid grid-cols-3 gap-4">
-                    <div className="admin-stat-card">
+                    <div className={adminStatCardClasses}>
                         <div className="flex items-center gap-3">
                             <div
                                 className="flex size-9 items-center justify-center rounded-lg"
@@ -197,7 +204,7 @@ export function BookingsPage() {
                         </div>
                     </div>
 
-                    <div className="admin-stat-card">
+                    <div className={adminStatCardClasses}>
                         <div className="flex items-center gap-3">
                             <div
                                 className="flex size-9 items-center justify-center rounded-lg"
@@ -219,7 +226,7 @@ export function BookingsPage() {
                         </div>
                     </div>
 
-                    <div className="admin-stat-card">
+                    <div className={adminStatCardClasses}>
                         <div className="flex items-center gap-3">
                             <div
                                 className="flex size-9 items-center justify-center rounded-lg"
@@ -252,7 +259,7 @@ export function BookingsPage() {
                 >
                     <Filter className="size-3.5" style={{ color: "var(--a-text-muted)" }} strokeWidth={1.6} />
                     <select
-                        className="admin-select"
+                        className={adminSelectClasses}
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                     >
@@ -262,7 +269,7 @@ export function BookingsPage() {
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
-                    <select className="admin-select" value={roomFilter} onChange={(e) => setRoomFilter(e.target.value)}>
+                    <select className={adminSelectClasses} value={roomFilter} onChange={(e) => setRoomFilter(e.target.value)}>
                         <option value="all">All rooms</option>
                         {rooms.map((r) => (
                             <option key={r} value={r}>
@@ -338,7 +345,7 @@ export function BookingsPage() {
                                             </td>
                                             <td>
                                                 <span
-                                                    className="admin-badge"
+                                                    className={adminBadgeClasses}
                                                     style={{
                                                         background: st.bg,
                                                         color: st.color,
@@ -349,9 +356,9 @@ export function BookingsPage() {
                                             </td>
                                             <td>
                                                 {isCancelling ? (
-                                                    <div className="admin-confirm space-y-2">
+                                                    <div className={`${adminConfirmClasses} space-y-2`}>
                                                         <input
-                                                            className="admin-input w-full"
+                                                            className={`${adminInputClasses} w-full`}
                                                             placeholder="Cancellation reason..."
                                                             value={cancelReason}
                                                             onChange={(e) => setCancelReason(e.target.value)}

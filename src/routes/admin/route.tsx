@@ -3,12 +3,12 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { AdminLayout } from "@/features/admin/components/admin-layout";
 import { authClient } from "@/lib/auth-client";
-import { requireAuthenticatedUser } from "@/lib/session";
+import { requireAdminUser } from "@/lib/session";
 
 const AdminRoute = () => {
-    const { user } = Route.useLoaderData();
+    const session = Route.useLoaderData();
     const queryClient = useQueryClient();
-    const navigate = useNavigate({ from: "/admin" });
+    const navigate = useNavigate();
     const router = useRouter();
 
     const handleSignOut = async () => {
@@ -18,11 +18,11 @@ const AdminRoute = () => {
         navigate({ to: "/login" });
     };
 
-    return <AdminLayout user={user} onSignOut={handleSignOut} />;
+    return <AdminLayout user={session.user} onSignOut={handleSignOut} />;
 };
 
 export const Route = createFileRoute("/admin")({
-    beforeLoad: async () => ({ session: await requireAuthenticatedUser() }),
+    beforeLoad: async () => ({ session: await requireAdminUser() }),
     loader: ({ context }) => context.session,
     component: AdminRoute,
 });
