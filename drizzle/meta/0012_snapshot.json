@@ -200,14 +200,14 @@
           "name": "created_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         },
         "updated_at": {
           "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "now()"
         }
       },
@@ -220,6 +220,10 @@
         "booking_rules_singleton": {
           "name": "booking_rules_singleton",
           "value": "\"booking_rules\".\"id\" = 1"
+        },
+        "booking_rules_duration_positive": {
+          "name": "booking_rules_duration_positive",
+          "value": "\"booking_rules\".\"max_booking_duration_hours\" > 0"
         }
       },
       "isRLSEnabled": false
@@ -393,7 +397,20 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "equipment_price_non_negative": {
+          "name": "equipment_price_non_negative",
+          "value": "\"equipment\".\"price\" >= 0"
+        },
+        "equipment_quantity_positive": {
+          "name": "equipment_quantity_positive",
+          "value": "\"equipment\".\"quantity\" >= 1"
+        },
+        "equipment_warranty_not_before_purchase": {
+          "name": "equipment_warranty_not_before_purchase",
+          "value": "\"equipment\".\"warranty_expiry\" IS NULL OR \"equipment\".\"warranty_expiry\" >= \"equipment\".\"purchase_date\""
+        }
+      },
       "isRLSEnabled": false
     },
     "public.facilities": {
@@ -596,7 +613,7 @@
           "columnsTo": [
             "room_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "room_equipment_equipment_id_fk": {
@@ -609,7 +626,7 @@
           "columnsTo": [
             "equipment_id"
           ],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -624,7 +641,12 @@
       },
       "uniqueConstraints": {},
       "policies": {},
-      "checkConstraints": {},
+      "checkConstraints": {
+        "room_equipment_quantity_positive": {
+          "name": "room_equipment_quantity_positive",
+          "value": "\"room_equipment\".\"quantity\" >= 1"
+        }
+      },
       "isRLSEnabled": false
     },
     "public.room_facilities": {

@@ -7,9 +7,7 @@ import { useRoomsCreateStore } from "@/features/admin/stores/rooms-create-store"
 export const RoomsPageHeader = () => {
     const q = useSearch({
         from: "/admin/rooms",
-        select(s) {
-            return s.q ?? "";
-        },
+        select: (s) => s.q ?? "",
     });
     const navigate = useNavigate({ from: "/admin/rooms" });
     const { setOpen } = useRoomsCreateStore((s) => s.actions);

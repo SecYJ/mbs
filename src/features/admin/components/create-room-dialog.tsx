@@ -4,7 +4,7 @@ import { Controller, FormStateSubscribe } from "react-hook-form";
 import { Building2, MapPin, UsersRound } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses } from "@/features/admin/admin-classes";
 import { StatusToggle } from "@/features/admin/components/status-toggle";
 import { useAdminToast } from "@/features/admin/components/admin-layout";
@@ -44,7 +44,9 @@ export const CreateRoomDialog = () => {
                             <Building2 className="size-4 text-white" strokeWidth={2.2} />
                         </div>
                         <div className="min-w-0">
-                            <h2 className="text-[0.9375rem] font-bold tracking-tight text-(--a-text)">New Room</h2>
+                            <DialogTitle className="text-[0.9375rem] font-bold tracking-tight text-(--a-text)">
+                                New Room
+                            </DialogTitle>
                             <p className="mt-0.5 text-[0.6875rem] text-(--a-text-muted)">
                                 Add a bookable space to the system.
                             </p>

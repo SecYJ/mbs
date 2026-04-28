@@ -16,12 +16,6 @@ export const StatusToggle = ({ checked, onChange, label }: StatusToggleProps) =>
             className={adminToggleClasses}
             data-state={checked ? "on" : "off"}
             onClick={() => onChange(!checked)}
-            onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    onChange(!checked);
-                }
-            }}
         />
     );
 };

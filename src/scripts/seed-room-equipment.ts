@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, notInArray, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { equipment, roomEquipment, rooms } from "@/db/schema";
@@ -72,6 +72,17 @@ for (const { roomName, items } of assignments) {
                 .where(eq(roomEquipment.roomId, room.roomId))
                 .returning();
             console.log(`[${roomName}] reset deleted ${removed.length} assignments`);
+        } else if (rows.length > 0) {
+            await tx
+                .delete(roomEquipment)
+                .where(
+                    and(
+                        eq(roomEquipment.roomId, room.roomId),
+                        notInArray(roomEquipment.equipmentId, rows.map((r) => r.equipmentId)),
+                    ),
+                );
+        } else {
+            await tx.delete(roomEquipment).where(eq(roomEquipment.roomId, room.roomId));
         }
         const inserted = await tx
             .insert(roomEquipment)

@@ -43,7 +43,7 @@ export const AdminHeader = ({
                             style={{ width: 200, paddingLeft: "2rem" }}
                             aria-label={searchPlaceholder}
                             placeholder={searchPlaceholder}
-                            value={searchValue}
+                            value={searchValue ?? ""}
                             onChange={(e) => onSearchChange(e.target.value)}
                         />
                     </div>

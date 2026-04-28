@@ -4,7 +4,7 @@ import { Controller, FormStateSubscribe } from "react-hook-form";
 import { Building2, CalendarDays, DollarSign, Hash, ShieldCheck, Tag, Wrench } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses } from "@/features/admin/admin-classes";
 import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { useEquipmentCreateStore } from "@/features/admin/stores/equipment-create-store";
@@ -43,7 +43,9 @@ export const CreateEquipmentDialog = () => {
                             <Wrench className="size-4 text-white" strokeWidth={2.2} />
                         </div>
                         <div className="min-w-0">
-                            <h2 className="text-[0.9375rem] font-bold tracking-tight text-(--a-text)">New Equipment</h2>
+                            <DialogTitle className="text-[0.9375rem] font-bold tracking-tight text-(--a-text)">
+                                New Equipment
+                            </DialogTitle>
                             <p className="mt-0.5 text-[0.6875rem] text-(--a-text-muted)">
                                 Add a piece of equipment to the catalog.
                             </p>

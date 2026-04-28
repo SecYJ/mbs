@@ -4,7 +4,7 @@ import { Controller, FormStateSubscribe } from "react-hook-form";
 import { KeyRound, Mail, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses } from "@/features/admin/admin-classes";
 import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { useCreateUser } from "@/features/admin/hooks/useCreateUser";
@@ -41,7 +41,9 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                             <UserPlus className="size-4 text-white" strokeWidth={2.2} />
                         </div>
                         <div className="min-w-0">
-                            <h2 className="text-[0.9375rem] font-bold tracking-tight text-(--a-text)">New User</h2>
+                            <DialogTitle className="text-[0.9375rem] font-bold tracking-tight text-(--a-text)">
+                                New User
+                            </DialogTitle>
                             <p className="mt-0.5 text-[0.6875rem] text-(--a-text-muted)">
                                 Create a login for the booking system.
                             </p>

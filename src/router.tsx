@@ -18,6 +18,10 @@ export function getRouter() {
         defaultPreload: "intent",
         defaultPreloadStaleTime: 0,
         parseSearch: parseSearchWith((value) => {
+            const trimmed = value.trim();
+            const looksLikeJson =
+                trimmed.startsWith("{") || trimmed.startsWith("[") || trimmed.startsWith("\"");
+            if (!looksLikeJson) return value;
             try {
                 return JSON.parse(value);
             } catch {

@@ -250,8 +250,8 @@ export const bookingRules = pgTable(
     {
         id: smallint().primaryKey().default(1).notNull(),
         maxBookingDurationHours: integer("max_booking_duration_hours").default(8).notNull(),
-        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     },
     (table) => [
         check("booking_rules_singleton", sql`${table.id} = 1`),

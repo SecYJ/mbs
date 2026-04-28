@@ -13,7 +13,7 @@ export const roomsSearchSchema = z.object({
 });
 
 export const roomsSearchDefaults: z.infer<typeof roomsSearchSchema> = {
-    q: "",
+    q: undefined,
     sort: undefined,
     dir: undefined,
     expanded: undefined,

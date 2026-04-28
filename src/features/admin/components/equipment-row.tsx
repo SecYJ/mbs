@@ -87,123 +87,71 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                 <tr>
                     <td colSpan={4} className="border-b border-(--a-border) bg-(--a-surface-1) p-0">
                         <div className={`${adminExpandRowClasses} px-6 py-5`}>
-                            <div className="space-y-4">
+                            <dl className="space-y-4">
                                 <div>
-                                    <label
-                                        htmlFor={`equipment-name-${item.id}`}
-                                        className="mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
-                                    >
+                                    <dt className="mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                         Name
-                                    </label>
-                                    <input
-                                        id={`equipment-name-${item.id}`}
-                                        readOnly
-                                        className={`${adminInputClasses} w-full`}
-                                        value={item.name}
-                                    />
+                                    </dt>
+                                    <dd className={`${adminInputClasses} flex w-full items-center`}>{item.name}</dd>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label
-                                            htmlFor={`equipment-brand-${item.id}`}
-                                            className="mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
-                                        >
+                                        <dt className="mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                             Brand
-                                        </label>
-                                        <input
-                                            id={`equipment-brand-${item.id}`}
-                                            readOnly
-                                            className={`${adminInputClasses} w-full`}
-                                            value={item.brand}
-                                        />
+                                        </dt>
+                                        <dd className={`${adminInputClasses} flex w-full items-center`}>{item.brand}</dd>
                                     </div>
                                     <div>
-                                        <label
-                                            htmlFor={`equipment-model-${item.id}`}
-                                            className="mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
-                                        >
+                                        <dt className="mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                             Model
-                                        </label>
-                                        <input
-                                            id={`equipment-model-${item.id}`}
-                                            readOnly
-                                            className={`${adminInputClasses} w-full`}
-                                            value={item.model}
-                                        />
+                                        </dt>
+                                        <dd className={`${adminInputClasses} flex w-full items-center`}>{item.model}</dd>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label
-                                            htmlFor={`equipment-price-${item.id}`}
-                                            className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
-                                        >
+                                        <dt className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                             <DollarSign className="size-3" strokeWidth={1.6} />
                                             Price
-                                        </label>
-                                        <input
-                                            id={`equipment-price-${item.id}`}
-                                            type="number"
-                                            readOnly
-                                            className={`${adminInputClasses} w-full tabular-nums`}
-                                            value={item.price}
-                                        />
+                                        </dt>
+                                        <dd className={`${adminInputClasses} flex w-full items-center tabular-nums`}>
+                                            {item.price}
+                                        </dd>
                                     </div>
                                     <div>
-                                        <label
-                                            htmlFor={`equipment-quantity-${item.id}`}
-                                            className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
-                                        >
+                                        <dt className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                             <Hash className="size-3" strokeWidth={1.6} />
                                             Quantity
-                                        </label>
-                                        <input
-                                            id={`equipment-quantity-${item.id}`}
-                                            type="number"
-                                            readOnly
-                                            className={`${adminInputClasses} w-full tabular-nums`}
-                                            value={item.quantity}
-                                        />
+                                        </dt>
+                                        <dd className={`${adminInputClasses} flex w-full items-center tabular-nums`}>
+                                            {item.quantity}
+                                        </dd>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label
-                                            htmlFor={`equipment-purchase-${item.id}`}
-                                            className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
-                                        >
+                                        <dt className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                             <CalendarDays className="size-3" strokeWidth={1.6} />
                                             Purchase Date
-                                        </label>
-                                        <input
-                                            id={`equipment-purchase-${item.id}`}
-                                            type="date"
-                                            readOnly
-                                            className={`${adminInputClasses} w-full tabular-nums`}
-                                            value={item.purchaseDate}
-                                        />
+                                        </dt>
+                                        <dd className={`${adminInputClasses} flex w-full items-center tabular-nums`}>
+                                            {item.purchaseDate}
+                                        </dd>
                                     </div>
                                     <div>
-                                        <label
-                                            htmlFor={`equipment-warranty-${item.id}`}
-                                            className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
-                                        >
+                                        <dt className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                             <ShieldCheck className="size-3" strokeWidth={1.6} />
                                             Warranty Expiry
                                             <span className="ml-1 text-[0.625rem] font-medium normal-case tracking-normal text-(--a-text-muted)">
                                                 (optional)
                                             </span>
-                                        </label>
-                                        <input
-                                            id={`equipment-warranty-${item.id}`}
-                                            type="date"
-                                            readOnly
-                                            className={`${adminInputClasses} w-full tabular-nums`}
-                                            value={item.warrantyExpiry ?? ""}
-                                        />
+                                        </dt>
+                                        <dd className={`${adminInputClasses} flex w-full items-center tabular-nums`}>
+                                            {item.warrantyExpiry ?? "—"}
+                                        </dd>
                                     </div>
                                 </div>
-                            </div>
+                            </dl>
 
                             <div className="mt-5 flex items-center justify-end gap-3 border-t border-(--a-border) pt-4">
                                 <button

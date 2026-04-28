@@ -75,10 +75,13 @@ const EquipmentContent = () => {
     };
 
     const SortHeader = ({ field, label, width, align }: { field: SortField; label: string; width: string; align?: "right" }) => (
-        <th style={{ width, textAlign: align }}>
+        <th
+            data-sortable
+            style={{ width, textAlign: align }}
+            aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
+        >
             <button
                 type="button"
-                data-sortable
                 onClick={() => toggleSort(field)}
                 className={`flex w-full items-center gap-1 font-inherit ${align === "right" ? "justify-end" : "text-left"}`}
             >

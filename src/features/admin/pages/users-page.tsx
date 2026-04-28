@@ -60,10 +60,13 @@ export const UsersPage = () => {
     }
 
     const SortHeader = ({ field, label, width }: { field: SortField; label: string; width: string }) => (
-        <th style={{ width }}>
+        <th
+            data-sortable
+            style={{ width }}
+            aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
+        >
             <button
                 type="button"
-                data-sortable
                 onClick={() => toggleSort(field)}
                 className="flex w-full items-center gap-1 text-left font-inherit"
             >
