@@ -58,7 +58,12 @@ function SelectContent({
 }) {
     return (
         <SelectPrimitive.Portal>
-            <SelectPrimitive.Positioner align={align} sideOffset={sideOffset}>
+            <SelectPrimitive.Positioner
+                align={align}
+                alignItemWithTrigger={false}
+                sideOffset={sideOffset}
+                className="z-50"
+            >
                 <SelectPrimitive.Popup
                     data-slot="select-content"
                     className={cn(

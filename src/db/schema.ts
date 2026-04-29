@@ -18,6 +18,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);
+export const bookingStatusEnum = pgEnum("booking_status", ["active", "cancelled"]);
 
 export const user = pgTable("user", {
     id: text().primaryKey(),
@@ -118,6 +119,10 @@ export const bookings = pgTable(
         endTime: timestamp("end_time", { withTimezone: true }).notNull(),
         title: text().notNull(),
         description: text(),
+        status: bookingStatusEnum().default("active").notNull(),
+        cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+        cancelledBy: text("cancelled_by"),
+        cancelReason: text("cancel_reason"),
 
         createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
         updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
@@ -133,6 +138,11 @@ export const bookings = pgTable(
                 columns: [table.userId],
                 foreignColumns: [user.id],
                 name: "bookings_user_id_fk",
+            }),
+            foreignKey({
+                columns: [table.cancelledBy],
+                foreignColumns: [user.id],
+                name: "bookings_cancelled_by_fk",
             }),
         ];
     },
@@ -170,6 +180,7 @@ export const notifications = pgTable(
     {
         notificationId: id("notification_id"),
         bookingId: uuid("booking_id").notNull(),
+        userId: text("user_id"),
         message: text().notNull(),
         status: notificationStatusEnum().default("unread").notNull(),
         createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -180,6 +191,11 @@ export const notifications = pgTable(
                 columns: [table.bookingId],
                 foreignColumns: [bookings.bookingId],
                 name: "notifications_booking_id_fk",
+            }),
+            foreignKey({
+                columns: [table.userId],
+                foreignColumns: [user.id],
+                name: "notifications_user_id_fk",
             }),
         ];
     },

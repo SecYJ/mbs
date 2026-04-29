@@ -15,6 +15,7 @@
         "@fullcalendar/resource-timegrid": "^6.1.20",
         "@fullcalendar/timegrid": "^6.1.20",
         "@hookform/resolvers": "^5.2.2",
+        "@legendapp/list": "3.0.0-beta.48",
         "@t3-oss/env-core": "^0.13.11",
         "@tailwindcss/vite": "^4.2.4",
         "@tanstack/react-devtools": "latest",
@@ -243,6 +244,8 @@
     "@fullcalendar/timegrid": ["@fullcalendar/timegrid@6.1.20", "", { "dependencies": { "@fullcalendar/daygrid": "~6.1.20" }, "peerDependencies": { "@fullcalendar/core": "~6.1.20" } }, "sha512-4H+/MWbz3ntA50lrPif+7TsvMeX3R1GSYjiLULz0+zEJ7/Yfd9pupZmAwUs/PBpA6aAcFmeRr0laWfcz1a9V1A=="],
 
     "@hookform/resolvers": ["@hookform/resolvers@5.2.2", "", { "dependencies": { "@standard-schema/utils": "^0.3.0" }, "peerDependencies": { "react-hook-form": "^7.55.0" } }, "sha512-A/IxlMLShx3KjV/HeTcTfaMxdwy690+L/ZADoeaTltLx+CVuzkeVIPuybK3jrRfw7YZnmdKsVVHAlEPIAEUNlA=="],
+
+    "@legendapp/list": ["@legendapp/list@3.0.0-beta.48", "", { "dependencies": { "use-sync-external-store": "^1.5.0" }, "peerDependencies": { "react": "*" } }, "sha512-xGH9GCMr/3FI/O5/CNceKHfdBB2YjHMHWFBEz/ew4RAHNByCX+dnPgvcbTUNaxwoaaO+cMApZTVtj005UFRyuA=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 

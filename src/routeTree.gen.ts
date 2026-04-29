@@ -18,6 +18,8 @@ import { Route as AdminRulesRouteImport } from './routes/admin/rules'
 import { Route as AdminRoomsRouteImport } from './routes/admin/rooms'
 import { Route as AdminEquipmentRouteImport } from './routes/admin/equipment'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
+import { Route as BookingsSettingsRouteImport } from './routes/_bookings/settings'
+import { Route as BookingsNotificationsRouteImport } from './routes/_bookings/notifications'
 import { Route as BookingsBookingsRouteImport } from './routes/_bookings/bookings'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
@@ -69,6 +71,16 @@ const AdminBookingsRoute = AdminBookingsRouteImport.update({
   path: '/bookings',
   getParentRoute: () => AdminRouteRoute,
 } as any)
+const BookingsSettingsRoute = BookingsSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => BookingsRouteRoute,
+} as any)
+const BookingsNotificationsRoute = BookingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => BookingsRouteRoute,
+} as any)
 const BookingsBookingsRoute = BookingsBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -108,6 +120,8 @@ export interface FileRoutesByFullPath {
   '/register': typeof AuthRegisterRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/bookings': typeof BookingsBookingsRoute
+  '/notifications': typeof BookingsNotificationsRoute
+  '/settings': typeof BookingsSettingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -123,6 +137,8 @@ export interface FileRoutesByTo {
   '/register': typeof AuthRegisterRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/bookings': typeof BookingsBookingsRoute
+  '/notifications': typeof BookingsNotificationsRoute
+  '/settings': typeof BookingsSettingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -141,6 +157,8 @@ export interface FileRoutesById {
   '/_auth/register': typeof AuthRegisterRoute
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_bookings/bookings': typeof BookingsBookingsRoute
+  '/_bookings/notifications': typeof BookingsNotificationsRoute
+  '/_bookings/settings': typeof BookingsSettingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
   '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
@@ -159,6 +177,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/bookings'
+    | '/notifications'
+    | '/settings'
     | '/admin/bookings'
     | '/admin/equipment'
     | '/admin/rooms'
@@ -174,6 +194,8 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/bookings'
+    | '/notifications'
+    | '/settings'
     | '/admin/bookings'
     | '/admin/equipment'
     | '/admin/rooms'
@@ -191,6 +213,8 @@ export interface FileRouteTypes {
     | '/_auth/register'
     | '/_auth/reset-password'
     | '/_bookings/bookings'
+    | '/_bookings/notifications'
+    | '/_bookings/settings'
     | '/admin/bookings'
     | '/admin/equipment'
     | '/admin/rooms'
@@ -276,6 +300,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBookingsRouteImport
       parentRoute: typeof AdminRouteRoute
     }
+    '/_bookings/settings': {
+      id: '/_bookings/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof BookingsSettingsRouteImport
+      parentRoute: typeof BookingsRouteRoute
+    }
+    '/_bookings/notifications': {
+      id: '/_bookings/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof BookingsNotificationsRouteImport
+      parentRoute: typeof BookingsRouteRoute
+    }
     '/_bookings/bookings': {
       id: '/_bookings/bookings'
       path: '/bookings'
@@ -323,10 +361,14 @@ declare module '@tanstack/react-router' {
 
 interface BookingsRouteRouteChildren {
   BookingsBookingsRoute: typeof BookingsBookingsRoute
+  BookingsNotificationsRoute: typeof BookingsNotificationsRoute
+  BookingsSettingsRoute: typeof BookingsSettingsRoute
 }
 
 const BookingsRouteRouteChildren: BookingsRouteRouteChildren = {
   BookingsBookingsRoute: BookingsBookingsRoute,
+  BookingsNotificationsRoute: BookingsNotificationsRoute,
+  BookingsSettingsRoute: BookingsSettingsRoute,
 }
 
 const BookingsRouteRouteWithChildren = BookingsRouteRoute._addFileChildren(
