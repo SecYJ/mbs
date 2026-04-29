@@ -118,7 +118,9 @@ const EquipmentContent = () => {
                                 <SortHeader field="name" label="Name" width="48%" />
                                 <SortHeader field="brand" label="Brand" width="22%" />
                                 <SortHeader field="price" label="Price" width="18%" align="right" />
-                                <th style={{ width: "12%" }} />
+                                <th style={{ width: "12%" }}>
+                                    <span className="sr-only">Actions</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>

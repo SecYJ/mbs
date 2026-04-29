@@ -107,7 +107,9 @@ const RoomsContent = () => {
                                 <SortHeader field="location" label="Location" width="30%" />
                                 <SortHeader field="capacity" label="Capacity" width="14%" />
                                 <th style={{ width: "12%" }}>Status</th>
-                                <th style={{ width: "12%" }} />
+                                <th style={{ width: "12%" }}>
+                                    <span className="sr-only">Actions</span>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>

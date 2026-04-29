@@ -19,6 +19,7 @@ export const CreateRoomDialog = () => {
     const { form, onSubmit, isPending } = useCreateRoom({
         onSuccess: () => {
             toast("Room created", "success");
+            form.reset();
             setOpen(false);
         },
     });

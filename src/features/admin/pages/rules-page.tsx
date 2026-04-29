@@ -258,8 +258,12 @@ const Stepper = ({ value, onChange, onBlur, min, max, ariaLabel }: StepperProps)
                 type="number"
                 min={min}
                 max={max}
+                step={1}
                 value={value}
-                onChange={(e) => onChange(clamp(Number(e.target.value)))}
+                onChange={(e) => {
+                    const next = e.target.valueAsNumber;
+                    onChange(clamp(Number.isFinite(next) ? Math.trunc(next) : min));
+                }}
                 onBlur={onBlur}
                 aria-label={ariaLabel}
                 className="h-8 w-14 border-x border-(--a-border-hover) bg-transparent text-center text-sm font-semibold tabular-nums text-(--a-text) outline-none focus:bg-(--a-surface-1) [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"

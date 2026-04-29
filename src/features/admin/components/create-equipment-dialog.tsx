@@ -18,6 +18,7 @@ export const CreateEquipmentDialog = () => {
     const { form, onSubmit, isPending } = useCreateEquipment({
         onSuccess: () => {
             toast("Equipment created", "success");
+            form.reset();
             setOpen(false);
         },
     });
