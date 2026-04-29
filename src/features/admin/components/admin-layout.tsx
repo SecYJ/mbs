@@ -1,5 +1,15 @@
 import { Link, Outlet, linkOptions, useMatches } from "@tanstack/react-router";
-import { ArrowLeft, Building2, Users, Settings, Wrench, CalendarDays, LogOut, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+    ArrowLeft,
+    Building2,
+    Users,
+    Settings,
+    Wrench,
+    CalendarDays,
+    LogOut,
+    ChevronsLeft,
+    ChevronsRight,
+} from "lucide-react";
 import { useState, useRef, createContext, useContext } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { adminToastClasses } from "@/features/admin/admin-classes";

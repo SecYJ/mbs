@@ -1,11 +1,11 @@
 "use client";
 
 import { Controller, FormStateSubscribe } from "react-hook-form";
-import { KeyRound, Mail, UserPlus } from "lucide-react";
+import { KeyRound, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { adminInputClasses } from "@/features/admin/admin-classes";
+import { adminInputClasses, adminSelectClasses } from "@/features/admin/admin-classes";
 import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { useCreateUser } from "@/features/admin/hooks/useCreateUser";
 
@@ -24,8 +24,14 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
         },
     });
 
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (isPending && !nextOpen) return;
+        onOpenChange(nextOpen);
+        if (!nextOpen) form.reset();
+    };
+
     return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent
                 showCloseButton={false}
                 className="admin-shell border-0 bg-transparent p-0 shadow-none sm:max-w-[440px]"
@@ -89,6 +95,24 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                             )}
                         />
 
+                        <Controller
+                            control={form.control}
+                            name="role"
+                            render={({ field, fieldState: { error } }) => (
+                                <Field
+                                    label="Role"
+                                    error={error?.message}
+                                    inputId="create-user-role"
+                                    icon={<ShieldCheck className="size-3" strokeWidth={1.6} />}
+                                >
+                                    <select {...field} id="create-user-role" className={`${adminSelectClasses} w-full`}>
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </Field>
+                            )}
+                        />
+
                         <div className="grid grid-cols-2 gap-4">
                             <Controller
                                 control={form.control}
@@ -144,7 +168,7 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                     <div className="flex items-center justify-end gap-2 border-t border-(--a-border) bg-(--a-surface-1) px-5 py-3">
                         <button
                             type="button"
-                            onClick={() => onOpenChange(false)}
+                            onClick={() => handleOpenChange(false)}
                             disabled={isPending}
                             className="rounded-lg bg-transparent px-3.5 py-1.5 text-xs font-medium text-(--a-text-secondary) transition-colors hover:bg-(--a-surface-2) hover:text-(--a-text) disabled:opacity-60"
                         >

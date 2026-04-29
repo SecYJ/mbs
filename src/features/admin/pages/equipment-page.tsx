@@ -7,10 +7,7 @@ import { CreateEquipmentDialog } from "@/features/admin/components/create-equipm
 import { EquipmentRow } from "@/features/admin/components/equipment-row";
 import { EquipmentPageHeader } from "@/features/admin/components/equipment-page-header";
 import { equipmentQueryOptions } from "@/features/admin/services/equipment/queries";
-import {
-    EquipmentCreateStoreProvider,
-    useEquipmentCreateStore,
-} from "@/features/admin/stores/equipment-create-store";
+import { EquipmentCreateStoreProvider, useEquipmentCreateStore } from "@/features/admin/stores/equipment-create-store";
 
 type SortField = "name" | "brand" | "price";
 
@@ -28,10 +25,11 @@ const EquipmentContent = () => {
     const { data: items } = useSuspenseQuery(equipmentQueryOptions());
     const { q = "", sort, dir, expanded } = useSearch({ from: "/admin/equipment" });
     const navigate = useNavigate({ from: "/admin/equipment" });
+    const normalizedQ = q.trim();
 
     let filtered = items;
-    if (q) {
-        const needle = q.toLowerCase();
+    if (normalizedQ) {
+        const needle = normalizedQ.toLowerCase();
         filtered = filtered.filter(
             (i) =>
                 i.name.toLowerCase().includes(needle) ||
@@ -74,7 +72,17 @@ const EquipmentContent = () => {
         return <span className="ml-1 inline-block text-[0.5rem] text-(--a-accent)">{dir === "asc" ? "▲" : "▼"}</span>;
     };
 
-    const SortHeader = ({ field, label, width, align }: { field: SortField; label: string; width: string; align?: "right" }) => (
+    const SortHeader = ({
+        field,
+        label,
+        width,
+        align,
+    }: {
+        field: SortField;
+        label: string;
+        width: string;
+        align?: "right";
+    }) => (
         <th
             data-sortable
             style={{ width, textAlign: align }}
@@ -93,7 +101,7 @@ const EquipmentContent = () => {
 
     return (
         <div className="p-6">
-            {filtered.length === 0 && !q ? (
+            {filtered.length === 0 && !normalizedQ ? (
                 <EmptyState
                     icon={Wrench}
                     title="No equipment yet"
@@ -101,7 +109,7 @@ const EquipmentContent = () => {
                     action={<EmptyStateButton />}
                 />
             ) : filtered.length === 0 ? (
-                <p className="py-12 text-center text-sm text-(--a-text-muted)">No equipment matches "{q}"</p>
+                <p className="py-12 text-center text-sm text-(--a-text-muted)">No equipment matches "{normalizedQ}"</p>
             ) : (
                 <div className="overflow-hidden rounded-xl border border-(--a-border-hover) bg-(--a-surface-0)">
                     <table className="admin-table">

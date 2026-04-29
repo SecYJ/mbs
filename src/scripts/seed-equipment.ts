@@ -132,7 +132,7 @@ const airConditioners: EquipmentInput[] = [
 
 const whiteboards: EquipmentInput[] = [
     {
-        name: 'Standard Magnetic Whiteboard 4\' x 6\'',
+        name: "Standard Magnetic Whiteboard 4' x 6'",
         brand: "Quartet",
         model: "S537",
         price: 129,
@@ -140,7 +140,7 @@ const whiteboards: EquipmentInput[] = [
         warrantyExpiry: null,
     },
     {
-        name: 'Magnetic Dry-Erase Whiteboard 3\' x 4\'',
+        name: "Magnetic Dry-Erase Whiteboard 3' x 4'",
         brand: "Quartet",
         model: "SM534",
         price: 89,
@@ -164,7 +164,7 @@ const whiteboards: EquipmentInput[] = [
         warrantyExpiry: "2027-09-02",
     },
     {
-        name: 'Standard Whiteboard 2\' x 3\'',
+        name: "Standard Whiteboard 2' x 3'",
         brand: "Office Depot",
         model: "OD-WB23",
         price: 59,

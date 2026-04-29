@@ -99,13 +99,17 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                         <dt className="mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                             Brand
                                         </dt>
-                                        <dd className={`${adminInputClasses} flex w-full items-center`}>{item.brand}</dd>
+                                        <dd className={`${adminInputClasses} flex w-full items-center`}>
+                                            {item.brand}
+                                        </dd>
                                     </div>
                                     <div>
                                         <dt className="mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)">
                                             Model
                                         </dt>
-                                        <dd className={`${adminInputClasses} flex w-full items-center`}>{item.model}</dd>
+                                        <dd className={`${adminInputClasses} flex w-full items-center`}>
+                                            {item.model}
+                                        </dd>
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -115,7 +119,7 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                                             Price
                                         </dt>
                                         <dd className={`${adminInputClasses} flex w-full items-center tabular-nums`}>
-                                            {item.price}
+                                            {formatPrice(item.price)}
                                         </dd>
                                     </div>
                                     <div>

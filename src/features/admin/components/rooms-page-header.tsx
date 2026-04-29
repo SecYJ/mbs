@@ -13,7 +13,11 @@ export const RoomsPageHeader = () => {
     const { setOpen } = useRoomsCreateStore((s) => s.actions);
 
     const setSearch = (value: string) => {
-        navigate({ search: (prev) => ({ ...prev, q: value }), replace: true });
+        const trimmed = value.trim();
+        navigate({
+            search: (prev) => ({ ...prev, q: trimmed || undefined }),
+            replace: true,
+        });
     };
 
     return (

@@ -13,7 +13,10 @@ const toIso = (value: Date | string | null) => (value ? new Date(value).toISOStr
 const PG_UNIQUE_VIOLATION = "23505";
 
 const isUniqueViolation = (error: unknown) =>
-    typeof error === "object" && error !== null && "code" in error && (error as { code: unknown }).code === PG_UNIQUE_VIOLATION;
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code: unknown }).code === PG_UNIQUE_VIOLATION;
 
 export const getUsersFn = createServerFn({ method: "GET" }).handler(async () => {
     await requireAdminUser();
@@ -58,6 +61,7 @@ export const createUserFn = createServerFn({ method: "POST" })
                         name: data.name,
                         email,
                         emailVerified: false,
+                        role: data.role,
                     })
                     .returning();
 

@@ -44,8 +44,8 @@ export const RulesPage = () => {
                             Global booking policies
                         </h2>
                         <p className="text-[0.8125rem] leading-relaxed text-(--a-text-secondary)">
-                            Configure rules that apply to every booking created across the platform. Changes take
-                            effect immediately for new bookings.
+                            Configure rules that apply to every booking created across the platform. Changes take effect
+                            immediately for new bookings.
                         </p>
                     </header>
 
@@ -53,8 +53,7 @@ export const RulesPage = () => {
                         <article
                             className="relative overflow-hidden rounded-2xl border border-(--a-border-hover) bg-(--a-surface-1)"
                             style={{
-                                boxShadow:
-                                    "0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 32px -12px rgba(0,0,0,0.4)",
+                                boxShadow: "0 1px 0 rgba(255,255,255,0.04) inset, 0 12px 32px -12px rgba(0,0,0,0.4)",
                             }}
                         >
                             <div
@@ -70,8 +69,7 @@ export const RulesPage = () => {
                                 <div
                                     className="flex size-11 shrink-0 items-center justify-center rounded-xl"
                                     style={{
-                                        background:
-                                            "linear-gradient(135deg, var(--a-accent) 0%, #4f46e5 100%)",
+                                        background: "linear-gradient(135deg, var(--a-accent) 0%, #4f46e5 100%)",
                                         boxShadow: "0 8px 20px -6px rgba(99,102,241,0.55)",
                                     }}
                                 >
@@ -79,7 +77,10 @@ export const RulesPage = () => {
                                 </div>
                                 <div className="min-w-0 flex-1 space-y-1">
                                     <div className="flex flex-wrap items-center gap-2">
-                                        <h3 className="text-[0.9375rem] font-semibold text-(--a-text)">
+                                        <h3
+                                            id="max-booking-duration-label"
+                                            className="text-[0.9375rem] font-semibold text-(--a-text)"
+                                        >
                                             Maximum booking duration
                                         </h3>
                                         <span
@@ -93,8 +94,8 @@ export const RulesPage = () => {
                                         </span>
                                     </div>
                                     <p className="text-[0.8125rem] leading-relaxed text-(--a-text-secondary)">
-                                        How long a single booking can last. Users won&apos;t be able to create
-                                        bookings longer than this limit.
+                                        How long a single booking can last. Users won&apos;t be able to create bookings
+                                        longer than this limit.
                                     </p>
                                 </div>
                             </header>
@@ -130,6 +131,7 @@ export const RulesPage = () => {
                                                     onBlur={field.onBlur}
                                                     min={1}
                                                     max={24}
+                                                    ariaLabel="Maximum booking duration in hours"
                                                 />
                                                 {fieldState.error && (
                                                     <span className="text-xs font-medium text-(--a-danger)">
@@ -145,6 +147,7 @@ export const RulesPage = () => {
                                                     max={24}
                                                     value={field.value}
                                                     onChange={(e) => field.onChange(Number(e.target.value))}
+                                                    aria-labelledby="max-booking-duration-label"
                                                     className="w-full accent-(--a-accent)"
                                                     style={{ height: 4 }}
                                                 />
@@ -206,8 +209,8 @@ export const RulesPage = () => {
                                     More rules coming soon
                                 </h3>
                                 <p className="text-[0.8125rem] leading-relaxed text-(--a-text-muted)">
-                                    Advance booking limits, recurring booking policies, working-hours windows,
-                                    and per-user quotas are on the roadmap.
+                                    Advance booking limits, recurring booking policies, working-hours windows, and
+                                    per-user quotas are on the roadmap.
                                 </p>
                                 <ul className="flex flex-wrap gap-1.5 pt-1">
                                     {COMING_SOON_TAGS.map((tag) => (
@@ -234,9 +237,10 @@ interface StepperProps {
     onBlur: () => void;
     min: number;
     max: number;
+    ariaLabel: string;
 }
 
-const Stepper = ({ value, onChange, onBlur, min, max }: StepperProps) => {
+const Stepper = ({ value, onChange, onBlur, min, max, ariaLabel }: StepperProps) => {
     const clamp = (n: number) => Math.max(min, Math.min(max, Number.isFinite(n) ? n : min));
 
     return (
@@ -246,7 +250,7 @@ const Stepper = ({ value, onChange, onBlur, min, max }: StepperProps) => {
                 onClick={() => onChange(clamp(value - 1))}
                 disabled={value <= min}
                 className="flex size-8 items-center justify-center text-(--a-text-secondary) transition-colors hover:bg-(--a-surface-2) hover:text-(--a-text) disabled:cursor-not-allowed disabled:opacity-30"
-                aria-label="Decrease"
+                aria-label={`Decrease ${ariaLabel}`}
             >
                 <Minus className="size-3.5" strokeWidth={2.4} />
             </button>
@@ -257,6 +261,7 @@ const Stepper = ({ value, onChange, onBlur, min, max }: StepperProps) => {
                 value={value}
                 onChange={(e) => onChange(clamp(Number(e.target.value)))}
                 onBlur={onBlur}
+                aria-label={ariaLabel}
                 className="h-8 w-14 border-x border-(--a-border-hover) bg-transparent text-center text-sm font-semibold tabular-nums text-(--a-text) outline-none focus:bg-(--a-surface-1) [-moz-appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             />
             <button
@@ -264,7 +269,7 @@ const Stepper = ({ value, onChange, onBlur, min, max }: StepperProps) => {
                 onClick={() => onChange(clamp(value + 1))}
                 disabled={value >= max}
                 className="flex size-8 items-center justify-center text-(--a-text-secondary) transition-colors hover:bg-(--a-surface-2) hover:text-(--a-text) disabled:cursor-not-allowed disabled:opacity-30"
-                aria-label="Increase"
+                aria-label={`Increase ${ariaLabel}`}
             >
                 <Plus className="size-3.5" strokeWidth={2.4} />
             </button>

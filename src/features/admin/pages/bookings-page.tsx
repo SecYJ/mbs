@@ -269,7 +269,11 @@ export function BookingsPage() {
                         <option value="completed">Completed</option>
                         <option value="cancelled">Cancelled</option>
                     </select>
-                    <select className={adminSelectClasses} value={roomFilter} onChange={(e) => setRoomFilter(e.target.value)}>
+                    <select
+                        className={adminSelectClasses}
+                        value={roomFilter}
+                        onChange={(e) => setRoomFilter(e.target.value)}
+                    >
                         <option value="all">All rooms</option>
                         {rooms.map((r) => (
                             <option key={r} value={r}>

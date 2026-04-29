@@ -10,12 +10,13 @@ const findRoom = async (name: string) => {
 };
 
 const findEquipment = async (brand: string, model: string) => {
-    const [row] = await db
+    const rows = await db
         .select()
         .from(equipment)
         .where(and(eq(equipment.brand, brand), eq(equipment.model, model)));
-    if (!row) throw new Error(`Equipment not found: ${brand} ${model}`);
-    return row;
+    if (rows.length === 0) throw new Error(`Equipment not found: ${brand} ${model}`);
+    if (rows.length > 1) throw new Error(`Equipment lookup is ambiguous: ${brand} ${model}`);
+    return rows[0];
 };
 
 type Assignment = {
@@ -67,20 +68,18 @@ for (const { roomName, items } of assignments) {
 
     await db.transaction(async (tx) => {
         if (reset) {
-            const removed = await tx
-                .delete(roomEquipment)
-                .where(eq(roomEquipment.roomId, room.roomId))
-                .returning();
+            const removed = await tx.delete(roomEquipment).where(eq(roomEquipment.roomId, room.roomId)).returning();
             console.log(`[${roomName}] reset deleted ${removed.length} assignments`);
         } else if (rows.length > 0) {
-            await tx
-                .delete(roomEquipment)
-                .where(
-                    and(
-                        eq(roomEquipment.roomId, room.roomId),
-                        notInArray(roomEquipment.equipmentId, rows.map((r) => r.equipmentId)),
+            await tx.delete(roomEquipment).where(
+                and(
+                    eq(roomEquipment.roomId, room.roomId),
+                    notInArray(
+                        roomEquipment.equipmentId,
+                        rows.map((r) => r.equipmentId),
                     ),
-                );
+                ),
+            );
         } else {
             await tx.delete(roomEquipment).where(eq(roomEquipment.roomId, room.roomId));
         }

@@ -21,6 +21,7 @@ export const useCreateUser = ({ onSuccess }: Options = {}) => {
             email: "",
             password: "",
             confirmPassword: "",
+            role: "user" as const,
         },
     });
 
@@ -45,6 +46,7 @@ export const useCreateUser = ({ onSuccess }: Options = {}) => {
                 name: values.name,
                 email: values.email,
                 password: values.password,
+                role: values.role,
             },
         });
     });

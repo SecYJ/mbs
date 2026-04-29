@@ -23,8 +23,14 @@ export const CreateRoomDialog = () => {
         },
     });
 
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (isPending && !nextOpen) return;
+        setOpen(nextOpen);
+        if (!nextOpen) form.reset();
+    };
+
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent
                 showCloseButton={false}
                 className="admin-shell border-0 bg-transparent p-0 shadow-none sm:max-w-[440px]"
@@ -156,7 +162,7 @@ export const CreateRoomDialog = () => {
                     <div className="flex items-center justify-end gap-2 border-t border-(--a-border) bg-(--a-surface-1) px-5 py-3">
                         <button
                             type="button"
-                            onClick={() => setOpen(false)}
+                            onClick={() => handleOpenChange(false)}
                             disabled={isPending}
                             className="rounded-lg bg-transparent px-3.5 py-1.5 text-xs font-medium text-(--a-text-secondary) transition-colors hover:bg-(--a-surface-2) hover:text-(--a-text) disabled:opacity-60"
                         >

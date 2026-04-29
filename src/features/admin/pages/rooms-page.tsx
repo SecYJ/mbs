@@ -26,10 +26,11 @@ const RoomsContent = () => {
     const { data: rooms } = useSuspenseQuery(roomsQueryOptions());
     const { q = "", sort, dir, expanded } = useSearch({ from: "/admin/rooms" });
     const navigate = useNavigate({ from: "/admin/rooms" });
+    const normalizedQ = q.trim();
 
     let filtered = rooms;
-    if (q) {
-        const needle = q.toLowerCase();
+    if (normalizedQ) {
+        const needle = normalizedQ.toLowerCase();
         filtered = filtered.filter(
             (r) => r.name.toLowerCase().includes(needle) || r.location.toLowerCase().includes(needle),
         );
@@ -88,7 +89,7 @@ const RoomsContent = () => {
 
     return (
         <div className="p-6">
-            {filtered.length === 0 && !q ? (
+            {filtered.length === 0 && !normalizedQ ? (
                 <EmptyState
                     icon={Building2}
                     title="No rooms yet"
@@ -96,7 +97,7 @@ const RoomsContent = () => {
                     action={<RoomsEmptyStateCreateButton />}
                 />
             ) : filtered.length === 0 ? (
-                <p className="py-12 text-center text-sm text-(--a-text-muted)">No rooms match "{q}"</p>
+                <p className="py-12 text-center text-sm text-(--a-text-muted)">No rooms match "{normalizedQ}"</p>
             ) : (
                 <div className="overflow-hidden rounded-xl border border-(--a-border-hover) bg-(--a-surface-0)">
                     <table className="admin-table">

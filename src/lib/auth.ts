@@ -4,7 +4,10 @@ import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 
 import { db } from "@/db";
-import { RESET_PASSWORD_TOKEN_EXPIRES_IN_MINUTES, RESET_PASSWORD_TOKEN_EXPIRES_IN_SECONDS } from "@/constants/password-reset";
+import {
+    RESET_PASSWORD_TOKEN_EXPIRES_IN_MINUTES,
+    RESET_PASSWORD_TOKEN_EXPIRES_IN_SECONDS,
+} from "@/constants/password-reset";
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Meridian <onboarding@resend.dev>";

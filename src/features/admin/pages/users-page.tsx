@@ -19,6 +19,7 @@ export const UsersPage = () => {
     const { q = "", sort, dir } = useSearch({ from: "/admin/users" });
     const navigate = useNavigate({ from: "/admin/users" });
     const [createOpen, setCreateOpen] = useState(false);
+    const normalizedQ = q.trim();
 
     const toggleSort = (field: SortField) => {
         navigate({
@@ -32,15 +33,16 @@ export const UsersPage = () => {
     };
 
     const setSearch = (value: string) => {
+        const trimmed = value.trim();
         navigate({
-            search: (prev) => ({ ...prev, q: value || undefined }),
+            search: (prev) => ({ ...prev, q: trimmed || undefined }),
             replace: true,
         });
     };
 
     let filtered = users;
-    if (q) {
-        const needle = q.toLowerCase();
+    if (normalizedQ) {
+        const needle = normalizedQ.toLowerCase();
         filtered = filtered.filter(
             (u) => u.name.toLowerCase().includes(needle) || u.email.toLowerCase().includes(needle),
         );
@@ -95,7 +97,7 @@ export const UsersPage = () => {
             </AdminHeader>
 
             <div className="p-6">
-                {filtered.length === 0 && !q ? (
+                {filtered.length === 0 && !normalizedQ ? (
                     <EmptyState
                         icon={Users}
                         title="No users found"
@@ -104,7 +106,7 @@ export const UsersPage = () => {
                     />
                 ) : filtered.length === 0 ? (
                     <p className="py-12 text-center text-sm" style={{ color: "var(--a-text-muted)" }}>
-                        No users match "{q}"
+                        No users match "{normalizedQ}"
                     </p>
                 ) : (
                     <div

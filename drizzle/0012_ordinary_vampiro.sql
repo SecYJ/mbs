@@ -6,3 +6,7 @@ CREATE TABLE "booking_rules" (
 	CONSTRAINT "booking_rules_singleton" CHECK ("booking_rules"."id" = 1),
 	CONSTRAINT "booking_rules_duration_positive" CHECK ("booking_rules"."max_booking_duration_hours" > 0)
 );
+
+INSERT INTO "booking_rules" ("id", "max_booking_duration_hours")
+VALUES (1, 8)
+ON CONFLICT ("id") DO NOTHING;
