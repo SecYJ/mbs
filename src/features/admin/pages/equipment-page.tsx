@@ -115,12 +115,9 @@ const EquipmentContent = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <SortHeader field="name" label="Name" width="48%" />
-                                <SortHeader field="brand" label="Brand" width="22%" />
-                                <SortHeader field="price" label="Price" width="18%" align="right" />
-                                <th style={{ width: "12%" }}>
-                                    <span className="sr-only">Actions</span>
-                                </th>
+                                <SortHeader field="name" label="Name" width="54%" />
+                                <SortHeader field="brand" label="Brand" width="24%" />
+                                <SortHeader field="price" label="Price" width="22%" align="right" />
                             </tr>
                         </thead>
                         <tbody>

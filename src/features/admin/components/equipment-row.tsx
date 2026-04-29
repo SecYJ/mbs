@@ -80,12 +80,11 @@ export const EquipmentRow = ({ item, isExpanded, onToggleExpand }: Props) => {
                 <td className="text-right">
                     <span className="tabular-nums font-semibold text-(--a-text)">{formatPrice(item.price)}</span>
                 </td>
-                <td />
             </tr>
 
             {isExpanded && (
                 <tr>
-                    <td colSpan={4} className="border-b border-(--a-border) bg-(--a-surface-1) p-0">
+                    <td colSpan={3} className="border-b border-(--a-border) bg-(--a-surface-1) p-0">
                         <div className={`${adminExpandRowClasses} px-6 py-5`}>
                             <dl className="space-y-4">
                                 <div>

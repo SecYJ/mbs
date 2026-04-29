@@ -103,13 +103,10 @@ const RoomsContent = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <SortHeader field="name" label="Name" width="32%" />
-                                <SortHeader field="location" label="Location" width="30%" />
-                                <SortHeader field="capacity" label="Capacity" width="14%" />
-                                <th style={{ width: "12%" }}>Status</th>
-                                <th style={{ width: "12%" }}>
-                                    <span className="sr-only">Actions</span>
-                                </th>
+                                <SortHeader field="name" label="Name" width="36%" />
+                                <SortHeader field="location" label="Location" width="34%" />
+                                <SortHeader field="capacity" label="Capacity" width="16%" />
+                                <th style={{ width: "14%" }}>Status</th>
                             </tr>
                         </thead>
                         <tbody>

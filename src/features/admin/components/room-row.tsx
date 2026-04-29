@@ -59,12 +59,11 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
                         {room.active ? "Available" : "Disabled"}
                     </span>
                 </td>
-                <td />
             </tr>
 
             {isExpanded && (
                 <tr>
-                    <td colSpan={5} className="border-b border-(--a-border) bg-(--a-surface-1) p-0">
+                    <td colSpan={4} className="border-b border-(--a-border) bg-(--a-surface-1) p-0">
                         <div className={`${adminExpandRowClasses} px-6 py-5`}>
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-4">
