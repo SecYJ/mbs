@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouter } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useForm } from "react-hook-form";
 
@@ -16,12 +16,14 @@ export const useLogin = () => {
         },
     });
 
-    const navigate = useNavigate({ from: "/login" });
+    const navigate = useNavigate();
+    const router = useRouter();
     const loginFn = useServerFn(loginUserFn);
 
     const { mutate: submitLogin, isPending } = useMutation({
         mutationFn: loginFn,
-        onSuccess: () => {
+        onSuccess: async () => {
+            await router.invalidate();
             navigate({ to: "/bookings" });
         },
         onError: (error) => {

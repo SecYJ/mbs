@@ -21,7 +21,7 @@ describe("AdminLayout", () => {
     it("collapses the sidebar when the toggle is clicked", () => {
         const { container } = render(<AdminLayout {...baseProps} />);
 
-        const sidebar = container.querySelector(".admin-sidebar");
+        const sidebar = container.querySelector("aside");
         expect(sidebar?.getAttribute("data-collapsed")).toBeNull();
 
         fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));

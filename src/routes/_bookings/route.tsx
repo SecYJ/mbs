@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, linkOptions, Outlet, useNavigate, useRouter } from "@tanstack/react-router";
-import { Bell, LogOut } from "lucide-react";
+import { Bell, LogOut, Shield } from "lucide-react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { authClient } from "@/lib/auth-client";
@@ -72,8 +72,19 @@ const AppLayout = () => {
                         </div>
                     </div>
 
-                    {/* Right: Notifications + Avatar */}
+                    {/* Right: Admin shortcut + Notifications + Avatar */}
                     <div className="flex items-center gap-2">
+                        {user.role === "admin" ? (
+                            <Link
+                                to="/admin/rooms"
+                                aria-label="Admin dashboard"
+                                title="Admin dashboard"
+                                className="flex size-9 items-center justify-center border border-transparent text-(--bone-dim) no-underline transition-all duration-200 hover:border-(--hairline) hover:text-(--gold)"
+                            >
+                                <Shield className="size-4" strokeWidth={1.4} />
+                            </Link>
+                        ) : null}
+
                         <button
                             type="button"
                             aria-label="Notifications"

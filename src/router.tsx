@@ -1,4 +1,4 @@
-import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { createRouter as createTanStackRouter, parseSearchWith, stringifySearchWith } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
@@ -13,6 +13,17 @@ export function getRouter() {
         scrollRestoration: true,
         defaultPreload: "intent",
         defaultPreloadStaleTime: 0,
+        parseSearch: parseSearchWith((value) => {
+            const trimmed = value.trim();
+            const looksLikeJson = trimmed.startsWith("{") || trimmed.startsWith("[") || trimmed.startsWith('"');
+            if (!looksLikeJson) return value;
+            try {
+                return JSON.parse(value);
+            } catch {
+                return value;
+            }
+        }),
+        stringifySearch: stringifySearchWith((value) => JSON.stringify(value)),
     });
 
     setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient });

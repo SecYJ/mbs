@@ -32,3 +32,13 @@ export const requireAuthenticatedUser = async () => {
 
     return session;
 };
+
+export const requireAdminUser = async () => {
+    const session = await getCurrentSession();
+
+    if (!session || session.user.role !== "admin") {
+        throw redirect({ to: "/login" });
+    }
+
+    return session;
+};

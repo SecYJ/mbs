@@ -1,16 +1,23 @@
+import { sql } from "drizzle-orm";
 import { id } from "@/db/helpers";
 import {
     bigint,
     boolean,
+    check,
+    date,
     foreignKey,
     integer,
+    numeric,
     pgEnum,
     pgTable,
     primaryKey,
+    smallint,
     text,
     timestamp,
     uuid,
 } from "drizzle-orm/pg-core";
+
+export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);
 
 export const user = pgTable("user", {
     id: text().primaryKey(),
@@ -18,6 +25,7 @@ export const user = pgTable("user", {
     email: text().unique().notNull(),
     emailVerified: boolean("email_verified").default(false).notNull(),
     image: text(),
+    role: userRoleEnum().default("user").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
 });
@@ -177,6 +185,30 @@ export const notifications = pgTable(
     },
 );
 
+export const equipment = pgTable(
+    "equipment",
+    {
+        equipmentId: id("equipment_id"),
+        name: text().notNull(),
+        brand: text().notNull(),
+        model: text().notNull(),
+        price: numeric({ precision: 10, scale: 2, mode: "number" }).notNull(),
+        quantity: integer().default(1).notNull(),
+        purchaseDate: date("purchase_date").notNull(),
+        warrantyExpiry: date("warranty_expiry"),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    },
+    (table) => [
+        check("equipment_price_non_negative", sql`${table.price} >= 0`),
+        check("equipment_quantity_positive", sql`${table.quantity} >= 1`),
+        check(
+            "equipment_warranty_not_before_purchase",
+            sql`${table.warrantyExpiry} IS NULL OR ${table.warrantyExpiry} >= ${table.purchaseDate}`,
+        ),
+    ],
+);
+
 export const facilities = pgTable("facilities", {
     facilityId: id("facility_id"),
     name: text().notNull(),
@@ -211,4 +243,45 @@ export const roomFacilities = pgTable(
             }),
         ];
     },
+);
+
+export const bookingRules = pgTable(
+    "booking_rules",
+    {
+        id: smallint().primaryKey().default(1).notNull(),
+        maxBookingDurationHours: integer("max_booking_duration_hours").default(8).notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    },
+    (table) => [
+        check("booking_rules_singleton", sql`${table.id} = 1`),
+        check("booking_rules_duration_positive", sql`${table.maxBookingDurationHours} > 0`),
+    ],
+);
+
+export const roomEquipment = pgTable(
+    "room_equipment",
+    {
+        roomId: uuid("room_id").notNull(),
+        equipmentId: uuid("equipment_id").notNull(),
+        quantity: integer().default(1).notNull(),
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    },
+    (table) => [
+        primaryKey({
+            columns: [table.roomId, table.equipmentId],
+        }),
+        foreignKey({
+            columns: [table.roomId],
+            foreignColumns: [rooms.roomId],
+            name: "room_equipment_room_id_fk",
+        }).onDelete("cascade"),
+        foreignKey({
+            columns: [table.equipmentId],
+            foreignColumns: [equipment.equipmentId],
+            name: "room_equipment_equipment_id_fk",
+        }).onDelete("cascade"),
+        check("room_equipment_quantity_positive", sql`${table.quantity} >= 1`),
+    ],
 );
