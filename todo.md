@@ -122,7 +122,7 @@ Implementation slices:
 - [ ] Add "Book this room" action with prefilled room/time.
 - [ ] Link room chips/resource labels to the detail route.
 
-### [ ] Improve Conflict Error Messages
+### [x] Improve Conflict Error Messages
 
 Why: Overlap errors should tell users which occupied slot caused the conflict.
 
@@ -134,10 +134,10 @@ Likely files:
 
 Implementation slices:
 
-- [ ] Query overlapping booking start/end/title/room.
-- [ ] Format a clear conflict message with the occupied time slot.
-- [ ] Keep messages safe for privacy if the viewer should not see full details.
-- [ ] Add tests for create and edit conflicts.
+- [x] Query overlapping booking start/end/title/room.
+- [x] Format a clear conflict message with the occupied time slot.
+- [x] Keep messages safe for privacy if the viewer should not see full details.
+- [x] Add tests for create and edit conflicts.
 
 ### [ ] Add Calendar Empty And Filter-Zero States
 
