@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { attendees, bookings, bookingRules, equipment, notifications, roomEquipment, rooms, user } from "@/db/schema";
 import { PAST_BOOKING_START_MESSAGE } from "@/features/bookings/booking.constants";
+import { getBookingConflictMessage } from "@/features/bookings/services/booking-conflicts";
 import { getBookingHistoryItem } from "@/features/bookings/services/booking-history";
 import { getBookingCancellationNotificationValues } from "@/features/bookings/services/booking-notifications";
 import {
@@ -119,14 +120,29 @@ const validateBookingDetails = async ({
         overlapConditions.push(ne(bookings.bookingId, excludedBookingId));
     }
 
-    const overlapping = await db
-        .select({ id: bookings.bookingId })
+    const [overlapping] = await db
+        .select({
+            id: bookings.bookingId,
+            title: bookings.title,
+            roomName: rooms.name,
+            startTime: bookings.startTime,
+            endTime: bookings.endTime,
+        })
         .from(bookings)
+        .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
         .where(and(...overlapConditions))
+        .orderBy(asc(bookings.startTime))
         .limit(1);
 
-    if (overlapping.length > 0) {
-        throw new Error("This room is already booked for the selected time");
+    if (overlapping) {
+        throw new Error(
+            getBookingConflictMessage({
+                title: overlapping.title,
+                roomName: overlapping.roomName,
+                startTime: overlapping.startTime,
+                endTime: overlapping.endTime,
+            }),
+        );
     }
 };
 
