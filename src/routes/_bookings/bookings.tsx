@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, stripSearchParams, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import FullCalendar from "@fullcalendar/react";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
@@ -536,9 +536,11 @@ function BookingsPage() {
                 {filteredRooms.map((room) => {
                     const accent = accentByRoomId[room.id];
                     return (
-                        <div
+                        <Link
                             key={room.id}
-                            className="group relative flex items-center gap-3 border border-[var(--hairline)] bg-[var(--surface-01)] px-3 py-1.5 transition-colors hover:border-[var(--hairline-strong)]"
+                            to="/rooms/$roomId"
+                            params={{ roomId: room.id }}
+                            className="group relative flex items-center gap-3 border border-[var(--hairline)] bg-[var(--surface-01)] px-3 py-1.5 no-underline transition-colors hover:border-[var(--hairline-strong)]"
                         >
                             {accent && (
                                 <span
@@ -553,7 +555,7 @@ function BookingsPage() {
                                     {room.capacity}p &middot; {room.location}
                                 </span>
                             </div>
-                        </div>
+                        </Link>
                     );
                 })}
             </div>
@@ -604,7 +606,11 @@ function BookingsPage() {
                     resourceLabelContent={(arg) => {
                         const accent = (arg.resource.extendedProps as { accent?: RoomAccent }).accent;
                         return (
-                            <div className="flex items-center gap-3 py-2">
+                            <Link
+                                to="/rooms/$roomId"
+                                params={{ roomId: arg.resource.id }}
+                                className="flex items-center gap-3 py-2 no-underline"
+                            >
                                 {accent && (
                                     <span
                                         aria-hidden
@@ -621,7 +627,7 @@ function BookingsPage() {
                                         {arg.resource.extendedProps.capacity}p
                                     </span>
                                 </div>
-                            </div>
+                            </Link>
                         );
                     }}
                     eventContent={(arg) => (

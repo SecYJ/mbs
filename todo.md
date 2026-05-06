@@ -104,7 +104,7 @@ Implementation slices:
 - [ ] Add quick actions for view, edit, and cancel where allowed.
 - [ ] Add empty states for each group.
 
-### [ ] Add Single-Room Day Detail View
+### [x] Add Single-Room Day Detail View
 
 Why: Users can filter rooms, but cannot drill into a room to inspect its day schedule and details.
 
@@ -116,11 +116,11 @@ Likely files:
 
 Implementation slices:
 
-- [ ] Add room detail route.
-- [ ] Show room location, capacity, equipment, and availability.
-- [ ] Show a day schedule for only that room.
-- [ ] Add "Book this room" action with prefilled room/time.
-- [ ] Link room chips/resource labels to the detail route.
+- [x] Add room detail route.
+- [x] Show room location, capacity, equipment, and availability.
+- [x] Show a day schedule for only that room.
+- [x] Add "Book this room" action with prefilled room/time.
+- [x] Link room chips/resource labels to the detail route.
 
 ### [ ] Improve Conflict Error Messages
 

@@ -26,6 +26,7 @@ import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as BookingsRoomsRoomIdRouteImport } from './routes/_bookings/rooms.$roomId'
 
 const AdminRouteRoute = AdminRouteRouteImport.update({
   id: '/admin',
@@ -111,6 +112,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookingsRoomsRoomIdRoute = BookingsRoomsRoomIdRouteImport.update({
+  id: '/rooms/$roomId',
+  path: '/rooms/$roomId',
+  getParentRoute: () => BookingsRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/admin/rules': typeof AdminRulesRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/rooms/$roomId': typeof BookingsRoomsRoomIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/admin/rules': typeof AdminRulesRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
+  '/rooms/$roomId': typeof BookingsRoomsRoomIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/admin/rules': typeof AdminRulesRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/_bookings/rooms/$roomId': typeof BookingsRoomsRoomIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/admin/rules'
     | '/admin/users'
     | '/admin/'
+    | '/rooms/$roomId'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -202,6 +212,7 @@ export interface FileRouteTypes {
     | '/admin/rules'
     | '/admin/users'
     | '/admin'
+    | '/rooms/$roomId'
     | '/api/auth/$'
   id:
     | '__root__'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/admin/rules'
     | '/admin/users'
     | '/admin/'
+    | '/_bookings/rooms/$roomId'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -356,6 +368,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_bookings/rooms/$roomId': {
+      id: '/_bookings/rooms/$roomId'
+      path: '/rooms/$roomId'
+      fullPath: '/rooms/$roomId'
+      preLoaderRoute: typeof BookingsRoomsRoomIdRouteImport
+      parentRoute: typeof BookingsRouteRoute
+    }
   }
 }
 
@@ -363,12 +382,14 @@ interface BookingsRouteRouteChildren {
   BookingsBookingsRoute: typeof BookingsBookingsRoute
   BookingsNotificationsRoute: typeof BookingsNotificationsRoute
   BookingsSettingsRoute: typeof BookingsSettingsRoute
+  BookingsRoomsRoomIdRoute: typeof BookingsRoomsRoomIdRoute
 }
 
 const BookingsRouteRouteChildren: BookingsRouteRouteChildren = {
   BookingsBookingsRoute: BookingsBookingsRoute,
   BookingsNotificationsRoute: BookingsNotificationsRoute,
   BookingsSettingsRoute: BookingsSettingsRoute,
+  BookingsRoomsRoomIdRoute: BookingsRoomsRoomIdRoute,
 }
 
 const BookingsRouteRouteWithChildren = BookingsRouteRoute._addFileChildren(
