@@ -18,7 +18,11 @@ import { useUserPreferences } from "@/features/settings/user-preferences";
 import { authClient } from "@/lib/auth-client";
 import { requireAuthenticatedUser } from "@/lib/session";
 
-const navItems = linkOptions([{ to: "/bookings", label: "Bookings" }]);
+const navItems = linkOptions([
+    { to: "/bookings", label: "Bookings" },
+    { to: "/my-bookings", label: "My Bookings" },
+    { to: "/history", label: "History" },
+]);
 
 const getInitials = (name: string) =>
     name
@@ -226,8 +230,8 @@ const AppLayout = () => {
                                         {previewNotifications.map((notification) => (
                                             <Link
                                                 key={notification.id}
-                                                to="/bookings"
-                                                search={{ bookingId: notification.bookingId }}
+                                                to="/bookings/$bookingId"
+                                                params={{ bookingId: notification.bookingId }}
                                                 onClick={() => {
                                                     if (notification.status === "unread") markAsRead(notification.id);
                                                     setNotificationOpen(false);

@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, asc, desc, eq, gt, inArray, lt, ne, or } from "drizzle-orm";
+import { z } from "zod";
 
 import { db } from "@/db";
 import { attendees, bookings, bookingRules, equipment, notifications, roomEquipment, rooms, user } from "@/db/schema";
@@ -20,6 +21,7 @@ type BookingUser = {
     id: string;
     name: string;
     email: string;
+    accepted: boolean;
 };
 
 const toIso = (value: Date | string) => new Date(value).toISOString();
@@ -38,6 +40,7 @@ const getAttendeesByBooking = async (bookingIds: string[]) => {
                           id: user.id,
                           name: user.name,
                           email: user.email,
+                          accepted: attendees.accepted,
                       },
                   })
                   .from(attendees)
@@ -272,6 +275,169 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" }).handle
         users,
     };
 });
+
+export const getBookingDetailsFn = createServerFn({ method: "GET" })
+    .inputValidator(
+        z.object({
+            bookingId: z.string().uuid(),
+        }),
+    )
+    .handler(async ({ data }) => {
+        const session = await requireAuthenticatedUser();
+
+        const [bookingRow] = await db
+            .select({
+                booking: bookings,
+                room: {
+                    id: rooms.roomId,
+                    name: rooms.name,
+                    location: rooms.location,
+                    capacity: rooms.capacity,
+                    available: rooms.available,
+                },
+                organizer: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                },
+            })
+            .from(bookings)
+            .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+            .innerJoin(user, eq(user.id, bookings.userId))
+            .where(eq(bookings.bookingId, data.bookingId))
+            .limit(1);
+
+        if (!bookingRow) {
+            throw new Error("Booking no longer exists");
+        }
+
+        const attendeeRows = await db
+            .select({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                accepted: attendees.accepted,
+            })
+            .from(attendees)
+            .innerJoin(user, eq(user.id, attendees.userId))
+            .where(eq(attendees.bookingId, data.bookingId))
+            .orderBy(asc(user.name));
+
+        const equipmentRows = await db
+            .select({
+                name: equipment.name,
+                brand: equipment.brand,
+                model: equipment.model,
+            })
+            .from(roomEquipment)
+            .innerJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
+            .where(eq(roomEquipment.roomId, bookingRow.booking.roomId))
+            .orderBy(asc(equipment.name));
+
+        const [cancelledBy] = bookingRow.booking.cancelledBy
+            ? await db
+                  .select({
+                      id: user.id,
+                      name: user.name,
+                      email: user.email,
+                  })
+                  .from(user)
+                  .where(eq(user.id, bookingRow.booking.cancelledBy))
+                  .limit(1)
+            : [];
+
+        const currentUserAttendee = attendeeRows.find((attendee) => attendee.id === session.user.id) ?? null;
+        const now = Date.now();
+        const isOrganizer = bookingRow.booking.userId === session.user.id;
+        const isFutureBooking = new Date(bookingRow.booking.endTime).getTime() > now;
+
+        return {
+            currentUserId: session.user.id,
+            booking: {
+                id: bookingRow.booking.bookingId,
+                title: bookingRow.booking.title,
+                description: bookingRow.booking.description ?? "",
+                start: toIso(bookingRow.booking.startTime),
+                end: toIso(bookingRow.booking.endTime),
+                status: bookingRow.booking.status,
+                cancelledAt: bookingRow.booking.cancelledAt ? toIso(bookingRow.booking.cancelledAt) : null,
+                cancelReason: bookingRow.booking.cancelReason ?? "",
+                createdAt: bookingRow.booking.createdAt ? toIso(bookingRow.booking.createdAt) : null,
+                updatedAt: bookingRow.booking.updatedAt ? toIso(bookingRow.booking.updatedAt) : null,
+            },
+            room: bookingRow.room,
+            equipment: equipmentRows,
+            organizer: bookingRow.organizer,
+            cancelledBy: cancelledBy ?? null,
+            attendees: attendeeRows,
+            currentUserAttendance: currentUserAttendee
+                ? {
+                      accepted: currentUserAttendee.accepted,
+                  }
+                : null,
+            isOrganizer,
+            canAccept:
+                !!currentUserAttendee &&
+                !currentUserAttendee.accepted &&
+                bookingRow.booking.status === "active" &&
+                isFutureBooking,
+        };
+    });
+
+export const acceptBookingInviteFn = createServerFn({ method: "POST" })
+    .inputValidator(
+        z.object({
+            bookingId: z.string().uuid(),
+        }),
+    )
+    .handler(async ({ data }) => {
+        const session = await requireAuthenticatedUser();
+
+        const [booking] = await db
+            .select({
+                id: bookings.bookingId,
+                status: bookings.status,
+                endTime: bookings.endTime,
+            })
+            .from(bookings)
+            .where(eq(bookings.bookingId, data.bookingId))
+            .limit(1);
+
+        if (!booking) {
+            throw new Error("Booking no longer exists");
+        }
+
+        if (booking.status === "cancelled") {
+            throw new Error("Cancelled bookings cannot be accepted");
+        }
+
+        if (new Date(booking.endTime).getTime() <= Date.now()) {
+            throw new Error("Past bookings cannot be accepted");
+        }
+
+        const [updatedAttendee] = await db
+            .update(attendees)
+            .set({ accepted: true })
+            .where(and(eq(attendees.bookingId, data.bookingId), eq(attendees.userId, session.user.id)))
+            .returning({ bookingId: attendees.bookingId });
+
+        if (!updatedAttendee) {
+            throw new Error("Only invited attendees can accept this booking");
+        }
+
+        await db
+            .update(notifications)
+            .set({ status: "read" })
+            .where(
+                and(
+                    eq(notifications.bookingId, data.bookingId),
+                    eq(notifications.userId, session.user.id),
+                    eq(notifications.status, "unread"),
+                ),
+            );
+
+        return { id: updatedAttendee.bookingId };
+    });
 
 export const createBookingFn = createServerFn({ method: "POST" })
     .inputValidator(createBookingSchema)

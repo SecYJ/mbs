@@ -112,8 +112,8 @@ const NotificationsPage = () => {
                             className="grid gap-4 px-1 py-5 md:grid-cols-[1fr_auto] md:items-center"
                         >
                             <Link
-                                to="/bookings"
-                                search={{ bookingId: notification.bookingId }}
+                                to="/bookings/$bookingId"
+                                params={{ bookingId: notification.bookingId }}
                                 onClick={() => {
                                     if (notification.status === "unread") markAsRead(notification.id);
                                 }}
