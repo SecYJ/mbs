@@ -1,19 +1,21 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { EventInput } from "@fullcalendar/core";
-import { Clock, MapPin, Users, FileText, X, ArrowRight } from "lucide-react";
+import { LegendList } from "@legendapp/list/react";
+import { ArrowRight, Ban, Clock, MapPin, Pencil, Save, Search, Users, X } from "lucide-react";
 
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { PAST_BOOKING_START_MESSAGE } from "@/features/bookings/booking.constants";
 
 export interface BookingFormData {
     title: string;
     roomId: string;
     start: Date;
     end: Date;
-    attendees: string[];
+    attendeeIds: string[];
     description: string;
 }
 
@@ -25,64 +27,97 @@ interface Room {
     equipment: string[];
 }
 
+interface BookableUser {
+    id: string;
+    name: string;
+    email: string;
+}
+
 interface BookingDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     mode: "create" | "view";
     rooms: Room[];
+    users: BookableUser[];
+    currentUserId?: string;
     event: EventInput | null;
     prefill: { roomId?: string; start?: Date; end?: Date };
     onSubmit: (data: BookingFormData) => void;
+    isSubmitting?: boolean;
+    error?: string | null;
+    canManage?: boolean;
+    onUpdateBooking?: (bookingId: string, data: BookingFormData) => void;
+    isUpdating?: boolean;
+    updateError?: string | null;
+    onCancelBooking?: (bookingId: string, cancelReason: string) => void;
+    isCancelling?: boolean;
+    cancelError?: string | null;
 }
-
-function formatDateTimeLocal(date: Date): string {
-    const pad = (n: number) => n.toString().padStart(2, "0");
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function formatTimeDisplay(dateStr: string | undefined): string {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
-}
-
-function formatDateDisplay(dateStr: string | undefined): string {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
-}
-
-const MOCK_USERS = [
-    "Alice Chen",
-    "Bob",
-    "Carol",
-    "David Kim",
-    "Eve",
-    "Frank",
-    "Grace Liu",
-    "Henry Wang",
-    "Ivan",
-    "Julia",
-    "Kevin",
-    "Liam",
-    "Mia",
-];
 
 const DIALOG_CLASS =
     "border border-[var(--hairline)] bg-[var(--surface-01)] text-[var(--bone)] rounded-none shadow-[0_40px_80px_rgba(0,0,0,0.6)]";
 
-export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill, onSubmit }: BookingDialogProps) {
+const padDatePart = (n: number) => n.toString().padStart(2, "0");
+
+const formatDateTimeLocal = (date: Date) => {
+    return `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}T${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}`;
+};
+
+const getNextMinuteDate = (date: Date) => {
+    const nextMinute = new Date(date);
+    nextMinute.setSeconds(0, 0);
+    nextMinute.setMinutes(nextMinute.getMinutes() + 1);
+    return nextMinute;
+};
+
+const formatTimeDisplay = (dateStr: string | undefined) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: false });
+};
+
+const formatDateDisplay = (dateStr: string | undefined) => {
+    if (!dateStr) return "";
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+};
+
+export const BookingDialog = ({
+    open,
+    onOpenChange,
+    mode,
+    rooms,
+    users,
+    currentUserId,
+    event,
+    prefill,
+    onSubmit,
+    isSubmitting = false,
+    error = null,
+    canManage = false,
+    onUpdateBooking,
+    isUpdating = false,
+    updateError = null,
+    onCancelBooking,
+    isCancelling = false,
+    cancelError = null,
+}: BookingDialogProps) => {
     const [title, setTitle] = useState("");
     const [roomId, setRoomId] = useState("");
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
     const [description, setDescription] = useState("");
-    const [attendees, setAttendees] = useState<string[]>([]);
-    const [attendeeSearch, setAttendeeSearch] = useState("");
-    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [attendeeIds, setAttendeeIds] = useState<string[]>([]);
+    const [attendeePickerOpen, setAttendeePickerOpen] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+    const [cancelReason, setCancelReason] = useState("");
+    const [validationError, setValidationError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!open) return;
+
+        setValidationError(null);
 
         if (mode === "create") {
             setTitle("");
@@ -90,43 +125,120 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
             setStartTime(prefill.start ? formatDateTimeLocal(prefill.start) : "");
             setEndTime(prefill.end ? formatDateTimeLocal(prefill.end) : "");
             setDescription("");
-            setAttendees([]);
-            setAttendeeSearch("");
+            setAttendeeIds([]);
+            setAttendeePickerOpen(false);
+            setIsEditing(false);
+            setCancelConfirmOpen(false);
+            setCancelReason("");
+            return;
         }
-    }, [open, mode, prefill]);
 
-    const filteredSuggestions = MOCK_USERS.filter(
-        (u) => !attendees.includes(u) && u.toLowerCase().includes(attendeeSearch.toLowerCase()),
-    );
+        if (mode === "view" && event) {
+            const nextAttendeeIds = Array.isArray(event.extendedProps?.attendeeIds)
+                ? event.extendedProps.attendeeIds.filter(
+                      (id): id is string => typeof id === "string" && id !== currentUserId,
+                  )
+                : [];
 
-    const addAttendee = (name: string) => {
-        setAttendees((prev) => [...prev, name]);
-        setAttendeeSearch("");
-        setShowSuggestions(false);
+            setTitle(event.title ?? "");
+            setRoomId(String(event.resourceId ?? ""));
+            setStartTime(event.start ? formatDateTimeLocal(new Date(String(event.start))) : "");
+            setEndTime(event.end ? formatDateTimeLocal(new Date(String(event.end))) : "");
+            setDescription(typeof event.extendedProps?.description === "string" ? event.extendedProps.description : "");
+            setAttendeeIds(nextAttendeeIds);
+            setAttendeePickerOpen(false);
+            setIsEditing(false);
+            setCancelConfirmOpen(false);
+            setCancelReason("");
+        }
+    }, [open, mode, prefill, event, currentUserId]);
+
+    const inviteableUsers = currentUserId ? users.filter((user) => user.id !== currentUserId) : users;
+    const selectedAttendees = inviteableUsers.filter((user) => attendeeIds.includes(user.id));
+
+    const clearValidationError = () => {
+        setValidationError(null);
     };
 
-    const removeAttendee = (name: string) => {
-        setAttendees((prev) => prev.filter((a) => a !== name));
+    const removeAttendee = (userId: string) => {
+        setAttendeeIds((prev) => prev.filter((id) => id !== userId));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!title || !roomId || !startTime || !endTime) return;
+        if (!title || !roomId || !startTime || !endTime || isSubmitting || isUpdating) return;
 
-        onSubmit({
+        const start = new Date(startTime);
+        const end = new Date(endTime);
+
+        if (start.getTime() <= Date.now()) {
+            setValidationError(PAST_BOOKING_START_MESSAGE);
+            return;
+        }
+
+        if (end.getTime() <= start.getTime()) {
+            setValidationError("End time must be after start time");
+            return;
+        }
+
+        const formData = {
             title,
             roomId,
-            start: new Date(startTime),
-            end: new Date(endTime),
-            attendees,
+            start,
+            end,
+            attendeeIds: attendeeIds.filter((id) => id !== currentUserId),
             description,
-        });
+        };
+
+        if (mode === "view" && isEditing && event?.id && onUpdateBooking) {
+            onUpdateBooking(String(event.id), formData);
+            return;
+        }
+
+        onSubmit(formData);
     };
 
-    const selectedRoom = rooms.find((r) => r.id === (mode === "view" ? String(event?.resourceId) : roomId));
+    const selectedRoomId = mode === "view" && !isEditing ? String(event?.resourceId) : roomId || prefill.roomId;
+    const selectedRoom = rooms.find((room) => room.id === selectedRoomId);
+    const roomIsPrefilled = mode === "create" && !!prefill.roomId && !!selectedRoom;
+    const requestCancelBooking = () => {
+        if (!event?.id || !onCancelBooking || isCancelling) return;
 
-    // ── View mode ──
-    if (mode === "view" && event) {
+        setCancelConfirmOpen(true);
+        setCancelReason("");
+    };
+    const confirmCancelBooking = () => {
+        if (!event?.id || !onCancelBooking || isCancelling) return;
+
+        onCancelBooking(String(event.id), cancelReason);
+    };
+    const formIsEditing = mode === "view" && isEditing;
+    const formIsSubmitting = formIsEditing ? isUpdating : isSubmitting;
+    const minimumStartTime = formatDateTimeLocal(getNextMinuteDate(new Date()));
+    const minimumEndTime = startTime && startTime > minimumStartTime ? startTime : minimumStartTime;
+    const selectedStartDate = startTime ? new Date(startTime) : null;
+    const selectedEndDate = endTime ? new Date(endTime) : null;
+    const timeValidationError =
+        selectedStartDate && selectedStartDate.getTime() <= Date.now()
+            ? PAST_BOOKING_START_MESSAGE
+            : selectedStartDate && selectedEndDate && selectedEndDate.getTime() <= selectedStartDate.getTime()
+              ? "End time must be after start time"
+              : null;
+    const formError = validationError ?? timeValidationError ?? (formIsEditing ? updateError : error);
+    const submitLabel = formIsEditing ? (isUpdating ? "Saving" : "Save") : isSubmitting ? "Reserving" : "Reserve";
+    const roomSelectItems = rooms.map((room) => ({
+        value: room.id,
+        label: (
+            <>
+                <span className="font-medium">{room.title}</span>
+                <span className="tabular-num ml-2 text-[var(--bone-dim)]">
+                    &middot; {room.location} &middot; {room.capacity}p
+                </span>
+            </>
+        ),
+    }));
+
+    if (mode === "view" && event && !isEditing) {
         return (
             <Dialog open={open} onOpenChange={onOpenChange}>
                 <DialogContent className={`${DIALOG_CLASS} sm:max-w-md`}>
@@ -164,56 +276,118 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
                                 </span>
                             </InfoRow>
 
-                            {event.extendedProps?.attendees?.length && (
+                            {event.extendedProps?.attendees?.length ? (
                                 <InfoRow icon={<Users className="size-[15px]" strokeWidth={1.4} />} label="Attendees">
                                     <div className="flex flex-wrap gap-1.5">
-                                        {event.extendedProps.attendees.map((a: string) => (
+                                        {event.extendedProps.attendees.map((attendee: string) => (
                                             <span
-                                                key={a}
+                                                key={attendee}
                                                 className="border border-[var(--hairline)] px-2 py-0.5 text-[0.7rem] text-[var(--bone-muted)]"
                                             >
-                                                {a}
+                                                {attendee}
                                             </span>
                                         ))}
                                     </div>
                                 </InfoRow>
-                            )}
+                            ) : null}
 
-                            {event.extendedProps?.description && (
-                                <InfoRow icon={<FileText className="size-[15px]" strokeWidth={1.4} />} label="Notes">
+                            {event.extendedProps?.description ? (
+                                <InfoRow icon={<Pencil className="size-[15px]" strokeWidth={1.4} />} label="Notes">
                                     <p className="text-[0.82rem] leading-relaxed text-[var(--bone-muted)]">
                                         {event.extendedProps.description}
                                     </p>
                                 </InfoRow>
-                            )}
+                            ) : null}
                         </dl>
                     </div>
 
-                    <div className="mt-6 border-t border-[var(--hairline)] pt-5">
-                        <button
-                            type="button"
-                            onClick={() => onOpenChange(false)}
-                            className="w-full cursor-pointer border border-[var(--hairline)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-[var(--bone-muted)] transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
-                        >
-                            Close
-                        </button>
-                    </div>
+                    {(canManage || cancelError) && (
+                        <div className="mt-6 border-t border-[var(--hairline)] pt-5">
+                            {cancelError && (
+                                <p className="mb-3 border border-red-400/30 bg-red-500/10 px-3 py-2 text-[0.75rem] text-red-200">
+                                    {cancelError}
+                                </p>
+                            )}
+                            {canManage && !cancelConfirmOpen && (
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditing(true)}
+                                        disabled={isCancelling}
+                                        className="flex cursor-pointer items-center justify-center gap-2 border border-[var(--hairline)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] text-[var(--bone-muted)] uppercase transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)] disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        <Pencil className="size-4" strokeWidth={1.6} />
+                                        <span>Edit</span>
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={requestCancelBooking}
+                                        disabled={isCancelling}
+                                        aria-label="Cancel booking"
+                                        className="flex cursor-pointer items-center justify-center gap-2 border border-red-300/50 bg-red-500/10 py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] text-red-100 uppercase transition-all hover:border-red-200 hover:bg-red-500/20 hover:text-white disabled:cursor-wait disabled:opacity-70"
+                                    >
+                                        <Ban className="size-4" strokeWidth={1.6} />
+                                        <span>Cancel</span>
+                                    </button>
+                                </div>
+                            )}
+                            {canManage && cancelConfirmOpen && (
+                                <div className="space-y-3">
+                                    <p className="text-[0.78rem] leading-snug text-[var(--bone-muted)]">
+                                        Cancel this booking?
+                                    </p>
+                                    <div className="space-y-2">
+                                        <Label className="eyebrow block">
+                                            Reason <span className="ml-1 text-[var(--bone-faint)]">(optional)</span>
+                                        </Label>
+                                        <Textarea
+                                            value={cancelReason}
+                                            onChange={(e) => setCancelReason(e.target.value)}
+                                            placeholder="Change of plans, room no longer needed..."
+                                            rows={3}
+                                            className="resize-none rounded-none border border-[var(--hairline)] bg-[var(--surface-02)] px-3 py-2.5 text-[0.84rem] leading-relaxed text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus:border-[var(--gold)] focus-visible:ring-0"
+                                        />
+                                    </div>
+                                    <div className="flex items-center justify-end gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => setCancelConfirmOpen(false)}
+                                            disabled={isCancelling}
+                                            className="h-9 cursor-pointer border border-[var(--hairline)] px-4 text-[0.62rem] font-semibold tracking-[0.24em] text-[var(--bone-muted)] uppercase transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)] disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                            Keep
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={confirmCancelBooking}
+                                            disabled={isCancelling}
+                                            className="flex h-9 cursor-pointer items-center justify-center gap-2 border border-red-300/50 bg-red-500/10 px-4 text-[0.62rem] font-semibold tracking-[0.24em] text-red-100 uppercase transition-all hover:border-red-200 hover:bg-red-500/20 hover:text-white disabled:cursor-wait disabled:opacity-70"
+                                        >
+                                            <Ban className="size-3.5" strokeWidth={1.6} />
+                                            <span>{isCancelling ? "Cancelling" : "Confirm"}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </DialogContent>
             </Dialog>
         );
     }
 
-    // ── Create mode ──
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className={`${DIALOG_CLASS} sm:max-w-lg`}>
                 <DialogHeader>
-                    <p className="eyebrow eyebrow-gold">New Reservation</p>
+                    <p className="eyebrow eyebrow-gold">{formIsEditing ? "Edit Reservation" : "New Reservation"}</p>
                     <DialogTitle className="mt-2 display-italic text-[1.75rem] leading-[1.05] font-normal text-[var(--bone)]">
-                        Reserve a room.
+                        {formIsEditing ? "Update the booking." : "Reserve a room."}
                     </DialogTitle>
                     <DialogDescription className="text-[0.78rem] text-[var(--bone-muted)]">
-                        Enter the details below to add a booking to the ledger.
+                        {formIsEditing
+                            ? "Adjust the room, time, attendees, or notes for this reservation."
+                            : "Enter the details below to add a booking to the ledger."}
                     </DialogDescription>
                 </DialogHeader>
 
@@ -229,37 +403,61 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label className="eyebrow block">Room</Label>
-                        <Select value={roomId} onValueChange={(value) => setRoomId(value ?? "")} required>
-                            <SelectTrigger className="h-10 border-0 border-b border-[var(--hairline)] bg-transparent text-[0.9rem] text-[var(--bone)] shadow-none ring-0 rounded-none focus:border-[var(--gold)] focus:ring-0 [&>svg]:text-[var(--bone-dim)]">
-                                <SelectValue placeholder="Select a room" />
-                            </SelectTrigger>
-                            <SelectContent className="rounded-none border-[var(--hairline)] bg-[var(--surface-02)]">
-                                {rooms.map((room) => (
-                                    <SelectItem
-                                        key={room.id}
-                                        value={room.id}
-                                        className="rounded-none text-[var(--bone)] focus:bg-[var(--gold-wash)] focus:text-[var(--bone)]"
-                                    >
-                                        <span className="font-medium">{room.title}</span>
-                                        <span className="tabular-num ml-2 text-[var(--bone-dim)]">
-                                            &middot; {room.location} &middot; {room.capacity}p
-                                        </span>
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {selectedRoom && (
-                            <div className="flex flex-wrap gap-1.5 pt-2">
-                                {selectedRoom.equipment.map((eq) => (
-                                    <span
-                                        key={eq}
-                                        className="border border-[var(--hairline)] px-2 py-0.5 text-[0.66rem] tracking-[0.08em] uppercase text-[var(--bone-dim)]"
-                                    >
-                                        {eq}
+                    <div className="space-y-3">
+                        {roomIsPrefilled && selectedRoom ? (
+                            <div className="space-y-2">
+                                <p className="eyebrow block">Room</p>
+                                <div className="border border-[var(--hairline)] bg-[var(--surface-02)] px-3 py-2.5">
+                                    <span className="text-[0.9rem] font-medium text-[var(--bone)]">
+                                        {selectedRoom.title}
                                     </span>
-                                ))}
+                                    <span className="tabular-num ml-2 text-[0.72rem] text-[var(--bone-dim)]">
+                                        &middot; {selectedRoom.location} &middot; {selectedRoom.capacity}p
+                                    </span>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <Label className="eyebrow block">Room</Label>
+                                <Select
+                                    value={roomId}
+                                    onValueChange={(value) => setRoomId(value ?? "")}
+                                    items={roomSelectItems}
+                                    required
+                                >
+                                    <SelectTrigger className="h-10 border-0 border-b border-[var(--hairline)] bg-transparent text-[0.9rem] text-[var(--bone)] shadow-none ring-0 rounded-none focus:border-[var(--gold)] focus:ring-0 [&>svg]:text-[var(--bone-dim)]">
+                                        <SelectValue placeholder="Select a room" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-none border-[var(--hairline)] bg-[var(--surface-02)]">
+                                        {rooms.map((room) => (
+                                            <SelectItem
+                                                key={room.id}
+                                                value={room.id}
+                                                className="rounded-none text-[var(--bone)] focus:bg-[var(--gold-wash)] focus:text-[var(--bone)]"
+                                            >
+                                                <span className="font-medium">{room.title}</span>
+                                                <span className="tabular-num ml-2 text-[var(--bone-dim)]">
+                                                    &middot; {room.location} &middot; {room.capacity}p
+                                                </span>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+                        {selectedRoom && selectedRoom.equipment.length > 0 && (
+                            <div className="space-y-2">
+                                <p className="eyebrow block">Equipment</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {selectedRoom.equipment.map((item) => (
+                                        <span
+                                            key={item}
+                                            className="border border-[var(--hairline)] px-2 py-0.5 text-[0.66rem] tracking-[0.08em] uppercase text-[var(--bone-dim)]"
+                                        >
+                                            {item}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -270,7 +468,11 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
                             <Input
                                 type="datetime-local"
                                 value={startTime}
-                                onChange={(e) => setStartTime(e.target.value)}
+                                min={minimumStartTime}
+                                onChange={(e) => {
+                                    setStartTime(e.target.value);
+                                    clearValidationError();
+                                }}
                                 required
                                 className="login-input-underline tabular-num h-10 rounded-none bg-transparent text-[0.85rem] text-[var(--bone)] shadow-none focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
                             />
@@ -280,7 +482,11 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
                             <Input
                                 type="datetime-local"
                                 value={endTime}
-                                onChange={(e) => setEndTime(e.target.value)}
+                                min={minimumEndTime}
+                                onChange={(e) => {
+                                    setEndTime(e.target.value);
+                                    clearValidationError();
+                                }}
                                 required
                                 className="login-input-underline tabular-num h-10 rounded-none bg-transparent text-[0.85rem] text-[var(--bone)] shadow-none focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
                             />
@@ -289,18 +495,31 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
 
                     <div className="space-y-2">
                         <Label className="eyebrow block">Attendees</Label>
-                        {attendees.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 pb-2">
-                                {attendees.map((a) => (
+                        <button
+                            type="button"
+                            onClick={() => setAttendeePickerOpen(true)}
+                            className="flex h-10 w-full cursor-pointer items-center justify-between border border-[var(--hairline)] bg-[var(--surface-02)] px-3 text-left transition-all hover:border-[var(--hairline-strong)]"
+                        >
+                            <span className="flex items-center gap-3">
+                                <Users className="size-4 text-[var(--bone-dim)]" strokeWidth={1.5} />
+                                <span className="text-[0.86rem] text-[var(--bone)]">Invite attendees</span>
+                            </span>
+                            <span className="tabular-num text-[0.64rem] font-semibold tracking-[0.24em] text-[var(--bone-dim)] uppercase">
+                                {selectedAttendees.length === 0 ? "None" : `${selectedAttendees.length} selected`}
+                            </span>
+                        </button>
+                        {selectedAttendees.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 pt-2">
+                                {selectedAttendees.map((attendee) => (
                                     <span
-                                        key={a}
+                                        key={attendee.id}
                                         className="inline-flex items-center gap-1 border border-[var(--hairline)] bg-[var(--surface-02)] px-2 py-0.5 text-[0.7rem] text-[var(--bone-muted)]"
                                     >
-                                        {a}
+                                        {attendee.name}
                                         <button
                                             type="button"
-                                            onClick={() => removeAttendee(a)}
-                                            aria-label={`Remove ${a}`}
+                                            onClick={() => removeAttendee(attendee.id)}
+                                            aria-label={`Remove ${attendee.name}`}
                                             className="ml-0.5 cursor-pointer text-[var(--bone-dim)] transition-colors hover:text-[var(--gold)]"
                                         >
                                             <X className="size-3" strokeWidth={1.6} />
@@ -309,33 +528,13 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
                                 ))}
                             </div>
                         )}
-                        <div className="relative">
-                            <Input
-                                value={attendeeSearch}
-                                onChange={(e) => {
-                                    setAttendeeSearch(e.target.value);
-                                    setShowSuggestions(true);
-                                }}
-                                onFocus={() => setShowSuggestions(true)}
-                                onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
-                                placeholder="Search users to invite..."
-                                className="login-input-underline h-10 rounded-none bg-transparent text-[0.9rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0"
-                            />
-                            {showSuggestions && attendeeSearch && filteredSuggestions.length > 0 && (
-                                <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-40 overflow-y-auto border border-[var(--hairline)] bg-[var(--surface-02)] py-1 shadow-[0_20px_40px_rgba(0,0,0,0.6)]">
-                                    {filteredSuggestions.map((user) => (
-                                        <button
-                                            type="button"
-                                            key={user}
-                                            onMouseDown={() => addAttendee(user)}
-                                            className="flex w-full cursor-pointer items-center px-4 py-2 text-left text-[0.82rem] text-[var(--bone-muted)] transition-colors hover:bg-[var(--gold-wash)] hover:text-[var(--bone)]"
-                                        >
-                                            {user}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <AttendeePickerDialog
+                            open={attendeePickerOpen}
+                            onOpenChange={setAttendeePickerOpen}
+                            users={inviteableUsers}
+                            selectedIds={attendeeIds}
+                            onCommit={setAttendeeIds}
+                        />
                     </div>
 
                     <div className="space-y-2">
@@ -347,43 +546,212 @@ export function BookingDialog({ open, onOpenChange, mode, rooms, event, prefill,
                             onChange={(e) => setDescription(e.target.value)}
                             placeholder="Meeting agenda or notes..."
                             rows={3}
-                            className="resize-none rounded-none border-0 border-b border-[var(--hairline)] bg-transparent px-0.5 text-[0.88rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0 focus:border-[var(--gold)]"
+                            className="resize-none rounded-none border border-[var(--hairline)] bg-[var(--surface-02)] px-3 py-2.5 text-[0.88rem] leading-relaxed text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus:border-[var(--gold)] focus-visible:ring-0"
                         />
                     </div>
+
+                    {formError && (
+                        <p className="border border-red-400/30 bg-red-500/10 px-3 py-2 text-[0.75rem] text-red-200">
+                            {formError}
+                        </p>
+                    )}
 
                     <div className="flex gap-3 border-t border-[var(--hairline)] pt-5">
                         <button
                             type="button"
-                            onClick={() => onOpenChange(false)}
-                            className="flex-1 cursor-pointer border border-[var(--hairline)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-[var(--bone-muted)] transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
+                            onClick={() => (formIsEditing ? setIsEditing(false) : onOpenChange(false))}
+                            disabled={formIsSubmitting}
+                            className="flex-1 cursor-pointer border border-[var(--hairline)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-[var(--bone-muted)] transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             Cancel
                         </button>
                         <button
                             type="submit"
-                            className="group flex flex-1 cursor-pointer items-center justify-center gap-2 border border-[var(--bone)] bg-[var(--bone)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-black transition-all hover:bg-white hover:tracking-[0.32em]"
+                            disabled={formIsSubmitting || !!timeValidationError}
+                            className="group flex flex-1 cursor-pointer items-center justify-center gap-2 border border-[var(--bone)] bg-[var(--bone)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-black transition-all hover:bg-white hover:tracking-[0.32em] disabled:cursor-wait disabled:opacity-70"
                         >
-                            <span>Reserve</span>
-                            <ArrowRight
-                                className="size-4 transition-transform duration-300 group-hover:translate-x-1"
-                                strokeWidth={1.6}
-                            />
+                            <span>{submitLabel}</span>
+                            {formIsEditing ? (
+                                <Save className="size-4" strokeWidth={1.6} />
+                            ) : (
+                                <ArrowRight
+                                    className="size-4 transition-transform duration-300 group-hover:translate-x-1"
+                                    strokeWidth={1.6}
+                                />
+                            )}
                         </button>
                     </div>
                 </form>
             </DialogContent>
         </Dialog>
     );
-}
+};
 
-function InfoRow({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) {
+const AttendeePickerDialog = ({
+    open,
+    onOpenChange,
+    users,
+    selectedIds,
+    onCommit,
+}: {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    users: BookableUser[];
+    selectedIds: string[];
+    onCommit: (ids: string[]) => void;
+}) => {
+    const [search, setSearch] = useState("");
+    const [draftIds, setDraftIds] = useState<string[]>([]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        setSearch("");
+        setDraftIds(selectedIds);
+    }, [open, selectedIds]);
+
+    const normalizedSearch = search.trim().toLowerCase();
+    const filteredUsers =
+        normalizedSearch.length === 0
+            ? users
+            : users.filter(
+                  (user) =>
+                      user.name.toLowerCase().includes(normalizedSearch) ||
+                      user.email.toLowerCase().includes(normalizedSearch),
+              );
+    const selectedUsers = users.filter((user) => draftIds.includes(user.id));
+
+    const toggleUser = (userId: string) => {
+        setDraftIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]));
+    };
+    const removeUser = (userId: string) => {
+        setDraftIds((prev) => prev.filter((id) => id !== userId));
+    };
+    const handleDone = () => {
+        onCommit(draftIds);
+        onOpenChange(false);
+    };
+
     return (
-        <div className="grid grid-cols-[88px_1fr] items-start gap-4">
-            <div className="flex items-center gap-2 pt-[2px]">
-                <span className="text-[var(--bone-dim)]">{icon}</span>
-                <span className="eyebrow">{label}</span>
-            </div>
-            <div className="flex flex-wrap items-baseline">{children}</div>
-        </div>
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className={`${DIALOG_CLASS} sm:max-w-2xl`}>
+                <DialogHeader>
+                    <p className="eyebrow eyebrow-gold">Invite</p>
+                    <DialogTitle className="mt-2 display-italic text-[1.75rem] leading-[1.05] font-normal text-[var(--bone)]">
+                        Select attendees.
+                    </DialogTitle>
+                    <DialogDescription className="text-[0.78rem] text-[var(--bone-muted)]">
+                        Selected users will be attached when the booking is submitted.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div className="mt-4 space-y-4 border-t border-[var(--hairline)] pt-6">
+                    <div className="relative">
+                        <Search
+                            aria-hidden
+                            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--bone-dim)]"
+                            strokeWidth={1.5}
+                        />
+                        <Input
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Search users..."
+                            aria-label="Search users"
+                            className="h-10 rounded-none border border-[var(--hairline)] bg-[var(--surface-02)] pr-3 pl-10 text-[0.9rem] text-[var(--bone)] shadow-none placeholder:text-[var(--bone-faint)] focus-visible:ring-0 focus:border-[var(--gold)]"
+                        />
+                    </div>
+
+                    <div className="min-h-10 border border-[var(--hairline)] bg-[var(--surface-02)] px-3 py-2">
+                        {selectedUsers.length === 0 ? (
+                            <p className="py-1 text-[0.72rem] text-[var(--bone-dim)]">No attendees selected.</p>
+                        ) : (
+                            <div className="flex flex-wrap gap-1.5">
+                                {selectedUsers.map((user) => (
+                                    <span
+                                        key={user.id}
+                                        className="inline-flex items-center gap-1 border border-[var(--hairline)] bg-[var(--surface-01)] px-2 py-0.5 text-[0.7rem] text-[var(--bone-muted)]"
+                                    >
+                                        {user.name}
+                                        <button
+                                            type="button"
+                                            onClick={() => removeUser(user.id)}
+                                            aria-label={`Remove ${user.name}`}
+                                            className="ml-0.5 cursor-pointer text-[var(--bone-dim)] transition-colors hover:text-[var(--gold)]"
+                                        >
+                                            <X className="size-3" strokeWidth={1.6} />
+                                        </button>
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="h-[min(420px,50dvh)] border border-[var(--hairline)] bg-black/20">
+                        <LegendList
+                            data={filteredUsers}
+                            renderItem={({ item }) => {
+                                const checked = draftIds.includes(item.id);
+                                return (
+                                    <label className="flex min-h-14 cursor-pointer items-center gap-3 border-b border-[var(--hairline)] px-4 py-2 transition-colors hover:bg-[var(--gold-wash)]">
+                                        <input
+                                            type="checkbox"
+                                            checked={checked}
+                                            onChange={() => toggleUser(item.id)}
+                                            className="size-4 accent-[var(--gold)]"
+                                        />
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block truncate text-[0.84rem] font-medium text-[var(--bone)]">
+                                                {item.name}
+                                            </span>
+                                            <span className="block truncate text-[0.68rem] text-[var(--bone-dim)]">
+                                                {item.email}
+                                            </span>
+                                        </span>
+                                    </label>
+                                );
+                            }}
+                            keyExtractor={(user) => user.id}
+                            recycleItems
+                            extraData={draftIds}
+                            estimatedItemSize={56}
+                            getFixedItemSize={() => 56}
+                            style={{ height: "100%" }}
+                            ListEmptyComponent={
+                                <p className="px-4 py-5 text-[0.78rem] text-[var(--bone-dim)]">
+                                    No users match your search.
+                                </p>
+                            }
+                        />
+                    </div>
+                </div>
+
+                <div className="mt-2 flex gap-3 border-t border-[var(--hairline)] pt-5">
+                    <button
+                        type="button"
+                        onClick={() => onOpenChange(false)}
+                        className="flex-1 cursor-pointer border border-[var(--hairline)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-[var(--bone-muted)] transition-all hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={handleDone}
+                        className="flex flex-1 cursor-pointer items-center justify-center border border-[var(--bone)] bg-[var(--bone)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-black transition-all hover:bg-white hover:tracking-[0.32em]"
+                    >
+                        Done
+                    </button>
+                </div>
+            </DialogContent>
+        </Dialog>
     );
-}
+};
+
+const InfoRow = ({ icon, label, children }: { icon: React.ReactNode; label: string; children: React.ReactNode }) => (
+    <div className="grid grid-cols-[88px_1fr] items-start gap-4">
+        <div className="flex items-center gap-2 pt-[2px]">
+            <span className="text-[var(--bone-dim)]">{icon}</span>
+            <span className="eyebrow">{label}</span>
+        </div>
+        <div className="flex flex-wrap items-baseline">{children}</div>
+    </div>
+);

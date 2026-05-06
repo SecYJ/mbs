@@ -1,5 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, useRef, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { createFileRoute, Link, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import FullCalendar from "@fullcalendar/react";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -8,144 +10,91 @@ import multiMonthPlugin from "@fullcalendar/multimonth";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateSelectArg, DatesSetArg, EventClickArg, EventInput } from "@fullcalendar/core";
 import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { z } from "zod";
 
 import { BookingDialog, type BookingFormData } from "@/features/bookings/booking-dialog";
+import { cancelBookingFn, createBookingFn, updateBookingFn } from "@/features/bookings/services/fns";
+import { bookingCalendarQueryOptions, type BookingCalendarData } from "@/features/bookings/services/queries";
+import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 
-export const Route = createFileRoute("/_bookings/bookings")({ component: BookingsPage });
-
-// ── Per-room accent palette — jewel tones on pure black ──
+type ViewKey = "day" | "week" | "month" | "year";
 type RoomAccent = {
     hue: string;
     stripe: string;
     wash: string;
     washHover: string;
 };
+type FilterableRoom = {
+    capacity: number;
+    equipment: string[];
+    location: string;
+};
+type BookingCalendarEvent = BookingCalendarData["events"][number];
 
-const ROOM_ACCENTS: Record<string, RoomAccent> = {
-    "1": {
+const stringArraySearch = z
+    .union([z.array(z.string()), z.string()])
+    .optional()
+    .transform((value) => {
+        if (!value) return [];
+        return Array.isArray(value) ? value : [value];
+    })
+    .catch([]);
+
+const bookingSearchDefaults = {
+    capacity: 0,
+    equipment: [] as string[],
+    location: [] as string[],
+};
+
+const bookingSearchSchema = z.object({
+    bookingId: z.string().uuid().optional().catch(undefined),
+    capacity: z.number().default(bookingSearchDefaults.capacity).catch(bookingSearchDefaults.capacity),
+    equipment: stringArraySearch.default(bookingSearchDefaults.equipment),
+    location: stringArraySearch.default(bookingSearchDefaults.location),
+});
+
+export const Route = createFileRoute("/_bookings/bookings")({
+    validateSearch: bookingSearchSchema,
+    search: {
+        middlewares: [stripSearchParams(bookingSearchDefaults)],
+    },
+    loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(bookingCalendarQueryOptions()),
+    component: BookingsPage,
+});
+
+const ROOM_ACCENTS: RoomAccent[] = [
+    {
         hue: "Amber",
         stripe: "#e8c29a",
         wash: "rgba(232,194,154,0.06)",
         washHover: "rgba(232,194,154,0.12)",
     },
-    "2": {
+    {
         hue: "Rust",
         stripe: "#b66a4a",
         wash: "rgba(182,106,74,0.07)",
         washHover: "rgba(182,106,74,0.14)",
     },
-    "3": {
+    {
         hue: "Steel",
         stripe: "#7a8fa8",
         wash: "rgba(122,143,168,0.07)",
         washHover: "rgba(122,143,168,0.14)",
     },
-    "4": {
+    {
         hue: "Sage",
         stripe: "#6a8a6e",
         wash: "rgba(106,138,110,0.07)",
         washHover: "rgba(106,138,110,0.14)",
     },
-    "5": {
+    {
         hue: "Plum",
         stripe: "#8a6a8a",
         wash: "rgba(138,106,138,0.07)",
         washHover: "rgba(138,106,138,0.14)",
     },
-};
-
-// ── Mock data ──
-
-const MOCK_ROOMS = [
-    { id: "1", title: "Aurora", location: "3F East", capacity: 8, equipment: ["Projector", "Video Conferencing"] },
-    { id: "2", title: "Horizon", location: "3F West", capacity: 12, equipment: ["TV Screen", "Whiteboard"] },
-    { id: "3", title: "Nimbus", location: "4F East", capacity: 6, equipment: ["Video Conferencing", "Whiteboard"] },
-    {
-        id: "4",
-        title: "Summit",
-        location: "4F West",
-        capacity: 20,
-        equipment: ["Projector", "TV Screen", "Video Conferencing"],
-    },
-    { id: "5", title: "Cascade", location: "5F East", capacity: 4, equipment: ["Whiteboard"] },
 ];
 
-function getTodayStr() {
-    return new Date().toISOString().split("T")[0];
-}
-
-function makeMockEvents(): EventInput[] {
-    const today = getTodayStr();
-    return [
-        {
-            id: "e1",
-            resourceId: "1",
-            title: "Sprint Planning",
-            start: `${today}T09:00:00`,
-            end: `${today}T10:30:00`,
-            extendedProps: {
-                organizer: "Alice Chen",
-                attendees: ["Bob", "Carol"],
-                description: "Weekly sprint planning session",
-            },
-        },
-        {
-            id: "e2",
-            resourceId: "2",
-            title: "Design Review",
-            start: `${today}T10:00:00`,
-            end: `${today}T11:00:00`,
-            extendedProps: {
-                organizer: "David Kim",
-                attendees: ["Eve", "Frank"],
-                description: "Review new dashboard designs",
-            },
-        },
-        {
-            id: "e3",
-            resourceId: "1",
-            title: "1:1 with Manager",
-            start: `${today}T13:00:00`,
-            end: `${today}T13:30:00`,
-            extendedProps: { organizer: "Grace Liu", attendees: ["Alice Chen"], description: "" },
-        },
-        {
-            id: "e4",
-            resourceId: "3",
-            title: "API Workshop",
-            start: `${today}T14:00:00`,
-            end: `${today}T16:00:00`,
-            extendedProps: {
-                organizer: "Henry Wang",
-                attendees: ["Ivan", "Julia", "Kevin"],
-                description: "Hands-on REST API workshop",
-            },
-        },
-        {
-            id: "e5",
-            resourceId: "4",
-            title: "All Hands",
-            start: `${today}T11:00:00`,
-            end: `${today}T12:00:00`,
-            extendedProps: { organizer: "CEO", attendees: ["All Staff"], description: "Monthly all-hands meeting" },
-        },
-        {
-            id: "e6",
-            resourceId: "5",
-            title: "Quick Sync",
-            start: `${today}T15:00:00`,
-            end: `${today}T15:30:00`,
-            extendedProps: { organizer: "Liam", attendees: ["Mia"], description: "" },
-        },
-    ];
-}
-
-const ALL_EQUIPMENT = ["Projector", "Video Conferencing", "Whiteboard", "TV Screen"];
-const ALL_LOCATIONS = ["3F East", "3F West", "4F East", "4F West", "5F East"];
-
-// ── View switcher ──
-
-type ViewKey = "day" | "week" | "month" | "year";
 const VIEW_MAP: Record<ViewKey, string> = {
     day: "resourceTimeGridDay",
     week: "timeGridWeek",
@@ -153,13 +102,45 @@ const VIEW_MAP: Record<ViewKey, string> = {
     year: "multiMonthYear",
 };
 
-function computeTitle(view: ViewKey, date: Date): string {
+const getAccent = (index: number) => ROOM_ACCENTS[index % ROOM_ACCENTS.length] ?? ROOM_ACCENTS[0];
+
+const getBookingEventInput = (event: BookingCalendarEvent): EventInput => ({
+    id: event.id,
+    resourceId: event.roomId,
+    title: event.title,
+    start: event.start,
+    end: event.end,
+    extendedProps: {
+        resourceId: event.roomId,
+        organizerId: event.organizer.id,
+        organizer: event.organizer.name,
+        organizerEmail: event.organizer.email,
+        attendees: event.attendees.map((attendee) => attendee.name),
+        attendeeIds: event.attendees.map((attendee) => attendee.id),
+        description: event.description,
+        canManage: event.canManage,
+    },
+});
+
+const sortStrings = (values: string[]) => {
+    const sorted: string[] = [];
+    for (const value of values) {
+        const index = sorted.findIndex((item) => value.localeCompare(item) < 0);
+        if (index === -1) {
+            sorted.push(value);
+        } else {
+            sorted.splice(index, 0, value);
+        }
+    }
+    return sorted;
+};
+
+const computeTitle = (view: ViewKey, date: Date) => {
     if (view === "day") {
         return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
     }
     if (view === "week") {
         const start = new Date(date);
-        start.setDate(date.getDate() - date.getDay());
         const end = new Date(start);
         end.setDate(start.getDate() + 6);
         const sameMonth = start.getMonth() === end.getMonth();
@@ -180,29 +161,89 @@ function computeTitle(view: ViewKey, date: Date): string {
         return String(date.getFullYear());
     }
     return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-}
+};
+
+const formatTodayButtonDate = (date: Date) =>
+    date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+
+const getEventEndDate = (event: EventInput) => {
+    if (!event.end) return null;
+    return typeof event.end === "string" ? new Date(event.end) : (event.end as Date);
+};
+
+const isPastCalendarEvent = (event: EventInput, now = new Date()) => {
+    const end = getEventEndDate(event);
+    return !!end && end.getTime() <= now.getTime();
+};
 
 function BookingsPage() {
     const calendarRef = useRef<FullCalendar>(null);
+    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+    const queryClient = useQueryClient();
+    const createBooking = useServerFn(createBookingFn);
+    const updateBooking = useServerFn(updateBookingFn);
+    const cancelBooking = useServerFn(cancelBookingFn);
+    const navigate = useNavigate({ from: "/bookings" });
+    const { bookingId, capacity, equipment, location } = Route.useSearch();
+
+    const clearSelectedBookingSearch = () => {
+        if (!bookingId) return;
+        navigate({
+            search: (prev) => ({ ...prev, bookingId: undefined }),
+            replace: true,
+        });
+    };
+
     const [currentDate, setCurrentDate] = useState(new Date());
     const [view, setView] = useState<ViewKey>("day");
     const [viewContainsToday, setViewContainsToday] = useState(true);
-    const [events, setEvents] = useState<EventInput[]>(makeMockEvents);
-
     const [showFilters, setShowFilters] = useState(false);
-    const [capacityFilter, setCapacityFilter] = useState(0);
-    const [equipmentFilter, setEquipmentFilter] = useState<string[]>([]);
-    const [locationFilter, setLocationFilter] = useState<string[]>([]);
-
     const [dialogOpen, setDialogOpen] = useState(false);
     const [dialogMode, setDialogMode] = useState<"create" | "view">("create");
     const [selectedEvent, setSelectedEvent] = useState<EventInput | null>(null);
     const [prefill, setPrefill] = useState<{ roomId?: string; start?: Date; end?: Date }>({});
 
-    const filteredRooms = MOCK_ROOMS.filter((room) => {
-        if (capacityFilter > 0 && room.capacity < capacityFilter) return false;
-        if (equipmentFilter.length > 0 && !equipmentFilter.every((eq) => room.equipment.includes(eq))) return false;
-        if (locationFilter.length > 0 && !locationFilter.includes(room.location)) return false;
+    const createBookingMutation = useMutation({
+        mutationFn: createBooking,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: bookingCalendarQueryOptions().queryKey });
+            await queryClient.invalidateQueries({ queryKey: notificationsQueryOptions().queryKey });
+            setDialogOpen(false);
+            clearSelectedBookingSearch();
+        },
+    });
+
+    const cancelBookingMutation = useMutation({
+        mutationFn: cancelBooking,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: bookingCalendarQueryOptions().queryKey });
+            await queryClient.invalidateQueries({ queryKey: notificationsQueryOptions().queryKey });
+            setDialogOpen(false);
+            clearSelectedBookingSearch();
+        },
+    });
+
+    const updateBookingMutation = useMutation({
+        mutationFn: updateBooking,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: bookingCalendarQueryOptions().queryKey });
+            await queryClient.invalidateQueries({ queryKey: notificationsQueryOptions().queryKey });
+            setDialogOpen(false);
+            clearSelectedBookingSearch();
+        },
+    });
+
+    const accentByRoomId: Record<string, RoomAccent> = {};
+    data.rooms.forEach((room, index) => {
+        accentByRoomId[room.id] = getAccent(index);
+    });
+
+    const allEquipment = sortStrings(Array.from(new Set(data.rooms.flatMap((room) => room.equipment))));
+    const allLocations = sortStrings(Array.from(new Set(data.rooms.map((room) => room.location))));
+    const filteredRooms = data.rooms.filter((room) => {
+        if (capacity > 0 && room.capacity < capacity) return false;
+        if (equipment.length > 0 && !equipment.every((item) => room.equipment.includes(item))) return false;
+        if (location.length > 0 && !location.includes(room.location)) return false;
         return true;
     });
 
@@ -213,21 +254,20 @@ function BookingsPage() {
             location: room.location,
             capacity: room.capacity,
             equipment: room.equipment,
-            accent: ROOM_ACCENTS[room.id],
+            accent: accentByRoomId[room.id],
         },
     }));
 
+    const events = data.events.map<EventInput>(getBookingEventInput);
+
     const visibleEvents =
-        view === "day" ? events : events.filter((e) => filteredRooms.some((r) => r.id === String(e.resourceId)));
-
-    const hasActiveFilters = capacityFilter > 0 || equipmentFilter.length > 0 || locationFilter.length > 0;
-    const activeFilterCount =
-        (capacityFilter > 0 ? 1 : 0) + (equipmentFilter.length > 0 ? 1 : 0) + (locationFilter.length > 0 ? 1 : 0);
-
+        view === "day" ? events : events.filter((event) => filteredRooms.some((room) => room.id === event.resourceId));
+    const hasActiveFilters = capacity > 0 || equipment.length > 0 || location.length > 0;
+    const activeFilterCount = (capacity > 0 ? 1 : 0) + (equipment.length > 0 ? 1 : 0) + (location.length > 0 ? 1 : 0);
     const now = new Date();
-    const liveBookings = events.filter((e) => {
-        const start = typeof e.start === "string" ? new Date(e.start) : (e.start as Date | undefined);
-        const end = typeof e.end === "string" ? new Date(e.end) : (e.end as Date | undefined);
+    const liveBookings = events.filter((event) => {
+        const start = typeof event.start === "string" ? new Date(event.start) : (event.start as Date | undefined);
+        const end = typeof event.end === "string" ? new Date(event.end) : (event.end as Date | undefined);
         return !!start && !!end && start <= now && now < end;
     }).length;
 
@@ -238,14 +278,17 @@ function BookingsPage() {
         setView(next);
         calendarRef.current?.getApi().changeView(VIEW_MAP[next]);
     };
-
-    const handleDatesSet = useCallback((arg: DatesSetArg) => {
+    const handleDatesSet = (arg: DatesSetArg) => {
         setCurrentDate(arg.view.currentStart);
         const today = new Date();
         setViewContainsToday(arg.view.activeStart <= today && today < arg.view.activeEnd);
-    }, []);
+    };
+    const handleSelect = (info: DateSelectArg) => {
+        if (info.start.getTime() <= Date.now()) {
+            return;
+        }
 
-    const handleSelect = useCallback((info: DateSelectArg) => {
+        clearSelectedBookingSearch();
         setPrefill({
             roomId: info.resource?.id,
             start: info.start,
@@ -253,71 +296,115 @@ function BookingsPage() {
         });
         setSelectedEvent(null);
         setDialogMode("create");
+        createBookingMutation.reset();
+        updateBookingMutation.reset();
+        cancelBookingMutation.reset();
         setDialogOpen(true);
-    }, []);
-
-    const handleEventClick = useCallback((info: EventClickArg) => {
-        const ev = info.event;
-        setSelectedEvent({
-            id: ev.id,
-            title: ev.title,
-            resourceId: ev.getResources()[0]?.id ?? String(ev.extendedProps?.resourceId ?? ""),
-            start: ev.start?.toISOString(),
-            end: ev.end?.toISOString(),
-            extendedProps: ev.extendedProps,
-        });
-        setDialogMode("view");
-        setDialogOpen(true);
-    }, []);
-
-    const handleCreateBooking = useCallback((data: BookingFormData) => {
-        const newEvent: EventInput = {
-            id: `e${Date.now()}`,
-            resourceId: data.roomId,
-            title: data.title,
-            start: data.start.toISOString(),
-            end: data.end.toISOString(),
-            extendedProps: {
-                organizer: "You",
-                attendees: data.attendees,
-                description: data.description,
-            },
-        };
-        setEvents((prev) => [...prev, newEvent]);
-        setDialogOpen(false);
-    }, []);
-
-    const toggleEquipment = (eq: string) =>
-        setEquipmentFilter((prev) => (prev.includes(eq) ? prev.filter((e) => e !== eq) : [...prev, eq]));
-    const toggleLocation = (loc: string) =>
-        setLocationFilter((prev) => (prev.includes(loc) ? prev.filter((l) => l !== loc) : [...prev, loc]));
-    const clearFilters = () => {
-        setCapacityFilter(0);
-        setEquipmentFilter([]);
-        setLocationFilter([]);
     };
+    const handleEventClick = (info: EventClickArg) => {
+        if (isPastCalendarEvent(info.event.toPlainObject())) {
+            info.jsEvent.preventDefault();
+            info.jsEvent.stopPropagation();
+            return;
+        }
 
-    const dateLabel = computeTitle(view, currentDate);
+        navigate({
+            search: (prev) => ({ ...prev, bookingId: info.event.id }),
+        });
+    };
+    const handleCreateBooking = (formData: BookingFormData) => {
+        createBookingMutation.mutate({
+            data: {
+                title: formData.title,
+                roomId: formData.roomId,
+                startTime: formData.start.toISOString(),
+                endTime: formData.end.toISOString(),
+                attendeeIds: formData.attendeeIds,
+                description: formData.description,
+            },
+        });
+    };
+    const handleCancelBooking = (nextBookingId: string, cancelReason: string) => {
+        cancelBookingMutation.mutate({ data: { bookingId: nextBookingId, cancelReason } });
+    };
+    const handleUpdateBooking = (nextBookingId: string, formData: BookingFormData) => {
+        updateBookingMutation.mutate({
+            data: {
+                bookingId: nextBookingId,
+                title: formData.title,
+                roomId: formData.roomId,
+                startTime: formData.start.toISOString(),
+                endTime: formData.end.toISOString(),
+                attendeeIds: formData.attendeeIds,
+                description: formData.description,
+            },
+        });
+    };
+    const updateFilters = (next: Partial<typeof bookingSearchDefaults>) => {
+        navigate({
+            search: (prev) => ({ ...prev, ...next }),
+            replace: true,
+        });
+    };
     const openNewBooking = () => {
+        clearSelectedBookingSearch();
         setPrefill({});
         setSelectedEvent(null);
         setDialogMode("create");
+        createBookingMutation.reset();
+        updateBookingMutation.reset();
+        cancelBookingMutation.reset();
         setDialogOpen(true);
     };
+    const handleDialogOpenChange = (open: boolean) => {
+        setDialogOpen(open);
+        if (!open) clearSelectedBookingSearch();
+    };
+
+    useEffect(() => {
+        if (!bookingId) return;
+
+        const booking = data.events.find((event) => event.id === bookingId);
+        if (!booking) return;
+
+        if (new Date(booking.end).getTime() <= Date.now()) {
+            clearSelectedBookingSearch();
+            return;
+        }
+
+        calendarRef.current?.getApi().gotoDate(new Date(booking.start));
+        setSelectedEvent(getBookingEventInput(booking));
+        setDialogMode("view");
+        createBookingMutation.reset();
+        updateBookingMutation.reset();
+        cancelBookingMutation.reset();
+        setDialogOpen(true);
+    }, [bookingId, data.events]);
+
+    const dateLabel = computeTitle(view, currentDate);
+    const todayButtonLabel = viewContainsToday ? `Today · ${formatTodayButtonDate(now)}` : dateLabel;
+    const mutationError = createBookingMutation.error;
+    const errorMessage = mutationError instanceof Error ? mutationError.message : null;
+    const updateMutationError = updateBookingMutation.error;
+    const updateErrorMessage = updateMutationError instanceof Error ? updateMutationError.message : null;
+    const cancelMutationError = cancelBookingMutation.error;
+    const cancelErrorMessage = cancelMutationError instanceof Error ? cancelMutationError.message : null;
+    const selectedBooking = data.events.find((event) => event.id === selectedEvent?.id);
+    const canManageSelectedEvent = dialogMode === "view" && selectedBooking?.canManage === true;
 
     return (
-        <div className="space-y-10">
-            {/* ════════════════════════════════════════════
-			    HEADER — editorial masthead
-			════════════════════════════════════════════ */}
-            <header className="relative" style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="space-y-6">
+            <header
+                className="relative border-b border-[var(--hairline)] pb-5"
+                style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
+            >
+                <div className="grid gap-5 xl:grid-cols-[minmax(240px,0.9fr)_minmax(460px,1.35fr)_auto] xl:items-center">
                     <div>
                         <p className="eyebrow eyebrow-gold">Concierge &middot; Today</p>
-                        <h1 className="mt-3 display-italic text-[clamp(2.4rem,4vw,3.5rem)] leading-[1] tracking-[-0.02em] text-[var(--bone)]">
+                        <h1 className="mt-2 display-italic text-[clamp(2rem,3vw,2.8rem)] leading-[1] tracking-[-0.02em] text-[var(--bone)]">
                             Room Bookings
                         </h1>
-                        <p className="mt-3 max-w-[52ch] text-[0.88rem] leading-relaxed text-[var(--bone-muted)]">
+                        <p className="mt-2 max-w-[52ch] text-[0.82rem] leading-relaxed text-[var(--bone-muted)]">
                             {dateLabel}
                             {viewContainsToday && (
                                 <span className="ml-3 inline-flex items-center gap-2 align-middle">
@@ -333,11 +420,20 @@ function BookingsPage() {
                         </p>
                     </div>
 
-                    {/* Primary CTA — inverted bone button */}
+                    <div className="grid grid-cols-3 items-stretch divide-x divide-[var(--hairline)] border-y border-[var(--hairline)] py-2 xl:border-y-0 xl:py-0">
+                        <EditorialStat label="Bookings" value={events.length} />
+                        <EditorialStat label="Rooms Shown" value={`${filteredRooms.length}/${data.rooms.length}`} />
+                        <EditorialStat
+                            label="In Session"
+                            value={liveBookings}
+                            accent={liveBookings > 0 ? "signal" : undefined}
+                        />
+                    </div>
+
                     <button
                         type="button"
                         onClick={openNewBooking}
-                        className="group relative flex h-11 cursor-pointer items-center justify-center gap-3 self-start border border-[var(--bone)] bg-[var(--bone)] px-6 text-[0.68rem] font-semibold tracking-[0.3em] uppercase text-black transition-all duration-300 hover:bg-white hover:border-white hover:tracking-[0.34em]"
+                        className="group relative flex h-11 cursor-pointer items-center justify-center gap-3 self-start border border-[var(--bone)] bg-[var(--bone)] px-6 text-[0.68rem] font-semibold tracking-[0.3em] uppercase text-black transition-all duration-300 hover:border-white hover:bg-white hover:tracking-[0.34em] xl:self-center"
                     >
                         <Plus
                             className="size-4 transition-transform duration-300 group-hover:rotate-90"
@@ -346,30 +442,12 @@ function BookingsPage() {
                         <span>New Booking</span>
                     </button>
                 </div>
-
-                {/* Hairline rule */}
-                <div aria-hidden className="mt-8 h-px w-full bg-[var(--hairline)]" />
-
-                {/* Stats strip — editorial figures separated by hairline dividers */}
-                <div className="mt-6 grid grid-cols-3 items-stretch divide-x divide-[var(--hairline)]">
-                    <EditorialStat label="Bookings Today" value={events.length} />
-                    <EditorialStat label="Rooms Shown" value={`${filteredRooms.length}/${MOCK_ROOMS.length}`} />
-                    <EditorialStat
-                        label="In Session"
-                        value={liveBookings}
-                        accent={liveBookings > 0 ? "signal" : undefined}
-                    />
-                </div>
             </header>
 
-            {/* ════════════════════════════════════════════
-			    TOOLBAR — editorial tab strip + date nav
-			════════════════════════════════════════════ */}
             <div
                 className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between"
                 style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 200ms both" }}
             >
-                {/* Date nav */}
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-1">
                         <button
@@ -392,42 +470,41 @@ function BookingsPage() {
                     <button
                         type="button"
                         onClick={goToday}
+                        aria-label="Go to today"
+                        title="Go to today"
                         className={`text-[0.66rem] font-semibold tracking-[0.28em] uppercase transition-colors ${
                             viewContainsToday
                                 ? "text-[var(--gold)]"
                                 : "cursor-pointer text-[var(--bone-dim)] hover:text-[var(--bone)]"
                         }`}
                     >
-                        Today
+                        {todayButtonLabel}
                     </button>
                 </div>
 
-                {/* Right: View switcher + Filters */}
                 <div className="flex items-center gap-8">
-                    {/* View strip */}
                     <div className="flex items-stretch divide-x divide-[var(--hairline)]">
-                        {(["day", "week", "month", "year"] as const).map((v) => (
+                        {(["day", "week", "month", "year"] as const).map((viewKey) => (
                             <button
-                                key={v}
+                                key={viewKey}
                                 type="button"
-                                onClick={() => changeView(v)}
+                                onClick={() => changeView(viewKey)}
                                 className={`relative px-4 py-1 text-[0.66rem] font-semibold tracking-[0.28em] uppercase transition-colors ${
-                                    view === v
+                                    view === viewKey
                                         ? "text-[var(--bone)]"
                                         : "cursor-pointer text-[var(--bone-dim)] hover:text-[var(--bone-muted)]"
                                 }`}
                             >
-                                {v}
+                                {viewKey}
                                 <span
-                                    className={`pointer-events-none absolute bottom-0 left-2 right-2 h-px transition-all duration-300 ${
-                                        view === v ? "bg-[var(--gold)]" : "bg-transparent"
+                                    className={`pointer-events-none absolute right-2 bottom-0 left-2 h-px transition-all duration-300 ${
+                                        view === viewKey ? "bg-[var(--gold)]" : "bg-transparent"
                                     }`}
                                 />
                             </button>
                         ))}
                     </div>
 
-                    {/* Filter button */}
                     <button
                         type="button"
                         onClick={() => setShowFilters(true)}
@@ -447,9 +524,6 @@ function BookingsPage() {
                 </div>
             </div>
 
-            {/* ════════════════════════════════════════════
-			    ROOM LEGEND — hairline chips with jewel stripes
-			════════════════════════════════════════════ */}
             <div
                 className="flex flex-wrap items-center gap-3"
                 style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 300ms both" }}
@@ -459,32 +533,32 @@ function BookingsPage() {
                 </span>
                 <div aria-hidden className="h-3 w-px bg-[var(--hairline)]" />
                 {filteredRooms.map((room) => {
-                    const a = ROOM_ACCENTS[room.id];
+                    const accent = accentByRoomId[room.id];
                     return (
-                        <div
+                        <Link
                             key={room.id}
-                            className="group relative flex items-center gap-3 border border-[var(--hairline)] bg-[var(--surface-01)] px-3 py-1.5 transition-colors hover:border-[var(--hairline-strong)]"
+                            to="/rooms/$roomId"
+                            params={{ roomId: room.id }}
+                            className="group relative flex items-center gap-3 border border-[var(--hairline)] bg-[var(--surface-01)] px-3 py-1.5 no-underline transition-colors hover:border-[var(--hairline-strong)]"
                         >
-                            {/* Inset left stripe */}
-                            <span
-                                aria-hidden
-                                className="absolute left-0 top-0 bottom-0 w-[2px]"
-                                style={{ background: a.stripe }}
-                            />
+                            {accent && (
+                                <span
+                                    aria-hidden
+                                    className="absolute top-0 bottom-0 left-0 w-[2px]"
+                                    style={{ background: accent.stripe }}
+                                />
+                            )}
                             <div className="ml-1 flex items-baseline gap-2">
                                 <span className="text-[0.76rem] font-medium text-[var(--bone)]">{room.title}</span>
                                 <span className="tabular-num text-[0.62rem] text-[var(--bone-dim)]">
                                     {room.capacity}p &middot; {room.location}
                                 </span>
                             </div>
-                        </div>
+                        </Link>
                     );
                 })}
             </div>
 
-            {/* ════════════════════════════════════════════
-			    CALENDAR — hairline frame, no rounded card
-			════════════════════════════════════════════ */}
             <div
                 className="fc-dark-theme border-y border-[var(--hairline)] py-2"
                 style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
@@ -505,12 +579,13 @@ function BookingsPage() {
                     height="auto"
                     firstDay={1}
                     slotMinTime="07:00:00"
-                    slotMaxTime="22:00:00"
+                    slotMaxTime="24:00:00"
                     slotDuration="00:30:00"
                     slotLabelInterval="01:00:00"
                     allDaySlot={false}
                     selectable
                     selectMirror
+                    selectAllow={(info) => info.start.getTime() > Date.now()}
                     editable={false}
                     nowIndicator
                     expandRows
@@ -530,7 +605,11 @@ function BookingsPage() {
                     resourceLabelContent={(arg) => {
                         const accent = (arg.resource.extendedProps as { accent?: RoomAccent }).accent;
                         return (
-                            <div className="flex items-center gap-3 py-2">
+                            <Link
+                                to="/rooms/$roomId"
+                                params={{ roomId: arg.resource.id }}
+                                className="flex items-center gap-3 py-2 no-underline"
+                            >
                                 {accent && (
                                     <span
                                         aria-hidden
@@ -547,7 +626,7 @@ function BookingsPage() {
                                         {arg.resource.extendedProps.capacity}p
                                     </span>
                                 </div>
-                            </div>
+                            </Link>
                         );
                     }}
                     eventContent={(arg) => (
@@ -560,14 +639,22 @@ function BookingsPage() {
                             </span>
                         </div>
                     )}
+                    eventClassNames={(info) =>
+                        isPastCalendarEvent(info.event.toPlainObject()) ? ["booking-event-past"] : []
+                    }
                     eventDidMount={(info) => {
                         const resourceId =
                             info.event.getResources()[0]?.id ?? String(info.event.extendedProps?.resourceId ?? "");
-                        const accent = ROOM_ACCENTS[resourceId];
-                        if (!accent) return;
-                        info.el.style.setProperty("--accent-stripe", accent.stripe);
-                        info.el.style.setProperty("--accent-wash", accent.wash);
-                        info.el.style.setProperty("--accent-wash-hover", accent.washHover);
+                        const accent = accentByRoomId[resourceId];
+                        if (accent) {
+                            info.el.style.setProperty("--accent-stripe", accent.stripe);
+                            info.el.style.setProperty("--accent-wash", accent.wash);
+                            info.el.style.setProperty("--accent-wash-hover", accent.washHover);
+                        }
+                        if (isPastCalendarEvent(info.event.toPlainObject())) {
+                            info.el.setAttribute("aria-disabled", "true");
+                            info.el.setAttribute("title", "Past booking");
+                        }
                     }}
                     datesSet={handleDatesSet}
                     select={handleSelect}
@@ -575,133 +662,186 @@ function BookingsPage() {
                 />
             </div>
 
-            {/* Filter Drawer */}
             <FilterDrawer
                 open={showFilters}
                 onClose={() => setShowFilters(false)}
-                capacityFilter={capacityFilter}
-                equipmentFilter={equipmentFilter}
-                locationFilter={locationFilter}
-                setCapacityFilter={setCapacityFilter}
-                toggleEquipment={toggleEquipment}
-                toggleLocation={toggleLocation}
-                clearFilters={clearFilters}
-                hasActiveFilters={hasActiveFilters}
-                roomsShown={filteredRooms.length}
-                totalRooms={MOCK_ROOMS.length}
+                capacityFilter={capacity}
+                equipmentFilter={equipment}
+                locationFilter={location}
+                onApplyFilters={updateFilters}
+                rooms={data.rooms}
+                totalRooms={data.rooms.length}
+                allEquipment={allEquipment}
+                allLocations={allLocations}
             />
 
-            {/* Booking Dialog */}
             <BookingDialog
                 open={dialogOpen}
-                onOpenChange={setDialogOpen}
+                onOpenChange={handleDialogOpenChange}
                 mode={dialogMode}
-                rooms={MOCK_ROOMS}
+                rooms={data.rooms}
+                users={data.users}
+                currentUserId={data.currentUserId}
                 event={selectedEvent}
                 prefill={prefill}
                 onSubmit={handleCreateBooking}
+                isSubmitting={createBookingMutation.isPending}
+                error={dialogMode === "create" ? errorMessage : null}
+                canManage={canManageSelectedEvent}
+                onUpdateBooking={handleUpdateBooking}
+                isUpdating={updateBookingMutation.isPending}
+                updateError={updateErrorMessage}
+                onCancelBooking={handleCancelBooking}
+                isCancelling={cancelBookingMutation.isPending}
+                cancelError={cancelErrorMessage}
             />
         </div>
     );
 }
 
-// ════════════════════════════════════════════
-// SUB-COMPONENTS
-// ════════════════════════════════════════════
-
-function EditorialStat({ label, value, accent }: { label: string; value: number | string; accent?: "signal" }) {
-    return (
-        <div className="flex flex-col gap-2 py-2 pl-0 pr-4 first:pl-0 sm:pl-5 sm:first:pl-0">
-            <span className="eyebrow">{label}</span>
-            <div className="flex items-baseline gap-2">
+const EditorialStat = ({ label, value, accent }: { label: string; value: number | string; accent?: "signal" }) => (
+    <div className="flex flex-col gap-1.5 py-1 pr-4 pl-0 first:pl-0 sm:pl-5 sm:first:pl-0">
+        <span className="eyebrow">{label}</span>
+        <div className="flex items-baseline gap-2">
+            <span
+                className={`tabular-num text-[1.55rem] leading-none font-normal ${
+                    accent === "signal" ? "text-[var(--signal)]" : "text-[var(--bone)]"
+                }`}
+            >
+                {value}
+            </span>
+            {accent === "signal" && (
                 <span
-                    className={`tabular-num text-[1.9rem] leading-none font-normal ${
-                        accent === "signal" ? "text-[var(--signal)]" : "text-[var(--bone)]"
-                    }`}
-                >
-                    {value}
-                </span>
-                {accent === "signal" && (
-                    <span
-                        className="size-1.5 rounded-full bg-[var(--signal)]"
-                        style={{ animation: "signal-pulse 2.4s ease-in-out infinite" }}
-                    />
-                )}
-            </div>
+                    className="size-1.5 rounded-full bg-[var(--signal)]"
+                    style={{ animation: "signal-pulse 2.4s ease-in-out infinite" }}
+                />
+            )}
         </div>
-    );
-}
+    </div>
+);
 
-function FilterGroup({ label, children }: { label: string; children: React.ReactNode }) {
-    return (
-        <div className="border-t border-[var(--hairline)] pt-6 first:border-t-0 first:pt-0">
-            <p className="eyebrow mb-4">{label}</p>
-            <div className="flex flex-wrap gap-2">{children}</div>
-        </div>
-    );
-}
+const FilterGroup = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div className="border-t border-[var(--hairline)] pt-6 first:border-t-0 first:pt-0">
+        <p className="eyebrow mb-4">{label}</p>
+        <div className="flex flex-wrap gap-2">{children}</div>
+    </div>
+);
 
-function Chip({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`cursor-pointer border px-3 py-1.5 text-[0.72rem] font-medium transition-all ${
-                active
-                    ? "border-[var(--bone)] bg-[var(--bone)] text-black"
-                    : "border-[var(--hairline)] text-[var(--bone-muted)] hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
-            }`}
-        >
-            {children}
-        </button>
-    );
-}
+const Chip = ({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) => (
+    <button
+        type="button"
+        onClick={onClick}
+        className={`cursor-pointer border px-3 py-1.5 text-[0.72rem] font-medium transition-all ${
+            active
+                ? "border-[var(--bone)] bg-[var(--bone)] text-black"
+                : "border-[var(--hairline)] text-[var(--bone-muted)] hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
+        }`}
+    >
+        {children}
+    </button>
+);
 
-function FilterDrawer({
+const FilterDrawer = ({
     open,
     onClose,
     capacityFilter,
     equipmentFilter,
     locationFilter,
-    setCapacityFilter,
-    toggleEquipment,
-    toggleLocation,
-    clearFilters,
-    hasActiveFilters,
-    roomsShown,
+    onApplyFilters,
+    rooms,
     totalRooms,
+    allEquipment,
+    allLocations,
 }: {
     open: boolean;
     onClose: () => void;
     capacityFilter: number;
     equipmentFilter: string[];
     locationFilter: string[];
-    setCapacityFilter: (n: number) => void;
-    toggleEquipment: (eq: string) => void;
-    toggleLocation: (loc: string) => void;
-    clearFilters: () => void;
-    hasActiveFilters: boolean;
-    roomsShown: number;
+    onApplyFilters: (next: Partial<typeof bookingSearchDefaults>) => void;
+    rooms: FilterableRoom[];
     totalRooms: number;
-}) {
-    if (!open) return null;
+    allEquipment: string[];
+    allLocations: string[];
+}) => {
+    const [draftCapacity, setDraftCapacity] = useState(capacityFilter);
+    const [draftEquipment, setDraftEquipment] = useState(equipmentFilter);
+    const [draftLocation, setDraftLocation] = useState(locationFilter);
+
+    useEffect(() => {
+        if (!open) return;
+        setDraftCapacity(capacityFilter);
+        setDraftEquipment(equipmentFilter);
+        setDraftLocation(locationFilter);
+    }, [capacityFilter, equipmentFilter, locationFilter, open]);
+
+    useEffect(() => {
+        if (!open) return;
+
+        const scrollY = window.scrollY;
+        const previousBodyPosition = document.body.style.position;
+        const previousBodyTop = document.body.style.top;
+        const previousBodyWidth = document.body.style.width;
+        const previousHtmlOverflow = document.documentElement.style.overflow;
+
+        document.documentElement.style.overflow = "hidden";
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.width = "100%";
+
+        return () => {
+            document.documentElement.style.overflow = previousHtmlOverflow;
+            document.body.style.position = previousBodyPosition;
+            document.body.style.top = previousBodyTop;
+            document.body.style.width = previousBodyWidth;
+            window.scrollTo(0, scrollY);
+        };
+    }, [open]);
+
+    const draftRoomsShown = rooms.filter((room) => {
+        if (draftCapacity > 0 && room.capacity < draftCapacity) return false;
+        if (draftEquipment.length > 0 && !draftEquipment.every((item) => room.equipment.includes(item))) return false;
+        if (draftLocation.length > 0 && !draftLocation.includes(room.location)) return false;
+        return true;
+    }).length;
+    const hasDraftFilters = draftCapacity > 0 || draftEquipment.length > 0 || draftLocation.length > 0;
+    const toggleDraftEquipment = (item: string) => {
+        setDraftEquipment((prev) => (prev.includes(item) ? prev.filter((value) => value !== item) : [...prev, item]));
+    };
+    const toggleDraftLocation = (item: string) => {
+        setDraftLocation((prev) => (prev.includes(item) ? prev.filter((value) => value !== item) : [...prev, item]));
+    };
+    const clearDraftFilters = () => {
+        setDraftCapacity(bookingSearchDefaults.capacity);
+        setDraftEquipment(bookingSearchDefaults.equipment);
+        setDraftLocation(bookingSearchDefaults.location);
+    };
+    const applyDraftFilters = () => {
+        onApplyFilters({
+            capacity: draftCapacity,
+            equipment: draftEquipment,
+            location: draftLocation,
+        });
+        onClose();
+    };
+
     return (
         <>
-            {/* Backdrop */}
             <button
                 type="button"
                 onClick={onClose}
                 aria-label="Close filters"
-                className="fixed inset-0 z-[60] cursor-default bg-black/80 backdrop-blur-[2px]"
-                style={{ animation: "fade-in 200ms ease both" }}
+                className={`fixed inset-0 z-[60] cursor-default bg-black/80 backdrop-blur-[2px] transition-opacity duration-200 ${
+                    open ? "opacity-100" : "pointer-events-none opacity-0"
+                }`}
             />
 
-            {/* Drawer */}
             <aside
-                className="fixed top-0 right-0 z-[70] flex h-dvh w-full max-w-[400px] flex-col border-l border-[var(--hairline)] bg-[var(--surface-01)]"
-                style={{ animation: "slide-in-right 350ms cubic-bezier(0.16,1,0.3,1) both" }}
+                aria-hidden={!open}
+                className={`fixed top-0 right-0 z-[70] flex h-dvh w-full max-w-[400px] flex-col border-l border-[var(--hairline)] bg-[var(--surface-01)] transition-transform duration-[350ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                    open ? "translate-x-0" : "pointer-events-none translate-x-full"
+                }`}
             >
-                {/* Header */}
                 <div className="flex items-start justify-between border-b border-[var(--hairline)] px-8 py-7">
                     <div>
                         <p className="eyebrow eyebrow-gold">Refine</p>
@@ -717,61 +857,67 @@ function FilterDrawer({
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="flex-1 overflow-y-auto px-8 py-8">
                     <div className="space-y-6">
                         <FilterGroup label="Minimum Capacity">
                             {[0, 4, 6, 8, 12, 20].map((n) => (
-                                <Chip key={n} active={capacityFilter === n} onClick={() => setCapacityFilter(n)}>
+                                <Chip key={n} active={draftCapacity === n} onClick={() => setDraftCapacity(n)}>
                                     {n === 0 ? "Any" : `${n}+`}
                                 </Chip>
                             ))}
                         </FilterGroup>
 
                         <FilterGroup label="Equipment">
-                            {ALL_EQUIPMENT.map((eq) => (
-                                <Chip
-                                    key={eq}
-                                    active={equipmentFilter.includes(eq)}
-                                    onClick={() => toggleEquipment(eq)}
-                                >
-                                    {eq}
-                                </Chip>
-                            ))}
+                            {allEquipment.length === 0 ? (
+                                <p className="text-[0.72rem] text-[var(--bone-dim)]">No equipment assigned yet.</p>
+                            ) : (
+                                allEquipment.map((item) => (
+                                    <Chip
+                                        key={item}
+                                        active={draftEquipment.includes(item)}
+                                        onClick={() => toggleDraftEquipment(item)}
+                                    >
+                                        {item}
+                                    </Chip>
+                                ))
+                            )}
                         </FilterGroup>
 
                         <FilterGroup label="Location">
-                            {ALL_LOCATIONS.map((loc) => (
-                                <Chip
-                                    key={loc}
-                                    active={locationFilter.includes(loc)}
-                                    onClick={() => toggleLocation(loc)}
-                                >
-                                    {loc}
-                                </Chip>
-                            ))}
+                            {allLocations.length === 0 ? (
+                                <p className="text-[0.72rem] text-[var(--bone-dim)]">No locations available yet.</p>
+                            ) : (
+                                allLocations.map((item) => (
+                                    <Chip
+                                        key={item}
+                                        active={draftLocation.includes(item)}
+                                        onClick={() => toggleDraftLocation(item)}
+                                    >
+                                        {item}
+                                    </Chip>
+                                ))
+                            )}
                         </FilterGroup>
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="flex items-center gap-3 border-t border-[var(--hairline)] px-8 py-5">
                     <button
                         type="button"
-                        onClick={clearFilters}
-                        disabled={!hasActiveFilters}
+                        onClick={clearDraftFilters}
+                        disabled={!hasDraftFilters}
                         className="cursor-pointer px-3 py-2 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-[var(--bone-dim)] transition-colors hover:text-[var(--bone)] disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:text-[var(--bone-dim)]"
                     >
                         Reset
                     </button>
                     <button
                         type="button"
-                        onClick={onClose}
+                        onClick={applyDraftFilters}
                         className="group flex flex-1 cursor-pointer items-center justify-center gap-2 border border-[var(--bone)] bg-[var(--bone)] py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-black transition-all hover:bg-white hover:tracking-[0.32em]"
                     >
                         <span>Show</span>
                         <span className="tabular-num tracking-normal">
-                            {roomsShown} / {totalRooms}
+                            {draftRoomsShown} / {totalRooms}
                         </span>
                         <span>rooms</span>
                     </button>
@@ -779,4 +925,4 @@ function FilterDrawer({
             </aside>
         </>
     );
-}
+};

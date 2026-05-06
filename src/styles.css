@@ -694,6 +694,18 @@ a {
     border-left-color: var(--accent-stripe, var(--gold));
 }
 
+.fc-dark-theme .fc-event.booking-event-past {
+    cursor: not-allowed;
+    opacity: 0.54;
+}
+
+.fc-dark-theme .fc-timegrid-event.booking-event-past:hover,
+.fc-dark-theme .fc-daygrid-event.booking-event-past:hover {
+    background: var(--accent-wash, rgba(255, 255, 255, 0.04));
+    border-color: transparent;
+    border-left-color: var(--accent-stripe, var(--gold));
+}
+
 .fc-dark-theme .fc-timegrid-event .fc-event-main {
     padding: 0;
     color: var(--bone);
