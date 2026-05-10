@@ -2,8 +2,10 @@ type BookingHistoryUser = {
     id: string;
     name: string;
     email: string;
+    status?: AttendeeStatus;
 };
 
+type AttendeeStatus = "pending" | "accepted" | "declined";
 type BookingHistoryStatus = "upcoming" | "in-progress" | "completed" | "cancelled";
 
 type BookingHistoryBooking = {
@@ -38,6 +40,7 @@ export const getBookingHistoryItem = ({
     organizer,
     cancelledBy,
     attendees,
+    currentUserId,
     now = new Date(),
 }: {
     booking: BookingHistoryBooking;
@@ -48,19 +51,27 @@ export const getBookingHistoryItem = ({
     organizer: BookingHistoryUser;
     cancelledBy: BookingHistoryUser | null;
     attendees: BookingHistoryUser[];
+    currentUserId?: string;
     now?: Date;
-}) => ({
-    id: booking.id,
-    roomId: booking.roomId,
-    title: booking.title,
-    description: booking.description ?? "",
-    start: new Date(booking.startTime).toISOString(),
-    end: new Date(booking.endTime).toISOString(),
-    status: getHistoryStatus(booking, now),
-    cancelledAt: toIsoOrNull(booking.cancelledAt),
-    cancelReason: booking.cancelReason ?? "",
-    room,
-    organizer,
-    cancelledBy,
-    attendees,
-});
+}) => {
+    const currentUserAttendee = currentUserId
+        ? (attendees.find((attendee) => attendee.id === currentUserId) ?? null)
+        : null;
+
+    return {
+        id: booking.id,
+        roomId: booking.roomId,
+        title: booking.title,
+        description: booking.description ?? "",
+        start: new Date(booking.startTime).toISOString(),
+        end: new Date(booking.endTime).toISOString(),
+        status: getHistoryStatus(booking, now),
+        cancelledAt: toIsoOrNull(booking.cancelledAt),
+        cancelReason: booking.cancelReason ?? "",
+        room,
+        organizer,
+        cancelledBy,
+        attendees,
+        currentUserAttendance: currentUserAttendee ? { status: currentUserAttendee.status ?? "pending" } : null,
+    };
+};

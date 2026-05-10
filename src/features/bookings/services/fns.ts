@@ -22,7 +22,7 @@ type BookingUser = {
     id: string;
     name: string;
     email: string;
-    accepted: boolean;
+    status: "pending" | "accepted" | "declined";
 };
 
 const toIso = (value: Date | string) => new Date(value).toISOString();
@@ -41,7 +41,7 @@ const getAttendeesByBooking = async (bookingIds: string[]) => {
                           id: user.id,
                           name: user.name,
                           email: user.email,
-                          accepted: attendees.accepted,
+                          status: attendees.status,
                       },
                   })
                   .from(attendees)
@@ -250,6 +250,7 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" }).handle
 
     return {
         currentUserId: session.user.id,
+        currentUserRole: session.user.role,
         rooms: Array.from(groupedRooms.values()).map((room) => ({
             id: room.roomId,
             title: room.name,
@@ -286,6 +287,7 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" }).handle
                 organizer: row.organizer,
                 cancelledBy: row.booking.cancelledBy ? (cancelledByUser.get(row.booking.cancelledBy) ?? null) : null,
                 attendees: historyAttendeesByBooking.get(row.booking.bookingId) ?? [],
+                currentUserId: session.user.id,
             }),
         ),
         users,
@@ -332,7 +334,7 @@ export const getBookingDetailsFn = createServerFn({ method: "GET" })
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                accepted: attendees.accepted,
+                status: attendees.status,
             })
             .from(attendees)
             .innerJoin(user, eq(user.id, attendees.userId))
@@ -388,22 +390,19 @@ export const getBookingDetailsFn = createServerFn({ method: "GET" })
             attendees: attendeeRows,
             currentUserAttendance: currentUserAttendee
                 ? {
-                      accepted: currentUserAttendee.accepted,
+                      status: currentUserAttendee.status,
                   }
                 : null,
             isOrganizer,
-            canAccept:
-                !!currentUserAttendee &&
-                !currentUserAttendee.accepted &&
-                bookingRow.booking.status === "active" &&
-                isFutureBooking,
+            canRespond: !!currentUserAttendee && bookingRow.booking.status === "active" && isFutureBooking,
         };
     });
 
-export const acceptBookingInviteFn = createServerFn({ method: "POST" })
+export const rsvpBookingInviteFn = createServerFn({ method: "POST" })
     .inputValidator(
         z.object({
             bookingId: z.string().uuid(),
+            status: z.enum(["accepted", "declined"]),
         }),
     )
     .handler(async ({ data }) => {
@@ -424,21 +423,21 @@ export const acceptBookingInviteFn = createServerFn({ method: "POST" })
         }
 
         if (booking.status === "cancelled") {
-            throw new Error("Cancelled bookings cannot be accepted");
+            throw new Error("Cancelled bookings cannot receive RSVP updates");
         }
 
         if (new Date(booking.endTime).getTime() <= Date.now()) {
-            throw new Error("Past bookings cannot be accepted");
+            throw new Error("Past bookings cannot receive RSVP updates");
         }
 
         const [updatedAttendee] = await db
             .update(attendees)
-            .set({ accepted: true })
+            .set({ status: data.status })
             .where(and(eq(attendees.bookingId, data.bookingId), eq(attendees.userId, session.user.id)))
             .returning({ bookingId: attendees.bookingId });
 
         if (!updatedAttendee) {
-            throw new Error("Only invited attendees can accept this booking");
+            throw new Error("Only invited attendees can RSVP to this booking");
         }
 
         await db

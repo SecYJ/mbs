@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import FullCalendar from "@fullcalendar/react";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
@@ -9,13 +9,14 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import multiMonthPlugin from "@fullcalendar/multimonth";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateSelectArg, DatesSetArg, EventClickArg, EventInput } from "@fullcalendar/core";
-import { ChevronLeft, ChevronRight, Plus, X } from "lucide-react";
+import { Building2, ChevronLeft, ChevronRight, FilterX, Plus, X } from "lucide-react";
 import { z } from "zod";
 
 import { BookingDialog, type BookingFormData } from "@/features/bookings/booking-dialog";
 import { cancelBookingFn, createBookingFn, updateBookingFn } from "@/features/bookings/services/fns";
 import { bookingCalendarQueryOptions, type BookingCalendarData } from "@/features/bookings/services/queries";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
+import { stripDefaultSearchParams } from "@/lib/router-search";
 
 type ViewKey = "day" | "week" | "month" | "year";
 type RoomAccent = {
@@ -56,7 +57,7 @@ const bookingSearchSchema = z.object({
 export const Route = createFileRoute("/_bookings/bookings")({
     validateSearch: bookingSearchSchema,
     search: {
-        middlewares: [stripSearchParams(bookingSearchDefaults)],
+        middlewares: [stripDefaultSearchParams(bookingSearchDefaults)],
     },
     loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(bookingCalendarQueryOptions()),
     component: BookingsPage,
@@ -264,6 +265,11 @@ function BookingsPage() {
         view === "day" ? events : events.filter((event) => filteredRooms.some((room) => room.id === event.resourceId));
     const hasActiveFilters = capacity > 0 || equipment.length > 0 || location.length > 0;
     const activeFilterCount = (capacity > 0 ? 1 : 0) + (equipment.length > 0 ? 1 : 0) + (location.length > 0 ? 1 : 0);
+    const hasRooms = data.rooms.length > 0;
+    const hasFilteredRooms = filteredRooms.length > 0;
+    const showNoRoomsState = !hasRooms;
+    const showFilterZeroState = hasRooms && !hasFilteredRooms;
+    const showCalendar = hasRooms && hasFilteredRooms;
     const now = new Date();
     const liveBookings = events.filter((event) => {
         const start = typeof event.start === "string" ? new Date(event.start) : (event.start as Date | undefined);
@@ -345,6 +351,9 @@ function BookingsPage() {
             search: (prev) => ({ ...prev, ...next }),
             replace: true,
         });
+    };
+    const resetFilters = () => {
+        updateFilters(bookingSearchDefaults);
     };
     const openNewBooking = () => {
         clearSelectedBookingSearch();
@@ -433,7 +442,12 @@ function BookingsPage() {
                     <button
                         type="button"
                         onClick={openNewBooking}
-                        className="group relative flex h-11 cursor-pointer items-center justify-center gap-3 self-start border border-[var(--bone)] bg-[var(--bone)] px-6 text-[0.68rem] font-semibold tracking-[0.3em] uppercase text-black transition-all duration-300 hover:border-white hover:bg-white hover:tracking-[0.34em] xl:self-center"
+                        disabled={!hasRooms}
+                        className={`group relative flex h-11 items-center justify-center gap-3 self-start border border-[var(--bone)] bg-[var(--bone)] px-6 text-[0.68rem] font-semibold tracking-[0.3em] uppercase text-black transition-all duration-300 xl:self-center ${
+                            hasRooms
+                                ? "cursor-pointer hover:border-white hover:bg-white hover:tracking-[0.34em]"
+                                : "cursor-not-allowed opacity-45"
+                        }`}
                     >
                         <Plus
                             className="size-4 transition-transform duration-300 group-hover:rotate-90"
@@ -524,143 +538,182 @@ function BookingsPage() {
                 </div>
             </div>
 
-            <div
-                className="flex flex-wrap items-center gap-3"
-                style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 300ms both" }}
-            >
-                <span className="eyebrow">
-                    {filteredRooms.length} room{filteredRooms.length !== 1 ? "s" : ""}
-                </span>
-                <div aria-hidden className="h-3 w-px bg-[var(--hairline)]" />
-                {filteredRooms.map((room) => {
-                    const accent = accentByRoomId[room.id];
-                    return (
-                        <Link
-                            key={room.id}
-                            to="/rooms/$roomId"
-                            params={{ roomId: room.id }}
-                            className="group relative flex items-center gap-3 border border-[var(--hairline)] bg-[var(--surface-01)] px-3 py-1.5 no-underline transition-colors hover:border-[var(--hairline-strong)]"
-                        >
-                            {accent && (
-                                <span
-                                    aria-hidden
-                                    className="absolute top-0 bottom-0 left-0 w-[2px]"
-                                    style={{ background: accent.stripe }}
-                                />
-                            )}
-                            <div className="ml-1 flex items-baseline gap-2">
-                                <span className="text-[0.76rem] font-medium text-[var(--bone)]">{room.title}</span>
-                                <span className="tabular-num text-[0.62rem] text-[var(--bone-dim)]">
-                                    {room.capacity}p &middot; {room.location}
-                                </span>
-                            </div>
-                        </Link>
-                    );
-                })}
-            </div>
-
-            <div
-                className="fc-dark-theme border-y border-[var(--hairline)] py-2"
-                style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
-            >
-                <FullCalendar
-                    ref={calendarRef}
-                    plugins={[
-                        resourceTimeGridPlugin,
-                        timeGridPlugin,
-                        dayGridPlugin,
-                        multiMonthPlugin,
-                        interactionPlugin,
-                    ]}
-                    initialView={VIEW_MAP[view]}
-                    resources={resources}
-                    events={visibleEvents}
-                    headerToolbar={false}
-                    height="auto"
-                    firstDay={1}
-                    slotMinTime="07:00:00"
-                    slotMaxTime="24:00:00"
-                    slotDuration="00:30:00"
-                    slotLabelInterval="01:00:00"
-                    allDaySlot={false}
-                    selectable
-                    selectMirror
-                    selectAllow={(info) => info.start.getTime() > Date.now()}
-                    editable={false}
-                    nowIndicator
-                    expandRows
-                    dayMaxEvents={4}
-                    slotLabelFormat={{
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: false,
-                    }}
-                    views={{
-                        dayGridMonth: { dayHeaderFormat: { weekday: "short" } },
-                        timeGridWeek: { dayHeaderFormat: { weekday: "short", day: "numeric" } },
-                        multiMonthYear: { multiMonthMaxColumns: 3, multiMonthMinWidth: 200 },
-                    }}
-                    multiMonthMaxColumns={3}
-                    multiMonthMinWidth={200}
-                    resourceLabelContent={(arg) => {
-                        const accent = (arg.resource.extendedProps as { accent?: RoomAccent }).accent;
+            {showCalendar && (
+                <div
+                    className="flex flex-wrap items-center gap-3"
+                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 300ms both" }}
+                >
+                    <span className="eyebrow">
+                        {filteredRooms.length} room{filteredRooms.length !== 1 ? "s" : ""}
+                    </span>
+                    <div aria-hidden className="h-3 w-px bg-[var(--hairline)]" />
+                    {filteredRooms.map((room) => {
+                        const accent = accentByRoomId[room.id];
                         return (
                             <Link
+                                key={room.id}
                                 to="/rooms/$roomId"
-                                params={{ roomId: arg.resource.id }}
-                                className="flex items-center gap-3 py-2 no-underline"
+                                params={{ roomId: room.id }}
+                                className="group relative flex items-center gap-3 border border-[var(--hairline)] bg-[var(--surface-01)] px-3 py-1.5 no-underline transition-colors hover:border-[var(--hairline-strong)]"
                             >
                                 {accent && (
                                     <span
                                         aria-hidden
-                                        className="block h-8 w-[2px]"
+                                        className="absolute top-0 bottom-0 left-0 w-[2px]"
                                         style={{ background: accent.stripe }}
                                     />
                                 )}
-                                <div className="flex flex-col gap-0.5 text-left">
-                                    <span className="text-[0.82rem] font-medium tracking-[0.02em] text-[var(--bone)]">
-                                        {arg.resource.title}
-                                    </span>
-                                    <span className="tabular-num text-[0.6rem] text-[var(--bone-dim)]">
-                                        {arg.resource.extendedProps.location} &middot;{" "}
-                                        {arg.resource.extendedProps.capacity}p
+                                <div className="ml-1 flex items-baseline gap-2">
+                                    <span className="text-[0.76rem] font-medium text-[var(--bone)]">{room.title}</span>
+                                    <span className="tabular-num text-[0.62rem] text-[var(--bone-dim)]">
+                                        {room.capacity}p &middot; {room.location}
                                     </span>
                                 </div>
                             </Link>
                         );
-                    }}
-                    eventContent={(arg) => (
-                        <div className="flex h-full flex-col justify-center overflow-hidden px-2 py-1">
-                            <span className="truncate text-[0.74rem] leading-tight font-medium text-[var(--bone)]">
-                                {arg.event.title}
-                            </span>
-                            <span className="tabular-num truncate text-[0.6rem] leading-tight text-[var(--bone-dim)]">
-                                {arg.timeText}
-                            </span>
-                        </div>
-                    )}
-                    eventClassNames={(info) =>
-                        isPastCalendarEvent(info.event.toPlainObject()) ? ["booking-event-past"] : []
+                    })}
+                </div>
+            )}
+
+            {showNoRoomsState ? (
+                <CalendarEmptyState
+                    icon={Building2}
+                    eyebrow="Inventory"
+                    title="No rooms to book yet"
+                    description="Add meeting rooms before guests can browse availability or reserve time on the calendar."
+                    action={
+                        data.currentUserRole === "admin" ? (
+                            <Link
+                                to="/admin/rooms"
+                                className="group flex items-center justify-center gap-3 border border-[var(--bone)] bg-[var(--bone)] px-5 py-3 text-[0.66rem] font-semibold tracking-[0.28em] text-black uppercase no-underline transition-all hover:bg-white hover:tracking-[0.32em]"
+                            >
+                                <Plus className="size-4 transition-transform duration-300 group-hover:rotate-90" />
+                                <span>Manage Rooms</span>
+                            </Link>
+                        ) : null
                     }
-                    eventDidMount={(info) => {
-                        const resourceId =
-                            info.event.getResources()[0]?.id ?? String(info.event.extendedProps?.resourceId ?? "");
-                        const accent = accentByRoomId[resourceId];
-                        if (accent) {
-                            info.el.style.setProperty("--accent-stripe", accent.stripe);
-                            info.el.style.setProperty("--accent-wash", accent.wash);
-                            info.el.style.setProperty("--accent-wash-hover", accent.washHover);
-                        }
-                        if (isPastCalendarEvent(info.event.toPlainObject())) {
-                            info.el.setAttribute("aria-disabled", "true");
-                            info.el.setAttribute("title", "Past booking");
-                        }
-                    }}
-                    datesSet={handleDatesSet}
-                    select={handleSelect}
-                    eventClick={handleEventClick}
                 />
-            </div>
+            ) : showFilterZeroState ? (
+                <CalendarEmptyState
+                    icon={FilterX}
+                    eyebrow="Refine"
+                    title="No rooms match these filters"
+                    description="Loosen the capacity, equipment, or location filters to bring available rooms back into view."
+                    action={
+                        <button
+                            type="button"
+                            onClick={resetFilters}
+                            className="flex cursor-pointer items-center justify-center gap-3 border border-[var(--bone)] bg-[var(--bone)] px-5 py-3 text-[0.66rem] font-semibold tracking-[0.28em] text-black uppercase transition-all hover:bg-white hover:tracking-[0.32em]"
+                        >
+                            <FilterX className="size-4" strokeWidth={1.6} />
+                            <span>Reset Filters</span>
+                        </button>
+                    }
+                />
+            ) : (
+                <div
+                    className="fc-dark-theme border-y border-[var(--hairline)] py-2"
+                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
+                >
+                    <FullCalendar
+                        ref={calendarRef}
+                        plugins={[
+                            resourceTimeGridPlugin,
+                            timeGridPlugin,
+                            dayGridPlugin,
+                            multiMonthPlugin,
+                            interactionPlugin,
+                        ]}
+                        initialView={VIEW_MAP[view]}
+                        resources={resources}
+                        events={visibleEvents}
+                        headerToolbar={false}
+                        height="auto"
+                        firstDay={1}
+                        slotMinTime="07:00:00"
+                        slotMaxTime="24:00:00"
+                        slotDuration="00:30:00"
+                        slotLabelInterval="01:00:00"
+                        allDaySlot={false}
+                        selectable
+                        selectMirror
+                        selectAllow={(info) => info.start.getTime() > Date.now()}
+                        editable={false}
+                        nowIndicator
+                        expandRows
+                        dayMaxEvents={4}
+                        slotLabelFormat={{
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                        }}
+                        views={{
+                            dayGridMonth: { dayHeaderFormat: { weekday: "short" } },
+                            timeGridWeek: { dayHeaderFormat: { weekday: "short", day: "numeric" } },
+                            multiMonthYear: { multiMonthMaxColumns: 3, multiMonthMinWidth: 200 },
+                        }}
+                        multiMonthMaxColumns={3}
+                        multiMonthMinWidth={200}
+                        resourceLabelContent={(arg) => {
+                            const accent = (arg.resource.extendedProps as { accent?: RoomAccent }).accent;
+                            return (
+                                <Link
+                                    to="/rooms/$roomId"
+                                    params={{ roomId: arg.resource.id }}
+                                    className="flex items-center gap-3 py-2 no-underline"
+                                >
+                                    {accent && (
+                                        <span
+                                            aria-hidden
+                                            className="block h-8 w-[2px]"
+                                            style={{ background: accent.stripe }}
+                                        />
+                                    )}
+                                    <div className="flex flex-col gap-0.5 text-left">
+                                        <span className="text-[0.82rem] font-medium tracking-[0.02em] text-[var(--bone)]">
+                                            {arg.resource.title}
+                                        </span>
+                                        <span className="tabular-num text-[0.6rem] text-[var(--bone-dim)]">
+                                            {arg.resource.extendedProps.location} &middot;{" "}
+                                            {arg.resource.extendedProps.capacity}p
+                                        </span>
+                                    </div>
+                                </Link>
+                            );
+                        }}
+                        eventContent={(arg) => (
+                            <div className="flex h-full flex-col justify-center overflow-hidden px-2 py-1">
+                                <span className="truncate text-[0.74rem] leading-tight font-medium text-[var(--bone)]">
+                                    {arg.event.title}
+                                </span>
+                                <span className="tabular-num truncate text-[0.6rem] leading-tight text-[var(--bone-dim)]">
+                                    {arg.timeText}
+                                </span>
+                            </div>
+                        )}
+                        eventClassNames={(info) =>
+                            isPastCalendarEvent(info.event.toPlainObject()) ? ["booking-event-past"] : []
+                        }
+                        eventDidMount={(info) => {
+                            const resourceId =
+                                info.event.getResources()[0]?.id ?? String(info.event.extendedProps?.resourceId ?? "");
+                            const accent = accentByRoomId[resourceId];
+                            if (accent) {
+                                info.el.style.setProperty("--accent-stripe", accent.stripe);
+                                info.el.style.setProperty("--accent-wash", accent.wash);
+                                info.el.style.setProperty("--accent-wash-hover", accent.washHover);
+                            }
+                            if (isPastCalendarEvent(info.event.toPlainObject())) {
+                                info.el.setAttribute("aria-disabled", "true");
+                                info.el.setAttribute("title", "Past booking");
+                            }
+                        }}
+                        datesSet={handleDatesSet}
+                        select={handleSelect}
+                        eventClick={handleEventClick}
+                    />
+                </div>
+            )}
 
             <FilterDrawer
                 open={showFilters}
@@ -718,6 +771,38 @@ const EditorialStat = ({ label, value, accent }: { label: string; value: number 
             )}
         </div>
     </div>
+);
+
+const CalendarEmptyState = ({
+    icon: Icon,
+    eyebrow,
+    title,
+    description,
+    action,
+}: {
+    icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+    eyebrow: string;
+    title: string;
+    description: string;
+    action?: React.ReactNode;
+}) => (
+    <section
+        className="border-y border-[var(--hairline)] py-16"
+        style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
+    >
+        <div className="mx-auto flex max-w-xl flex-col items-center px-6 text-center">
+            <div className="relative mb-6 flex size-20 items-center justify-center border border-[var(--hairline)] bg-[var(--surface-01)]">
+                <span aria-hidden className="absolute inset-3 border border-dashed border-[var(--hairline)]" />
+                <Icon className="relative size-7 text-[var(--gold)]" strokeWidth={1.35} />
+            </div>
+            <p className="eyebrow eyebrow-gold">{eyebrow}</p>
+            <h2 className="mt-3 display-italic text-[clamp(1.8rem,3vw,2.4rem)] leading-none text-[var(--bone)]">
+                {title}
+            </h2>
+            <p className="mt-4 max-w-md text-[0.86rem] leading-relaxed text-[var(--bone-muted)]">{description}</p>
+            {action && <div className="mt-7">{action}</div>}
+        </div>
+    </section>
 );
 
 const FilterGroup = ({ label, children }: { label: string; children: React.ReactNode }) => (

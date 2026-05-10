@@ -19,6 +19,7 @@ import {
 
 export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);
 export const bookingStatusEnum = pgEnum("booking_status", ["active", "cancelled"]);
+export const attendeeStatusEnum = pgEnum("attendee_status", ["pending", "accepted", "declined"]);
 
 export const user = pgTable("user", {
     id: text().primaryKey(),
@@ -153,7 +154,7 @@ export const attendees = pgTable(
     {
         userId: text("user_id").notNull(),
         bookingId: uuid("booking_id").notNull(),
-        accepted: boolean().default(false).notNull(),
+        status: attendeeStatusEnum().default("pending").notNull(),
     },
     (table) => {
         return [

@@ -16,7 +16,7 @@ import {
     XCircle,
 } from "lucide-react";
 
-import { acceptBookingInviteFn } from "@/features/bookings/services/fns";
+import { rsvpBookingInviteFn } from "@/features/bookings/services/fns";
 import { bookingCalendarQueryOptions, bookingDetailsQueryOptions } from "@/features/bookings/services/queries";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 
@@ -92,15 +92,7 @@ const getBookingState = (booking: { start: string; end: string; status: "active"
     };
 };
 
-const DetailItem = ({
-    icon,
-    label,
-    children,
-}: {
-    icon: ReactNode;
-    label: string;
-    children: ReactNode;
-}) => (
+const DetailItem = ({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) => (
     <div className="flex gap-3 border-t border-[var(--hairline)] py-5 first:border-t-0 first:pt-0">
         <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center border border-[var(--hairline)] text-[var(--gold)]">
             {icon}
@@ -120,7 +112,7 @@ const PersonRow = ({
 }: {
     name: string;
     email: string;
-    status: "accepted" | "pending" | "organizer";
+    status: "accepted" | "declined" | "pending" | "organizer";
     current?: boolean;
 }) => {
     const statusMeta = {
@@ -133,6 +125,11 @@ const PersonRow = ({
             label: "Pending",
             className: "border-[var(--hairline)] bg-[var(--surface-02)] text-[var(--bone-muted)]",
             icon: <Clock className="size-3.5" strokeWidth={1.4} />,
+        },
+        declined: {
+            label: "Declined",
+            className: "border-red-300/40 bg-red-500/10 text-red-100",
+            icon: <XCircle className="size-3.5" strokeWidth={1.4} />,
         },
         organizer: {
             label: "Organizer",
@@ -164,14 +161,15 @@ function BookingDetailsPage() {
     const { bookingId } = Route.useParams();
     const { data } = useSuspenseQuery(bookingDetailsQueryOptions(bookingId));
     const queryClient = useQueryClient();
-    const acceptBookingInvite = useServerFn(acceptBookingInviteFn);
+    const rsvpBookingInvite = useServerFn(rsvpBookingInviteFn);
     const bookingState = getBookingState(data.booking);
     const pageLabel = data.currentUserAttendance ? "Booking Invite" : "Booking Details";
-    const acceptedCount = data.attendees.filter((attendee) => attendee.accepted).length;
-    const pendingCount = data.attendees.length - acceptedCount;
+    const acceptedCount = data.attendees.filter((attendee) => attendee.status === "accepted").length;
+    const declinedCount = data.attendees.filter((attendee) => attendee.status === "declined").length;
+    const pendingCount = data.attendees.filter((attendee) => attendee.status === "pending").length;
 
-    const acceptMutation = useMutation({
-        mutationFn: acceptBookingInvite,
+    const rsvpMutation = useMutation({
+        mutationFn: rsvpBookingInvite,
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: bookingDetailsQueryOptions(bookingId).queryKey });
             await queryClient.invalidateQueries({ queryKey: bookingCalendarQueryOptions().queryKey });
@@ -179,7 +177,7 @@ function BookingDetailsPage() {
         },
     });
 
-    const acceptError = acceptMutation.error instanceof Error ? acceptMutation.error.message : null;
+    const rsvpError = rsvpMutation.error instanceof Error ? rsvpMutation.error.message : null;
 
     return (
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-7">
@@ -217,18 +215,32 @@ function BookingDetailsPage() {
                     </p>
                 </div>
 
-                {data.canAccept ? (
+                {data.canRespond ? (
                     <div className="flex flex-col items-start gap-3 lg:items-end">
-                        <button
-                            type="button"
-                            onClick={() => acceptMutation.mutate({ data: { bookingId } })}
-                            disabled={acceptMutation.isPending}
-                            className="inline-flex min-h-12 cursor-pointer items-center gap-3 border border-[var(--bone)] bg-[var(--bone)] px-5 text-[0.66rem] font-semibold tracking-[0.24em] text-black uppercase transition-all hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                            <Check className="size-4" strokeWidth={1.7} />
-                            <span>{acceptMutation.isPending ? "Accepting" : "Accept Invite"}</span>
-                        </button>
-                        {acceptError ? <p className="max-w-xs text-sm leading-5 text-red-100">{acceptError}</p> : null}
+                        <div className="flex flex-wrap justify-end gap-3">
+                            <button
+                                type="button"
+                                onClick={() => rsvpMutation.mutate({ data: { bookingId, status: "accepted" } })}
+                                disabled={rsvpMutation.isPending}
+                                className="inline-flex min-h-12 cursor-pointer items-center gap-3 border border-[var(--bone)] bg-[var(--bone)] px-5 text-[0.66rem] font-semibold tracking-[0.24em] text-black uppercase transition-all hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <Check className="size-4" strokeWidth={1.7} />
+                                <span>{rsvpMutation.isPending ? "Saving" : "Accept"}</span>
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => rsvpMutation.mutate({ data: { bookingId, status: "declined" } })}
+                                disabled={rsvpMutation.isPending}
+                                className="inline-flex min-h-12 cursor-pointer items-center gap-3 border border-red-300/40 bg-red-500/10 px-5 text-[0.66rem] font-semibold tracking-[0.24em] text-red-100 uppercase transition-all hover:border-red-200 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                                <XCircle className="size-4" strokeWidth={1.7} />
+                                <span>Decline</span>
+                            </button>
+                        </div>
+                        <p className="text-xs text-[var(--bone-dim)]">
+                            Your RSVP is {data.currentUserAttendance?.status ?? "pending"}.
+                        </p>
+                        {rsvpError ? <p className="max-w-xs text-sm leading-5 text-red-100">{rsvpError}</p> : null}
                     </div>
                 ) : null}
             </header>
@@ -274,7 +286,8 @@ function BookingDetailsPage() {
                     {data.booking.status === "cancelled" ? (
                         <DetailItem icon={<XCircle className="size-4" strokeWidth={1.4} />} label="Cancellation">
                             <span>
-                                Cancelled{data.booking.cancelledAt ? ` ${formatShortDate(data.booking.cancelledAt)}` : ""}
+                                Cancelled
+                                {data.booking.cancelledAt ? ` ${formatShortDate(data.booking.cancelledAt)}` : ""}
                                 {data.cancelledBy ? ` by ${data.cancelledBy.name}` : ""}
                             </span>
                             {data.booking.cancelReason ? (
@@ -299,10 +312,14 @@ function BookingDetailsPage() {
                             </div>
                         </div>
 
-                        <div className="mt-5 grid grid-cols-2 divide-x divide-[var(--hairline)] border-y border-[var(--hairline)] py-3">
+                        <div className="mt-5 grid grid-cols-3 divide-x divide-[var(--hairline)] border-y border-[var(--hairline)] py-3">
                             <div className="px-3">
                                 <p className="eyebrow">Accepted</p>
                                 <p className="mt-1 text-xl text-[var(--signal)]">{acceptedCount}</p>
+                            </div>
+                            <div className="px-3">
+                                <p className="eyebrow">Declined</p>
+                                <p className="mt-1 text-xl text-red-100">{declinedCount}</p>
                             </div>
                             <div className="px-3">
                                 <p className="eyebrow">Pending</p>
@@ -327,7 +344,7 @@ function BookingDetailsPage() {
                                         key={attendee.id}
                                         name={attendee.name}
                                         email={attendee.email}
-                                        status={attendee.accepted ? "accepted" : "pending"}
+                                        status={attendee.status}
                                         current={attendee.id === data.currentUserId}
                                     />
                                 ))
