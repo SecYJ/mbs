@@ -1,25 +1,16 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import type { EventInput } from "@fullcalendar/core";
-import {
-    ArrowLeft,
-    CalendarDays,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    MapPin,
-    Monitor,
-    Plus,
-    Users,
-} from "lucide-react";
+import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Clock, MapPin, Monitor, Plus, Users } from "lucide-react";
 import { z } from "zod";
 
 import { BookingDialog, type BookingFormData } from "@/features/bookings/booking-dialog";
 import { cancelBookingFn, createBookingFn, updateBookingFn } from "@/features/bookings/services/fns";
 import { bookingCalendarQueryOptions, type BookingCalendarData } from "@/features/bookings/services/queries";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
+import { stripDefaultSearchParams } from "@/lib/router-search";
 
 type BookingCalendarEvent = BookingCalendarData["events"][number];
 type RoomDaySegment =
@@ -52,7 +43,7 @@ const roomSearchSchema = z.object({
 export const Route = createFileRoute("/_bookings/rooms/$roomId")({
     validateSearch: roomSearchSchema,
     search: {
-        middlewares: [stripSearchParams(roomSearchDefaults)],
+        middlewares: [stripDefaultSearchParams(roomSearchDefaults)],
     },
     loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(bookingCalendarQueryOptions()),
     component: RoomDayPage,
@@ -343,7 +334,9 @@ function RoomDayPage() {
     const bookableSlot = getFirstBookableSlot(segments, room.available);
     const freeMinutes = segments.reduce(
         (total, segment) =>
-            segment.type === "free" ? total + Math.max(0, segment.end.getTime() - segment.start.getTime()) / 60_000 : total,
+            segment.type === "free"
+                ? total + Math.max(0, segment.end.getTime() - segment.start.getTime()) / 60_000
+                : total,
         0,
     );
     const liveEvent = dayEvents.find((event) => {

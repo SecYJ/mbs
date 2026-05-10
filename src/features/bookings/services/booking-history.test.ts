@@ -62,4 +62,42 @@ describe("getBookingHistoryItem", () => {
             ],
         });
     });
+
+    it("includes the current user's attendee RSVP status when available", () => {
+        const historyItem = getBookingHistoryItem({
+            booking: {
+                id: "550e8400-e29b-41d4-a716-446655440001",
+                roomId: "650e8400-e29b-41d4-a716-446655440001",
+                title: "Design Review",
+                description: null,
+                startTime: new Date("2099-04-29T09:00:00.000Z"),
+                endTime: new Date("2099-04-29T10:00:00.000Z"),
+                status: "active",
+                cancelledAt: null,
+                cancelReason: null,
+            },
+            room: {
+                name: "Aurora",
+                location: "3F East",
+            },
+            organizer: {
+                id: "organizer-1",
+                name: "Ada Lovelace",
+                email: "ada@example.com",
+            },
+            cancelledBy: null,
+            attendees: [
+                {
+                    id: "attendee-1",
+                    name: "Grace Hopper",
+                    email: "grace@example.com",
+                    status: "declined",
+                },
+            ],
+            currentUserId: "attendee-1",
+            now: new Date("2099-04-28T13:00:00.000Z"),
+        });
+
+        expect(historyItem.currentUserAttendance).toEqual({ status: "declined" });
+    });
 });

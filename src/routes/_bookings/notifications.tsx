@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Bell, CalendarDays, CheckCheck, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 
@@ -16,6 +16,7 @@ import {
 } from "@/features/notifications/notification-format";
 import { useNotificationReadActions } from "@/features/notifications/hooks/use-notification-read-actions";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
+import { stripDefaultSearchParams } from "@/lib/router-search";
 
 const statusLabel = {
     pending: "Pending",
@@ -183,7 +184,7 @@ const NotificationsPage = () => {
 export const Route = createFileRoute("/_bookings/notifications")({
     validateSearch: notificationSearchSchema,
     search: {
-        middlewares: [stripSearchParams(notificationFilterDefaults)],
+        middlewares: [stripDefaultSearchParams(notificationFilterDefaults)],
     },
     loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(notificationsQueryOptions()),
     component: NotificationsPage,

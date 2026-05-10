@@ -85,7 +85,7 @@ Implementation slices:
 
 ## P1 - User-Facing Booking Experience
 
-### [ ] Add My Bookings Page
+### [x] Add My Bookings Page
 
 Why: Users need a focused view of meetings they own or attend, grouped by status.
 
@@ -98,13 +98,13 @@ Likely files:
 
 Implementation slices:
 
-- [ ] Add route and nav item.
-- [ ] Query bookings for current user as organizer or attendee.
-- [ ] Group into Upcoming, In Progress, and Past.
-- [ ] Add quick actions for view, edit, and cancel where allowed.
-- [ ] Add empty states for each group.
+- [x] Add route and nav item.
+- [x] Query bookings for current user as organizer or attendee.
+- [x] Group into Upcoming, In Progress, and Past.
+- [x] Add quick actions for view, edit, and cancel where allowed.
+- [x] Add empty states for each group.
 
-### [ ] Add Single-Room Day Detail View
+### [x] Add Single-Room Day Detail View
 
 Why: Users can filter rooms, but cannot drill into a room to inspect its day schedule and details.
 
@@ -116,11 +116,11 @@ Likely files:
 
 Implementation slices:
 
-- [ ] Add room detail route.
-- [ ] Show room location, capacity, equipment, and availability.
-- [ ] Show a day schedule for only that room.
-- [ ] Add "Book this room" action with prefilled room/time.
-- [ ] Link room chips/resource labels to the detail route.
+- [x] Add room detail route.
+- [x] Show room location, capacity, equipment, and availability.
+- [x] Show a day schedule for only that room.
+- [x] Add "Book this room" action with prefilled room/time.
+- [x] Link room chips/resource labels to the detail route.
 
 ### [x] Improve Conflict Error Messages
 
@@ -139,7 +139,7 @@ Implementation slices:
 - [x] Keep messages safe for privacy if the viewer should not see full details.
 - [x] Add tests for create and edit conflicts.
 
-### [ ] Add Calendar Empty And Filter-Zero States
+### [x] Add Calendar Empty And Filter-Zero States
 
 Why: The calendar is weak when no rooms exist or filters hide every room.
 
@@ -149,10 +149,10 @@ Likely files:
 
 Implementation slices:
 
-- [ ] Show an onboarding empty state when there are no rooms.
-- [ ] Show a filter-empty state when no rooms match filters.
-- [ ] Add a reset-filters action.
-- [ ] Add admin shortcut for admins when no rooms exist.
+- [x] Show an onboarding empty state when there are no rooms.
+- [x] Show a filter-empty state when no rooms match filters.
+- [x] Add a reset-filters action.
+- [x] Add admin shortcut for admins when no rooms exist.
 
 ## P1 - Notifications And Preferences
 
@@ -333,7 +333,7 @@ Implementation slices:
 - [ ] Remove unused model or expose it in admin/user filtering.
 - [ ] Update seed scripts and docs to match the chosen model.
 
-### [ ] Add Attendee RSVP Flow
+### [x] Add Attendee RSVP Flow
 
 Why: `attendees.accepted` exists, but users cannot accept or decline invitations.
 
@@ -346,10 +346,10 @@ Likely files:
 
 Implementation slices:
 
-- [ ] Change attendee status from boolean to richer state if needed.
-- [ ] Add accept/decline server action.
-- [ ] Show RSVP status in booking details.
-- [ ] Let organizers see attendee responses.
+- [x] Change attendee status from boolean to richer state if needed.
+- [x] Add accept/decline server action.
+- [x] Show RSVP status in booking details.
+- [x] Let organizers see attendee responses.
 
 ## Later / V2 Candidates
 

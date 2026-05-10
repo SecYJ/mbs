@@ -1,12 +1,13 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, stripSearchParams, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
-import { Ban, CalendarDays, Clock, Eye, Pencil, Search, UserRound, Users, X } from "lucide-react";
+import { Ban, CalendarDays, Check, Clock, Eye, Pencil, Search, UserRound, Users, X, XCircle } from "lucide-react";
 import { z } from "zod";
 
-import { cancelBookingFn } from "@/features/bookings/services/fns";
+import { cancelBookingFn, rsvpBookingInviteFn } from "@/features/bookings/services/fns";
 import { bookingCalendarQueryOptions, type BookingCalendarData } from "@/features/bookings/services/queries";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
+import { stripDefaultSearchParams } from "@/lib/router-search";
 
 type BookingHistoryItem = BookingCalendarData["history"][number];
 type BookingGroup = "all" | "upcoming" | "in-progress" | "past";
@@ -26,7 +27,7 @@ const myBookingsSearchSchema = z.object({
 export const Route = createFileRoute("/_bookings/my-bookings")({
     validateSearch: myBookingsSearchSchema,
     search: {
-        middlewares: [stripSearchParams(myBookingsSearchDefaults)],
+        middlewares: [stripDefaultSearchParams(myBookingsSearchDefaults)],
     },
     loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(bookingCalendarQueryOptions()),
     component: MyBookingsPage,
@@ -61,6 +62,21 @@ const statusMeta: Record<
     cancelled: {
         label: "Cancelled",
         className: "border-red-300/40 bg-red-500/10 text-red-100",
+    },
+};
+
+const rsvpMeta = {
+    accepted: {
+        label: "Accepted",
+        className: "border-[var(--signal)]/40 bg-[var(--signal)]/10 text-[var(--signal)]",
+    },
+    declined: {
+        label: "Declined",
+        className: "border-red-300/40 bg-red-500/10 text-red-100",
+    },
+    pending: {
+        label: "Pending RSVP",
+        className: "border-[var(--hairline)] bg-[var(--surface-02)] text-[var(--bone-muted)]",
     },
 };
 
@@ -105,7 +121,8 @@ const matchesQuery = (booking: BookingHistoryItem, query: string) => {
 };
 
 const sortBookingsForGroup = (bookings: BookingHistoryItem[], group: BookingGroup) =>
-    bookings.toSorted((a, b) => {
+    // eslint-disable-next-line unicorn/no-array-sort -- ES2022 lib target does not include toSorted.
+    [...bookings].sort((a, b) => {
         const aStart = new Date(a.start).getTime();
         const bStart = new Date(b.start).getTime();
         return group === "past" ? bStart - aStart : aStart - bStart;
@@ -135,12 +152,15 @@ function MyBookingsPage() {
     const navigate = useNavigate({ from: "/my-bookings" });
     const queryClient = useQueryClient();
     const cancelBooking = useServerFn(cancelBookingFn);
+    const rsvpBookingInvite = useServerFn(rsvpBookingInviteFn);
 
     const visibleBookings = getVisibleBookings(data.history, group, q);
     const grouped = getGroupedBookings(visibleBookings);
     const ownedCount = data.history.filter((booking) => booking.organizer.id === data.currentUserId).length;
     const attendingCount = data.history.length - ownedCount;
-    const activeCount = data.history.filter((booking) => booking.status === "upcoming" || booking.status === "in-progress").length;
+    const activeCount = data.history.filter(
+        (booking) => booking.status === "upcoming" || booking.status === "in-progress",
+    ).length;
 
     const cancelMutation = useMutation({
         mutationFn: cancelBooking,
@@ -151,6 +171,14 @@ function MyBookingsPage() {
                 search: (prev) => ({ ...prev, cancel: undefined }),
                 replace: true,
             });
+        },
+    });
+
+    const rsvpMutation = useMutation({
+        mutationFn: rsvpBookingInvite,
+        onSuccess: async () => {
+            await queryClient.invalidateQueries({ queryKey: bookingCalendarQueryOptions().queryKey });
+            await queryClient.invalidateQueries({ queryKey: notificationsQueryOptions().queryKey });
         },
     });
 
@@ -169,6 +197,10 @@ function MyBookingsPage() {
                 cancelReason: typeof reason === "string" ? reason : "",
             },
         });
+    };
+
+    const handleRsvp = (bookingId: string, status: "accepted" | "declined") => {
+        rsvpMutation.mutate({ data: { bookingId, status } });
     };
 
     return (
@@ -244,9 +276,13 @@ function MyBookingsPage() {
                             cancelId={cancel}
                             cancelError={cancelMutation.error}
                             isCancelling={cancelMutation.isPending}
+                            rsvpVariables={rsvpMutation.variables}
+                            rsvpError={rsvpMutation.error}
+                            isResponding={rsvpMutation.isPending}
                             onRequestCancel={(bookingId) => updateSearch({ cancel: bookingId })}
                             onClearCancel={() => updateSearch({ cancel: undefined })}
                             onCancelSubmit={handleCancelSubmit}
+                            onRsvp={handleRsvp}
                         />
                     )}
 
@@ -259,9 +295,13 @@ function MyBookingsPage() {
                             cancelId={cancel}
                             cancelError={cancelMutation.error}
                             isCancelling={cancelMutation.isPending}
+                            rsvpVariables={rsvpMutation.variables}
+                            rsvpError={rsvpMutation.error}
+                            isResponding={rsvpMutation.isPending}
                             onRequestCancel={(bookingId) => updateSearch({ cancel: bookingId })}
                             onClearCancel={() => updateSearch({ cancel: undefined })}
                             onCancelSubmit={handleCancelSubmit}
+                            onRsvp={handleRsvp}
                         />
                     )}
 
@@ -274,9 +314,13 @@ function MyBookingsPage() {
                             cancelId={cancel}
                             cancelError={cancelMutation.error}
                             isCancelling={cancelMutation.isPending}
+                            rsvpVariables={rsvpMutation.variables}
+                            rsvpError={rsvpMutation.error}
+                            isResponding={rsvpMutation.isPending}
                             onRequestCancel={(bookingId) => updateSearch({ cancel: bookingId })}
                             onClearCancel={() => updateSearch({ cancel: undefined })}
                             onCancelSubmit={handleCancelSubmit}
+                            onRsvp={handleRsvp}
                         />
                     )}
                 </div>
@@ -285,18 +329,12 @@ function MyBookingsPage() {
     );
 }
 
-const Stat = ({
-    label,
-    value,
-    accent,
-}: {
-    label: string;
-    value: number;
-    accent?: "signal";
-}) => (
+const Stat = ({ label, value, accent }: { label: string; value: number; accent?: "signal" }) => (
     <div className="min-w-24 px-4 text-center">
         <p className="eyebrow">{label}</p>
-        <p className={`tabular-num mt-1 text-xl font-semibold ${accent === "signal" ? "text-[var(--signal)]" : "text-[var(--bone)]"}`}>
+        <p
+            className={`tabular-num mt-1 text-xl font-semibold ${accent === "signal" ? "text-[var(--signal)]" : "text-[var(--bone)]"}`}
+        >
             {value}
         </p>
     </div>
@@ -324,9 +362,13 @@ const BookingSection = ({
     cancelId,
     cancelError,
     isCancelling,
+    rsvpVariables,
+    rsvpError,
+    isResponding,
     onRequestCancel,
     onClearCancel,
     onCancelSubmit,
+    onRsvp,
 }: {
     title: string;
     description: string;
@@ -335,9 +377,13 @@ const BookingSection = ({
     cancelId?: string;
     cancelError: unknown;
     isCancelling: boolean;
+    rsvpVariables?: { data: { bookingId: string; status: "accepted" | "declined" } };
+    rsvpError: unknown;
+    isResponding: boolean;
     onRequestCancel: (bookingId: string) => void;
     onClearCancel: () => void;
     onCancelSubmit: (bookingId: string, formData: FormData) => void;
+    onRsvp: (bookingId: string, status: "accepted" | "declined") => void;
 }) => (
     <section className="border-y border-[var(--hairline)] py-5">
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
@@ -365,9 +411,12 @@ const BookingSection = ({
                         isConfirmingCancel={cancelId === booking.id}
                         cancelError={cancelId === booking.id ? cancelError : null}
                         isCancelling={isCancelling}
+                        rsvpError={rsvpVariables?.data.bookingId === booking.id ? rsvpError : null}
+                        isResponding={rsvpVariables?.data.bookingId === booking.id && isResponding}
                         onRequestCancel={() => onRequestCancel(booking.id)}
                         onClearCancel={onClearCancel}
                         onCancelSubmit={(formData) => onCancelSubmit(booking.id, formData)}
+                        onRsvp={(status) => onRsvp(booking.id, status)}
                     />
                 ))}
             </div>
@@ -381,24 +430,35 @@ const BookingRow = ({
     isConfirmingCancel,
     cancelError,
     isCancelling,
+    rsvpError,
+    isResponding,
     onRequestCancel,
     onClearCancel,
     onCancelSubmit,
+    onRsvp,
 }: {
     booking: BookingHistoryItem;
     currentUserId: string;
     isConfirmingCancel: boolean;
     cancelError: unknown;
     isCancelling: boolean;
+    rsvpError: unknown;
+    isResponding: boolean;
     onRequestCancel: () => void;
     onClearCancel: () => void;
     onCancelSubmit: (formData: FormData) => void;
+    onRsvp: (status: "accepted" | "declined") => void;
 }) => {
     const isOrganizer = booking.organizer.id === currentUserId;
     const canEdit = isOrganizer && booking.status === "upcoming";
     const canCancel = isOrganizer && (booking.status === "upcoming" || booking.status === "in-progress");
+    const attendanceStatus = booking.currentUserAttendance?.status ?? null;
+    const canRespond =
+        !isOrganizer && !!attendanceStatus && (booking.status === "upcoming" || booking.status === "in-progress");
     const meta = statusMeta[booking.status];
+    const responseMeta = attendanceStatus ? rsvpMeta[attendanceStatus] : null;
     const cancelMessage = cancelError instanceof Error ? cancelError.message : null;
+    const rsvpMessage = rsvpError instanceof Error ? rsvpError.message : null;
 
     return (
         <article className="grid gap-4 px-1 py-5 lg:grid-cols-[1fr_auto] lg:items-start">
@@ -414,12 +474,21 @@ const BookingRow = ({
                 <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-sm font-semibold text-[var(--bone)]">{booking.title}</h3>
-                        <span className={`border px-2 py-0.5 text-[0.62rem] font-semibold tracking-[0.18em] uppercase ${meta.className}`}>
+                        <span
+                            className={`border px-2 py-0.5 text-[0.62rem] font-semibold tracking-[0.18em] uppercase ${meta.className}`}
+                        >
                             {meta.label}
                         </span>
                         <span className="border border-[var(--hairline)] px-2 py-0.5 text-[0.62rem] font-semibold tracking-[0.18em] text-[var(--bone-dim)] uppercase">
                             {isOrganizer ? "Organizer" : "Attendee"}
                         </span>
+                        {responseMeta ? (
+                            <span
+                                className={`border px-2 py-0.5 text-[0.62rem] font-semibold tracking-[0.18em] uppercase ${responseMeta.className}`}
+                            >
+                                {responseMeta.label}
+                            </span>
+                        ) : null}
                     </div>
 
                     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[var(--bone-dim)]">
@@ -450,6 +519,8 @@ const BookingRow = ({
                             {booking.cancelReason ? `: ${booking.cancelReason}` : ""}
                         </p>
                     ) : null}
+
+                    {rsvpMessage ? <p className="mt-3 text-xs leading-5 text-red-100">{rsvpMessage}</p> : null}
 
                     {isConfirmingCancel ? (
                         <form
@@ -519,6 +590,28 @@ const BookingRow = ({
                     >
                         <Ban className="size-3.5" strokeWidth={1.4} />
                         <span>Cancel</span>
+                    </button>
+                ) : null}
+                {canRespond && attendanceStatus !== "accepted" ? (
+                    <button
+                        type="button"
+                        onClick={() => onRsvp("accepted")}
+                        disabled={isResponding}
+                        className="inline-flex min-h-9 cursor-pointer items-center gap-2 border border-[var(--signal)]/40 bg-[var(--signal)]/10 px-3 text-[0.62rem] font-semibold tracking-[0.22em] text-[var(--signal)] uppercase transition-colors hover:border-[var(--signal)] disabled:cursor-wait disabled:opacity-60"
+                    >
+                        <Check className="size-3.5" strokeWidth={1.4} />
+                        <span>{isResponding ? "Saving" : "Accept"}</span>
+                    </button>
+                ) : null}
+                {canRespond && attendanceStatus !== "declined" ? (
+                    <button
+                        type="button"
+                        onClick={() => onRsvp("declined")}
+                        disabled={isResponding}
+                        className="inline-flex min-h-9 cursor-pointer items-center gap-2 border border-red-300/40 bg-red-500/10 px-3 text-[0.62rem] font-semibold tracking-[0.22em] text-red-100 uppercase transition-colors hover:border-red-200 hover:bg-red-500/20 disabled:cursor-wait disabled:opacity-60"
+                    >
+                        <XCircle className="size-3.5" strokeWidth={1.4} />
+                        <span>Decline</span>
                     </button>
                 ) : null}
             </div>
