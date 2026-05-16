@@ -13,6 +13,7 @@ import {
 import { useState, useRef, createContext, useContext } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { adminToastClasses } from "@/features/admin/admin-classes";
+// oxlint-disable-next-line import/no-unassigned-import -- Admin stylesheet is imported for its side effects.
 import "@/features/admin/admin.css";
 
 /* ── Toast context ── */

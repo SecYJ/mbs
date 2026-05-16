@@ -65,8 +65,8 @@ const AppLayout = () => {
             return;
         }
 
-        const hasNewUnreadNotification = [...unreadIds].some((notificationId) =>
-            !previousUnreadIdsRef.current?.has(notificationId),
+        const hasNewUnreadNotification = [...unreadIds].some(
+            (notificationId) => !previousUnreadIdsRef.current?.has(notificationId),
         );
 
         if (hasNewUnreadNotification && preferences.notifications.soundEnabled) {
@@ -144,9 +144,7 @@ const AppLayout = () => {
 
                         <Popover open={notificationOpen} onOpenChange={handleNotificationOpenChange}>
                             <PopoverTrigger
-                                aria-label={
-                                    unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"
-                                }
+                                aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : "Notifications"}
                                 className="relative flex size-9 cursor-pointer items-center justify-center border border-transparent text-(--bone-dim) transition-all duration-200 hover:border-(--hairline) hover:text-(--bone) data-[popup-open]:border-(--hairline) data-[popup-open]:text-(--bone)"
                             >
                                 <Bell className="size-4" strokeWidth={1.4} />

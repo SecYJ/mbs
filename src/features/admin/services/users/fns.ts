@@ -89,7 +89,7 @@ export const createUserFn = createServerFn({ method: "POST" })
             };
         } catch (error) {
             if (isUniqueViolation(error)) {
-                throw new Error("A user with this email already exists");
+                throw new Error("A user with this email already exists", { cause: error });
             }
             throw error;
         }

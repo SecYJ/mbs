@@ -2,8 +2,9 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-function Label({ className, ...props }: React.ComponentProps<"label">) {
+const Label = ({ className, ...props }: React.ComponentProps<"label">) => {
     return (
+        // oxlint-disable-next-line jsx-a11y/label-has-associated-control -- This shared wrapper forwards htmlFor/children from callers.
         <label
             data-slot="label"
             className={cn(
@@ -13,6 +14,6 @@ function Label({ className, ...props }: React.ComponentProps<"label">) {
             {...props}
         />
     );
-}
+};
 
 export { Label };

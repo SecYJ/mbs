@@ -1,3 +1,5 @@
+"use client";
+
 import { createFileRoute } from "@tanstack/react-router";
 import { Bell, Check, KeyRound, ShieldCheck, SlidersHorizontal, Volume2, VolumeX } from "lucide-react";
 import { useId } from "react";

@@ -691,9 +691,16 @@ const AttendeePickerDialog = ({
                             data={filteredUsers}
                             renderItem={({ item }) => {
                                 const checked = draftIds.includes(item.id);
+                                const inputId = `attendee-${item.id}`;
                                 return (
-                                    <label className="flex min-h-14 cursor-pointer items-center gap-3 border-b border-[var(--hairline)] px-4 py-2 transition-colors hover:bg-[var(--gold-wash)]">
+                                    <label
+                                        htmlFor={inputId}
+                                        aria-label={`Invite ${item.name} (${item.email})`}
+                                        className="flex min-h-14 cursor-pointer items-center gap-3 border-b border-[var(--hairline)] px-4 py-2 transition-colors hover:bg-[var(--gold-wash)]"
+                                    >
                                         <input
+                                            id={inputId}
+                                            aria-label={`${item.name} ${item.email}`}
                                             type="checkbox"
                                             checked={checked}
                                             onChange={() => toggleUser(item.id)}

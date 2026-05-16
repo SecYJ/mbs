@@ -36,11 +36,7 @@ const formatHistoryTime = (value: string) =>
         minute: "2-digit",
     });
 
-export const BookingHistoryList = ({
-    bookings,
-}: {
-    bookings: BookingHistoryItem[];
-}) => {
+export const BookingHistoryList = ({ bookings }: { bookings: BookingHistoryItem[] }) => {
     return (
         <section
             className="border-y border-[var(--hairline)] py-5"

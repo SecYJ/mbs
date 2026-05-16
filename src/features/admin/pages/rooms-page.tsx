@@ -38,7 +38,7 @@ const RoomsContent = () => {
     if (sort && dir) {
         const field: SortField = sort;
         const direction = dir;
-        filtered = [...filtered].sort((a, b) => {
+        filtered = [...filtered].toSorted((a, b) => {
             const av = a[field];
             const bv = b[field];
             const cmp = typeof av === "number" ? av - (bv as number) : String(av).localeCompare(String(bv));
