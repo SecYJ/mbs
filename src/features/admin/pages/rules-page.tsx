@@ -1,3 +1,5 @@
+"use client";
+
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Clock, Info, Minus, Plus, RotateCcw, Sparkles } from "lucide-react";
 import { Controller } from "react-hook-form";

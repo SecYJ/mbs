@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { PAST_BOOKING_START_MESSAGE } from "@/features/bookings/booking.constants";
 

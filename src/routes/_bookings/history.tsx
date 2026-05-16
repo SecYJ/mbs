@@ -12,9 +12,7 @@ const HistoryPage = () => {
             <header className="flex flex-col gap-5 border-b border-(--hairline) pb-7 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p className="eyebrow eyebrow-gold">History</p>
-                    <h1 className="display-serif mt-3 text-4xl leading-none text-(--bone) md:text-5xl">
-                        History
-                    </h1>
+                    <h1 className="display-serif mt-3 text-4xl leading-none text-(--bone) md:text-5xl">History</h1>
                 </div>
                 <div className="min-w-24 border border-(--hairline) px-4 py-3 text-center">
                     <p className="eyebrow">Total</p>

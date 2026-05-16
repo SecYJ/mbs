@@ -156,7 +156,7 @@ export function BookingsPage() {
             roomCounts[b.room] = (roomCounts[b.room] || 0) + 1;
         }
     }
-    const popularRoom = Object.entries(roomCounts).sort((a, b) => b[1] - a[1])[0];
+    const popularRoom = Object.entries(roomCounts).toSorted((a, b) => b[1] - a[1])[0];
 
     const handleCancel = (id: string) => {
         setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status: "cancelled" as const } : b)));
@@ -373,7 +373,6 @@ export function BookingsPage() {
                                                                     setCancelReason("");
                                                                 }
                                                             }}
-                                                            autoFocus
                                                         />
                                                         <div className="flex items-center gap-1.5">
                                                             <button

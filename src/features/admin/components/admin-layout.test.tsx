@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 import { AdminLayout } from "./admin-layout";
 import type { ComponentProps } from "react";
 
@@ -16,6 +16,10 @@ const baseProps = {
     user: { name: "Test User", email: "test@example.com" },
     onSignOut: () => {},
 };
+
+afterEach(() => {
+    cleanup();
+});
 
 describe("AdminLayout", () => {
     it("collapses the sidebar when the toggle is clicked", () => {

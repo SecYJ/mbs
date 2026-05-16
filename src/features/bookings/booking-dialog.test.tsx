@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
 import { BookingDialog } from "./booking-dialog";
 
@@ -76,6 +76,10 @@ const baseProps = {
     onSubmit: vi.fn(),
 };
 
+afterEach(() => {
+    cleanup();
+});
+
 describe("BookingDialog attendee picker", () => {
     it("shows users before searching, filters them, pins selected users, and discards cancel", () => {
         render(<BookingDialog {...baseProps} />);
@@ -97,7 +101,7 @@ describe("BookingDialog attendee picker", () => {
         expect(screen.getByText("Grace Hopper")).toBeTruthy();
         expect(screen.queryByText("Linus Torvalds")).toBeNull();
 
-        fireEvent.click(screen.getAllByRole("button", { name: "Cancel" })[1]);
+        fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
 
         expect(screen.getByText("None")).toBeTruthy();
         expect(screen.queryByText("Ada Lovelace")).toBeNull();

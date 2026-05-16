@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vite-plus/test";
 
 import { getBookingCancellationNotificationValues } from "./booking-notifications";
 
@@ -20,12 +20,14 @@ describe("getBookingCancellationNotificationValues", () => {
             {
                 bookingId: "550e8400-e29b-41d4-a716-446655440000",
                 userId: "user-1",
-                message: "Booking canceled: Sprint Planning in Aurora, 3F East on Apr 29, 2099 from 9:00 AM to 10:00 AM",
+                message:
+                    "Booking canceled: Sprint Planning in Aurora, 3F East on Apr 29, 2099 from 9:00 AM to 10:00 AM",
             },
             {
                 bookingId: "550e8400-e29b-41d4-a716-446655440000",
                 userId: "user-2",
-                message: "Booking canceled: Sprint Planning in Aurora, 3F East on Apr 29, 2099 from 9:00 AM to 10:00 AM",
+                message:
+                    "Booking canceled: Sprint Planning in Aurora, 3F East on Apr 29, 2099 from 9:00 AM to 10:00 AM",
             },
         ]);
     });
