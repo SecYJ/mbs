@@ -21,7 +21,6 @@ import { requireAuthenticatedUser } from "@/lib/session";
 const navItems = linkOptions([
     { to: "/bookings", label: "Bookings" },
     { to: "/my-bookings", label: "My Bookings" },
-    { to: "/history", label: "History" },
 ]);
 
 const getInitials = (name: string) =>

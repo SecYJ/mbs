@@ -21,7 +21,6 @@ import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
 import { Route as BookingsSettingsRouteImport } from './routes/_bookings/settings'
 import { Route as BookingsNotificationsRouteImport } from './routes/_bookings/notifications'
 import { Route as BookingsMyBookingsRouteImport } from './routes/_bookings/my-bookings'
-import { Route as BookingsHistoryRouteImport } from './routes/_bookings/history'
 import { Route as BookingsBookingsRouteImport } from './routes/_bookings/bookings'
 import { Route as AuthResetPasswordRouteImport } from './routes/_auth/reset-password'
 import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
@@ -90,11 +89,6 @@ const BookingsMyBookingsRoute = BookingsMyBookingsRouteImport.update({
   path: '/my-bookings',
   getParentRoute: () => BookingsRouteRoute,
 } as any)
-const BookingsHistoryRoute = BookingsHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => BookingsRouteRoute,
-} as any)
 const BookingsBookingsRoute = BookingsBookingsRouteImport.update({
   id: '/bookings',
   path: '/bookings',
@@ -145,7 +139,6 @@ export interface FileRoutesByFullPath {
   '/register': typeof AuthRegisterRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/bookings': typeof BookingsBookingsRoute
-  '/history': typeof BookingsHistoryRoute
   '/my-bookings': typeof BookingsMyBookingsRoute
   '/notifications': typeof BookingsNotificationsRoute
   '/settings': typeof BookingsSettingsRoute
@@ -166,7 +159,6 @@ export interface FileRoutesByTo {
   '/register': typeof AuthRegisterRoute
   '/reset-password': typeof AuthResetPasswordRoute
   '/bookings': typeof BookingsBookingsRoute
-  '/history': typeof BookingsHistoryRoute
   '/my-bookings': typeof BookingsMyBookingsRoute
   '/notifications': typeof BookingsNotificationsRoute
   '/settings': typeof BookingsSettingsRoute
@@ -190,7 +182,6 @@ export interface FileRoutesById {
   '/_auth/register': typeof AuthRegisterRoute
   '/_auth/reset-password': typeof AuthResetPasswordRoute
   '/_bookings/bookings': typeof BookingsBookingsRoute
-  '/_bookings/history': typeof BookingsHistoryRoute
   '/_bookings/my-bookings': typeof BookingsMyBookingsRoute
   '/_bookings/notifications': typeof BookingsNotificationsRoute
   '/_bookings/settings': typeof BookingsSettingsRoute
@@ -214,7 +205,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/bookings'
-    | '/history'
     | '/my-bookings'
     | '/notifications'
     | '/settings'
@@ -235,7 +225,6 @@ export interface FileRouteTypes {
     | '/register'
     | '/reset-password'
     | '/bookings'
-    | '/history'
     | '/my-bookings'
     | '/notifications'
     | '/settings'
@@ -258,7 +247,6 @@ export interface FileRouteTypes {
     | '/_auth/register'
     | '/_auth/reset-password'
     | '/_bookings/bookings'
-    | '/_bookings/history'
     | '/_bookings/my-bookings'
     | '/_bookings/notifications'
     | '/_bookings/settings'
@@ -370,13 +358,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BookingsMyBookingsRouteImport
       parentRoute: typeof BookingsRouteRoute
     }
-    '/_bookings/history': {
-      id: '/_bookings/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof BookingsHistoryRouteImport
-      parentRoute: typeof BookingsRouteRoute
-    }
     '/_bookings/bookings': {
       id: '/_bookings/bookings'
       path: '/bookings'
@@ -438,7 +419,6 @@ declare module '@tanstack/react-router' {
 
 interface BookingsRouteRouteChildren {
   BookingsBookingsRoute: typeof BookingsBookingsRoute
-  BookingsHistoryRoute: typeof BookingsHistoryRoute
   BookingsMyBookingsRoute: typeof BookingsMyBookingsRoute
   BookingsNotificationsRoute: typeof BookingsNotificationsRoute
   BookingsSettingsRoute: typeof BookingsSettingsRoute
@@ -448,7 +428,6 @@ interface BookingsRouteRouteChildren {
 
 const BookingsRouteRouteChildren: BookingsRouteRouteChildren = {
   BookingsBookingsRoute: BookingsBookingsRoute,
-  BookingsHistoryRoute: BookingsHistoryRoute,
   BookingsMyBookingsRoute: BookingsMyBookingsRoute,
   BookingsNotificationsRoute: BookingsNotificationsRoute,
   BookingsSettingsRoute: BookingsSettingsRoute,
