@@ -10,7 +10,6 @@ import {
     Clock,
     Mail,
     MapPin,
-    Monitor,
     UserRound,
     Users,
     XCircle,
@@ -164,6 +163,7 @@ function BookingDetailsPage() {
     const rsvpBookingInvite = useServerFn(rsvpBookingInviteFn);
     const bookingState = getBookingState(data.booking);
     const pageLabel = data.currentUserAttendance ? "Booking Invite" : "Booking Details";
+    const attendanceStatus = data.currentUserAttendance?.status ?? null;
     const acceptedCount = data.attendees.filter((attendee) => attendee.status === "accepted").length;
     const declinedCount = data.attendees.filter((attendee) => attendee.status === "declined").length;
     const pendingCount = data.attendees.filter((attendee) => attendee.status === "pending").length;
@@ -171,9 +171,11 @@ function BookingDetailsPage() {
     const rsvpMutation = useMutation({
         mutationFn: rsvpBookingInvite,
         onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: bookingDetailsQueryOptions(bookingId).queryKey });
-            await queryClient.invalidateQueries({ queryKey: bookingCalendarQueryOptions().queryKey });
-            await queryClient.invalidateQueries({ queryKey: notificationsQueryOptions().queryKey });
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: bookingDetailsQueryOptions(bookingId).queryKey }),
+                queryClient.invalidateQueries({ queryKey: bookingCalendarQueryOptions().queryKey }),
+                queryClient.invalidateQueries({ queryKey: notificationsQueryOptions().queryKey }),
+            ]);
         },
     });
 
@@ -218,28 +220,30 @@ function BookingDetailsPage() {
                 {data.canRespond ? (
                     <div className="flex flex-col items-start gap-3 lg:items-end">
                         <div className="flex flex-wrap justify-end gap-3">
-                            <button
-                                type="button"
-                                onClick={() => rsvpMutation.mutate({ data: { bookingId, status: "accepted" } })}
-                                disabled={rsvpMutation.isPending}
-                                className="inline-flex min-h-12 cursor-pointer items-center gap-3 border border-[var(--bone)] bg-[var(--bone)] px-5 text-[0.66rem] font-semibold tracking-[0.24em] text-black uppercase transition-all hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                <Check className="size-4" strokeWidth={1.7} />
-                                <span>{rsvpMutation.isPending ? "Saving" : "Accept"}</span>
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => rsvpMutation.mutate({ data: { bookingId, status: "declined" } })}
-                                disabled={rsvpMutation.isPending}
-                                className="inline-flex min-h-12 cursor-pointer items-center gap-3 border border-red-300/40 bg-red-500/10 px-5 text-[0.66rem] font-semibold tracking-[0.24em] text-red-100 uppercase transition-all hover:border-red-200 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                                <XCircle className="size-4" strokeWidth={1.7} />
-                                <span>Decline</span>
-                            </button>
+                            {attendanceStatus !== "accepted" ? (
+                                <button
+                                    type="button"
+                                    onClick={() => rsvpMutation.mutate({ data: { bookingId, status: "accepted" } })}
+                                    disabled={rsvpMutation.isPending}
+                                    className="inline-flex min-h-12 cursor-pointer items-center gap-3 border border-[var(--bone)] bg-[var(--bone)] px-5 text-[0.66rem] font-semibold tracking-[0.24em] text-black uppercase transition-all hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <Check className="size-4" strokeWidth={1.7} />
+                                    <span>{rsvpMutation.isPending ? "Saving" : "Accept"}</span>
+                                </button>
+                            ) : null}
+                            {attendanceStatus !== "declined" ? (
+                                <button
+                                    type="button"
+                                    onClick={() => rsvpMutation.mutate({ data: { bookingId, status: "declined" } })}
+                                    disabled={rsvpMutation.isPending}
+                                    className="inline-flex min-h-12 cursor-pointer items-center gap-3 border border-red-300/40 bg-red-500/10 px-5 text-[0.66rem] font-semibold tracking-[0.24em] text-red-100 uppercase transition-all hover:border-red-200 hover:bg-red-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                    <XCircle className="size-4" strokeWidth={1.7} />
+                                    <span>Decline</span>
+                                </button>
+                            ) : null}
                         </div>
-                        <p className="text-xs text-[var(--bone-dim)]">
-                            Your RSVP is {data.currentUserAttendance?.status ?? "pending"}.
-                        </p>
+                        <p className="text-xs text-[var(--bone-dim)]">Your RSVP is {attendanceStatus ?? "pending"}.</p>
                         {rsvpError ? <p className="max-w-xs text-sm leading-5 text-red-100">{rsvpError}</p> : null}
                     </div>
                 ) : null}
@@ -263,25 +267,6 @@ function BookingDetailsPage() {
                         <span className="ml-2 text-[var(--bone-muted)]">
                             {data.room.location} - {data.room.capacity} people
                         </span>
-                    </DetailItem>
-                    <DetailItem icon={<Monitor className="size-4" strokeWidth={1.4} />} label="Equipment">
-                        {data.equipment.length === 0 ? (
-                            <span className="text-[var(--bone-muted)]">No equipment assigned to this room.</span>
-                        ) : (
-                            <div className="flex flex-wrap gap-2">
-                                {data.equipment.map((item) => (
-                                    <span
-                                        key={`${item.name}-${item.model}`}
-                                        className="border border-[var(--hairline)] bg-[var(--surface-01)] px-3 py-1.5 text-xs text-[var(--bone-muted)]"
-                                    >
-                                        <span className="text-[var(--bone)]">{item.name}</span>
-                                        <span className="ml-2">
-                                            {item.brand} {item.model}
-                                        </span>
-                                    </span>
-                                ))}
-                            </div>
-                        )}
                     </DetailItem>
                     {data.booking.status === "cancelled" ? (
                         <DetailItem icon={<XCircle className="size-4" strokeWidth={1.4} />} label="Cancellation">

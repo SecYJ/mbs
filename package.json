@@ -71,6 +71,7 @@
         "@vitejs/plugin-rsc": "^0.5.26",
         "babel-plugin-react-compiler": "^1.0.0",
         "jsdom": "^28.1.0",
+        "react-doctor": "^0.2.1",
         "tsx": "^4.22.0",
         "typescript": "^5.9.3",
         "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.21",
