@@ -11,14 +11,14 @@ import { notificationsQueryOptions, type NotificationsData } from "@/features/no
 import { playNotificationSound } from "@/features/settings/notification-sound";
 import { useUserPreferences } from "@/features/settings/user-preferences";
 
-type NotificationPreview = NotificationsData[number];
+export type NotificationNavigationItem = NotificationsData[number];
 
 const getUnreadNotificationIds = (notifications: NotificationsData) =>
     new Set(
         notifications.filter((notification) => notification.status === "unread").map((notification) => notification.id),
     );
 
-export const useBookingNotificationMenu = () => {
+export const useNotificationNavigationMenu = () => {
     const { data: notifications = [], isFetched: hasFetchedNotifications } = useQuery(notificationsQueryOptions());
     const { markAsRead, markAllAsRead, isMarkingAllRead } = useNotificationReadActions();
     const { preferences } = useUserPreferences();
@@ -57,7 +57,7 @@ export const useBookingNotificationMenu = () => {
         if (open) setNotificationFilter(notificationFilterDefaults.filter);
     };
 
-    const selectNotification = (notification: NotificationPreview) => {
+    const selectNotification = (notification: NotificationNavigationItem) => {
         if (notification.status === "unread") markAsRead(notification.id);
         setIsOpen(false);
     };

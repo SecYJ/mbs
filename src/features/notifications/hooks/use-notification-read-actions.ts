@@ -22,43 +22,43 @@ export const useNotificationReadActions = () => {
     const queryClient = useQueryClient();
     const markNotificationReadServer = useServerFn(markNotificationReadFn);
     const markAllNotificationsReadServer = useServerFn(markAllNotificationsReadFn);
-    const queryKey = notificationsQueryOptions().queryKey;
+    const notificationsOptions = notificationsQueryOptions();
 
     const markNotificationReadMutation = useMutation({
         mutationFn: markNotificationReadServer,
         onMutate: async ({ data }) => {
-            await queryClient.cancelQueries({ queryKey });
-            const previousNotifications = queryClient.getQueryData<NotificationsData>(queryKey);
-            queryClient.setQueryData<NotificationsData>(queryKey, (current) =>
+            await queryClient.cancelQueries(notificationsOptions);
+            const previousNotifications = queryClient.getQueryData<NotificationsData>(notificationsOptions.queryKey);
+            queryClient.setQueryData<NotificationsData>(notificationsOptions.queryKey, (current) =>
                 markNotificationRead(current, data.notificationId),
             );
             return { previousNotifications };
         },
         onError: (_error, _variables, context) => {
             if (context?.previousNotifications) {
-                queryClient.setQueryData(queryKey, context.previousNotifications);
+                queryClient.setQueryData(notificationsOptions.queryKey, context.previousNotifications);
             }
         },
         onSettled: async () => {
-            await queryClient.invalidateQueries({ queryKey });
+            await queryClient.invalidateQueries(notificationsOptions);
         },
     });
 
     const markAllNotificationsReadMutation = useMutation({
         mutationFn: markAllNotificationsReadServer,
         onMutate: async () => {
-            await queryClient.cancelQueries({ queryKey });
-            const previousNotifications = queryClient.getQueryData<NotificationsData>(queryKey);
-            queryClient.setQueryData<NotificationsData>(queryKey, markAllNotificationsRead);
+            await queryClient.cancelQueries(notificationsOptions);
+            const previousNotifications = queryClient.getQueryData<NotificationsData>(notificationsOptions.queryKey);
+            queryClient.setQueryData<NotificationsData>(notificationsOptions.queryKey, markAllNotificationsRead);
             return { previousNotifications };
         },
         onError: (_error, _variables, context) => {
             if (context?.previousNotifications) {
-                queryClient.setQueryData(queryKey, context.previousNotifications);
+                queryClient.setQueryData(notificationsOptions.queryKey, context.previousNotifications);
             }
         },
         onSettled: async () => {
-            await queryClient.invalidateQueries({ queryKey });
+            await queryClient.invalidateQueries(notificationsOptions);
         },
     });
 
