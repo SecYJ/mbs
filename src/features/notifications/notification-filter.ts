@@ -1,10 +1,10 @@
 export type NotificationFilter = "all" | "unread";
 
-export const notificationFilterDefaults = {
+export const NOTIFICATION_FILTER_DEFAULTS = {
     filter: "all" as NotificationFilter,
 };
 
-export const notificationFilterOptions = [
+export const NOTIFICATION_FILTER_OPTIONS = [
     { value: "all", label: "All" },
     { value: "unread", label: "Unread" },
 ] as const;

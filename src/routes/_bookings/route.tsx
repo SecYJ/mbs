@@ -3,11 +3,16 @@ import { Shield } from "lucide-react";
 
 import { AuthenticatedAccountMenu } from "@/features/account/components/authenticated-account-menu";
 import { NotificationNavigationMenu } from "@/features/notifications/components/notification-navigation-menu";
+import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 import { requireAuthenticatedUser } from "@/lib/session";
 
 export const Route = createFileRoute("/_bookings")({
     beforeLoad: async () => ({ session: await requireAuthenticatedUser() }),
-    loader: ({ context }) => context.session,
+    loader: ({ context }) => {
+        context.queryClient.ensureQueryData(notificationsQueryOptions());
+
+        return context.session;
+    },
     component: AppLayout,
 });
 

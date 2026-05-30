@@ -6,8 +6,8 @@ import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import {
     filterNotifications,
-    notificationFilterDefaults,
-    notificationFilterOptions,
+    NOTIFICATION_FILTER_DEFAULTS,
+    NOTIFICATION_FILTER_OPTIONS,
 } from "@/features/notifications/notification-filter";
 import {
     formatNotificationDate,
@@ -27,8 +27,8 @@ const statusLabel = {
 const notificationSearchSchema = z.object({
     filter: z
         .enum(["all", "unread"])
-        .default(notificationFilterDefaults.filter)
-        .catch(notificationFilterDefaults.filter),
+        .default(NOTIFICATION_FILTER_DEFAULTS.filter)
+        .catch(NOTIFICATION_FILTER_DEFAULTS.filter),
 });
 
 export const NotificationsPage = () => {
@@ -73,7 +73,7 @@ export const NotificationsPage = () => {
 
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex border border-(--hairline) p-1">
-                    {notificationFilterOptions.map((option) => (
+                    {NOTIFICATION_FILTER_OPTIONS.map((option) => (
                         <Link
                             key={option.value}
                             to="/notifications"
@@ -185,7 +185,7 @@ export const NotificationsPage = () => {
 export const Route = createFileRoute("/_bookings/notifications")({
     validateSearch: notificationSearchSchema,
     search: {
-        middlewares: [stripDefaultSearchParams(notificationFilterDefaults)],
+        middlewares: [stripDefaultSearchParams(NOTIFICATION_FILTER_DEFAULTS)],
     },
     loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(notificationsQueryOptions()),
     component: NotificationsPage,

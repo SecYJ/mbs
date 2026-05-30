@@ -8,19 +8,16 @@ import { Controller, FormStateSubscribe } from "react-hook-form";
 import { PasswordInput } from "@/components/password-input";
 import { useChangePassword } from "@/features/settings/hooks/useChangePassword";
 import { playNotificationSound } from "@/features/settings/notification-sound";
-import { useUserPreferences } from "@/features/settings/user-preferences";
+import { usePersistentClientStore } from "@/stores/persistent-client-store";
 
 export const SettingsPage = () => {
-    const { preferences, updatePreferences } = useUserPreferences();
-    const soundEnabled = preferences.notifications.soundEnabled;
+    const soundEnabled = usePersistentClientStore((state) => state.userPreferences.soundEnabled);
+    const updateUserPreferences = usePersistentClientStore((state) => state.actions.updateUserPreferences);
 
     const handleSoundToggle = () => {
-        updatePreferences((current) => ({
+        updateUserPreferences((current) => ({
             ...current,
-            notifications: {
-                ...current.notifications,
-                soundEnabled: !current.notifications.soundEnabled,
-            },
+            soundEnabled: !current.soundEnabled,
         }));
     };
 

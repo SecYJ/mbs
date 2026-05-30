@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Bell, CheckCheck } from "lucide-react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { type NotificationFilter, notificationFilterOptions } from "@/features/notifications/notification-filter";
+import { NOTIFICATION_FILTER_OPTIONS, type NotificationFilter } from "@/features/notifications/notification-filter";
 import { formatNotificationDateTime } from "@/features/notifications/notification-format";
 import {
     type NotificationNavigationItem,
@@ -133,7 +133,7 @@ const NotificationMenuHeader = ({ isMarkingAllRead, markAllAsRead, unreadCount }
 
 const NotificationFilterControls = ({ filter, setFilter }: NotificationFilterControlsProps) => (
     <div className="flex gap-1 border-b border-(--hairline) p-2">
-        {notificationFilterOptions.map((option) => (
+        {NOTIFICATION_FILTER_OPTIONS.map((option) => (
             <button
                 key={option.value}
                 type="button"
