@@ -21,9 +21,10 @@ const myBookingsSearchDefaults = {
 const myBookingsSearchSchema = z.object({
     group: z.enum(["all", "upcoming", "in-progress", "past"]).default(myBookingsSearchDefaults.group),
     q: z.string().default(myBookingsSearchDefaults.q).catch(myBookingsSearchDefaults.q),
-    cancel: z.string().uuid().optional().catch(undefined),
+    cancel: z.uuid().optional().catch(undefined),
 });
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
 export const Route = createFileRoute("/_bookings/my-bookings")({
     validateSearch: myBookingsSearchSchema,
     search: {
@@ -121,8 +122,7 @@ const matchesQuery = (booking: BookingHistoryItem, query: string) => {
 };
 
 const sortBookingsForGroup = (bookings: BookingHistoryItem[], group: BookingGroup) =>
-    // eslint-disable-next-line unicorn/no-array-sort -- ES2022 lib target does not include toSorted.
-    [...bookings].sort((a, b) => {
+    bookings.toSorted((a, b) => {
         const aStart = new Date(a.start).getTime();
         const bStart = new Date(b.start).getTime();
         return group === "past" ? bStart - aStart : aStart - bStart;
@@ -146,7 +146,7 @@ const getGroupedBookings = (bookings: BookingHistoryItem[]) => ({
     ),
 });
 
-function MyBookingsPage() {
+export function MyBookingsPage() {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
     const { group, q, cancel } = Route.useSearch();
     const navigate = useNavigate({ from: "/my-bookings" });
@@ -167,6 +167,7 @@ function MyBookingsPage() {
         onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: bookingCalendarQueryOptions().queryKey });
             await queryClient.invalidateQueries({ queryKey: notificationsQueryOptions().queryKey });
+            // react-doctor-disable-next-line react-doctor/tanstack-start-no-navigate-in-render -- Mutation success navigation only clears URL state after user action.
             await navigate({
                 search: (prev) => ({ ...prev, cancel: undefined }),
                 replace: true,
@@ -183,6 +184,7 @@ function MyBookingsPage() {
     });
 
     const updateSearch = (next: Partial<typeof myBookingsSearchDefaults>) => {
+        // react-doctor-disable-next-line react-doctor/tanstack-start-no-navigate-in-render -- Search updates run inside event handlers.
         navigate({
             search: (prev) => ({ ...prev, ...next }),
             replace: true,
@@ -228,6 +230,7 @@ function MyBookingsPage() {
                     <Search className="size-4 shrink-0" strokeWidth={1.4} />
                     <span className="sr-only">Search bookings</span>
                     <input
+                        aria-label="Search bookings"
                         value={q}
                         onChange={(event) => updateSearch({ q: event.target.value })}
                         placeholder="Search title, room, organizer, or attendee"
@@ -329,7 +332,7 @@ function MyBookingsPage() {
     );
 }
 
-const Stat = ({ label, value, accent }: { label: string; value: number; accent?: "signal" }) => (
+export const Stat = ({ label, value, accent }: { label: string; value: number; accent?: "signal" }) => (
     <div className="min-w-24 px-4 text-center">
         <p className="eyebrow">{label}</p>
         <p
@@ -340,7 +343,7 @@ const Stat = ({ label, value, accent }: { label: string; value: number; accent?:
     </div>
 );
 
-const EmptyBookings = ({ hasQuery }: { hasQuery: boolean }) => (
+export const EmptyBookings = ({ hasQuery }: { hasQuery: boolean }) => (
     <section className="flex min-h-80 flex-col items-center justify-center border border-dashed border-[var(--hairline)] px-6 text-center">
         <CalendarDays className="size-8 text-[var(--bone-dim)]" strokeWidth={1.4} />
         <h2 className="mt-5 text-lg font-semibold text-[var(--bone)]">
@@ -354,7 +357,7 @@ const EmptyBookings = ({ hasQuery }: { hasQuery: boolean }) => (
     </section>
 );
 
-const BookingSection = ({
+export const BookingSection = ({
     title,
     description,
     bookings,
@@ -424,7 +427,7 @@ const BookingSection = ({
     </section>
 );
 
-const BookingRow = ({
+export const BookingRow = ({
     booking,
     currentUserId,
     isConfirmingCancel,
@@ -535,6 +538,7 @@ const BookingRow = ({
                             </div>
                             <textarea
                                 name="cancelReason"
+                                aria-label="Cancellation reason"
                                 rows={3}
                                 placeholder="Reason (optional)"
                                 className="w-full resize-none border border-red-300/30 bg-black/20 px-3 py-2 text-sm text-red-50 outline-none placeholder:text-red-100/35 focus:border-red-200"

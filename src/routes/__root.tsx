@@ -9,6 +9,7 @@ interface MyRouterContext {
     queryClient: QueryClient;
 }
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
 export const Route = createRootRouteWithContext<MyRouterContext>()({
     head: () => ({
         meta: [
@@ -34,7 +35,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     notFoundComponent: NotFound,
 });
 
-function RootDocument({ children }: { children: React.ReactNode }) {
+export function RootDocument({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
             <head>

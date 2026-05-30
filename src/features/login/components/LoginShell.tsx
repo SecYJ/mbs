@@ -10,7 +10,7 @@ export const LoginShell = ({ children }: Props) => {
     const year = new Date().getFullYear();
 
     return (
-        <div className="relative flex min-h-dvh bg-black text-(--bone)">
+        <div className="relative flex min-h-dvh bg-[#050505] text-(--bone)">
             <svg aria-hidden className="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-[0.016]">
                 <filter id="grain-login">
                     <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
@@ -18,7 +18,7 @@ export const LoginShell = ({ children }: Props) => {
                 <rect width="100%" height="100%" filter="url(#grain-login)" />
             </svg>
 
-            <aside className="relative hidden overflow-hidden bg-black lg:flex lg:w-[58%]">
+            <aside className="relative hidden overflow-hidden bg-[#050505] lg:flex lg:w-[58%]">
                 <div
                     aria-hidden
                     className="hairline-draw-in pointer-events-none absolute top-0 bottom-0 right-24 w-px bg-(--hairline)"
@@ -83,7 +83,7 @@ export const LoginShell = ({ children }: Props) => {
 
                 <div
                     className="absolute bottom-14 right-32 flex items-center gap-3"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 1100ms both" }}
+                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
                 >
                     <span className="eyebrow">Folio</span>
                     <span className="tabular-num text-[0.7rem] tracking-[0.2em] text-(--bone-muted)">
@@ -92,7 +92,7 @@ export const LoginShell = ({ children }: Props) => {
                 </div>
             </aside>
 
-            <main className="relative flex w-full flex-col justify-center bg-black px-8 sm:px-14 lg:w-[42%] lg:px-16 xl:px-20">
+            <main className="relative flex w-full flex-col justify-center bg-[#050505] px-8 sm:px-14 lg:w-[42%] lg:px-16 xl:px-20">
                 <div
                     className="absolute left-8 top-8 flex items-center gap-3 lg:hidden"
                     style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
@@ -154,7 +154,7 @@ export const LoginShell = ({ children }: Props) => {
 
                 <div
                     className="absolute bottom-6 left-0 right-0 flex items-center justify-between px-8 sm:px-14 lg:px-16 xl:px-20"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 1100ms both" }}
+                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
                 >
                     <span className="tabular-num text-[0.62rem] tracking-[0.2em] text-(--bone-faint)">
                         &copy; {year}

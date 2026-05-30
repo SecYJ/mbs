@@ -1,7 +1,10 @@
+minimumReleaseAge: 10080
+trustPolicy: no-downgrade
+trustPolicyIgnoreAfter: 10080
 catalog:
-    vite: npm:@voidzero-dev/vite-plus-core@latest
-    vite-plus: ^0.1.21
-    vitest: npm:@voidzero-dev/vite-plus-test@latest
+    vite: npm:@voidzero-dev/vite-plus-core@^0.1.22
+    vite-plus: ^0.1.22
+    vitest: npm:@voidzero-dev/vite-plus-test@^0.1.22
 overrides:
     vite: "catalog:"
     vitest: "catalog:"
@@ -12,3 +15,5 @@ peerDependencyRules:
     allowedVersions:
         vite: "*"
         vitest: "*"
+allowBuilds:
+    esbuild: true

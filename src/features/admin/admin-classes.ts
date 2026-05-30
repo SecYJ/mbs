@@ -14,9 +14,6 @@ export const adminBadgeClasses =
 export const adminStatCardClasses =
     "rounded-xl border border-(--a-border) bg-[linear-gradient(135deg,var(--a-surface-1)_0%,var(--a-surface-2)_100%)] px-5 py-4 transition-[border-color,transform] duration-150 hover:-translate-y-px hover:border-(--a-border-hover)";
 
-export const adminRuleCardClasses =
-    "rounded-xl border border-(--a-border) bg-(--a-surface-1) p-6 transition-[border-color] duration-150 hover:border-(--a-border-hover)";
-
 // .admin-table* (descendant rules on th/td/tr) stays in admin.css as the documented fallback —
 // migrating would require touching every <th>/<td>/<tr> across 4 pages and 2 row components for
 // duplicated utility chains. Descendant CSS is the cleaner expression here.

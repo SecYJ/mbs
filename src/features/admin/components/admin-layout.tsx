@@ -10,7 +10,7 @@ import {
     ChevronsLeft,
     ChevronsRight,
 } from "lucide-react";
-import { useState, useRef, createContext, useContext } from "react";
+import { use, useRef, useState, createContext } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { adminToastClasses } from "@/features/admin/admin-classes";
 // oxlint-disable-next-line import/no-unassigned-import -- Admin stylesheet is imported for its side effects.
@@ -30,7 +30,7 @@ interface ToastCtx {
 }
 
 const ToastContext = createContext<ToastCtx>({ toast: () => {} });
-export const useAdminToast = () => useContext(ToastContext);
+export const useAdminToast = () => use(ToastContext);
 
 /* ── Sidebar context ── */
 
@@ -40,7 +40,6 @@ interface SidebarCtx {
 }
 
 const SidebarContext = createContext<SidebarCtx>({ collapsed: false, toggle: () => {} });
-export const useSidebar = () => useContext(SidebarContext);
 
 /* ── Nav config ── */
 
@@ -62,8 +61,7 @@ interface AdminLayoutProps {
 const getInitials = (name: string) =>
     name
         .split(" ")
-        .map((part) => part[0])
-        .filter(Boolean)
+        .flatMap((part) => (part[0] ? [part[0]] : []))
         .slice(0, 2)
         .join("")
         .toUpperCase() || "?";

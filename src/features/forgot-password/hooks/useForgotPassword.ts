@@ -19,12 +19,8 @@ export const useForgotPassword = () => {
         },
     });
 
-    const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+    const [cooldownUntil, setCooldownUntil] = useState(() => readCooldownTimestamp(STORAGE_KEY));
     const [now, setNow] = useState(() => Date.now());
-
-    useEffect(() => {
-        setCooldownUntil(readCooldownTimestamp(STORAGE_KEY));
-    }, []);
 
     useEffect(() => {
         if (!cooldownUntil) return;
@@ -34,10 +30,17 @@ export const useForgotPassword = () => {
     }, [cooldownUntil]);
 
     useEffect(() => {
-        if (cooldownUntil && now >= cooldownUntil) {
+        if (!cooldownUntil) return;
+
+        const timeLeft = cooldownUntil - now;
+        if (timeLeft > 0) return;
+
+        const id = window.setTimeout(() => {
             clearCooldownTimestamp(STORAGE_KEY);
             setCooldownUntil(null);
-        }
+        }, 0);
+
+        return () => window.clearTimeout(id);
     }, [cooldownUntil, now]);
 
     const secondsLeft = cooldownUntil ? Math.max(0, Math.ceil((cooldownUntil - now) / 1000)) : 0;
@@ -50,6 +53,7 @@ export const useForgotPassword = () => {
         isSuccess,
         data,
         reset,
+        // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation -- Password reset request only starts an email cooldown, not cached query data.
     } = useMutation({
         mutationFn: requestReset,
         onSuccess: () => {

@@ -6,7 +6,7 @@ import type { Equipment } from "@/features/admin/types";
 export type { Equipment };
 
 const priceFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
-export const formatPrice = (n: number) => priceFormatter.format(n);
+const formatPrice = (n: number) => priceFormatter.format(n);
 
 const BRAND_PALETTES = [
     { color: "var(--a-eq-blue)", bg: "var(--a-eq-blue-bg)", border: "var(--a-eq-blue-border)" },

@@ -10,7 +10,7 @@ import { useChangePassword } from "@/features/settings/hooks/useChangePassword";
 import { playNotificationSound } from "@/features/settings/notification-sound";
 import { useUserPreferences } from "@/features/settings/user-preferences";
 
-const SettingsPage = () => {
+export const SettingsPage = () => {
     const { preferences, updatePreferences } = useUserPreferences();
     const soundEnabled = preferences.notifications.soundEnabled;
 
@@ -116,7 +116,7 @@ const SettingsPage = () => {
     );
 };
 
-const PasswordResetSection = () => {
+export const PasswordResetSection = () => {
     const { form, onSubmit, isPending, isSuccess } = useChangePassword();
     const revokeOtherSessionsId = useId();
 
@@ -178,6 +178,7 @@ const PasswordResetSection = () => {
                                 <input
                                     id={revokeOtherSessionsId}
                                     type="checkbox"
+                                    aria-label="End other sessions"
                                     checked={field.value}
                                     onChange={(event) => field.onChange(event.target.checked)}
                                     onBlur={field.onBlur}
@@ -228,6 +229,7 @@ const PasswordResetSection = () => {
     );
 };
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
 export const Route = createFileRoute("/_bookings/settings")({
     component: SettingsPage,
 });

@@ -321,7 +321,7 @@ export function BookingsPage() {
                                     <th style={{ width: "14%" }}>Booked By</th>
                                     <th style={{ width: "8%" }}>Attendees</th>
                                     <th style={{ width: "10%" }}>Status</th>
-                                    <th style={{ width: "12%" }} />
+                                    <th style={{ width: "12%" }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -364,6 +364,7 @@ export function BookingsPage() {
                                                         <input
                                                             className={`${adminInputClasses} w-full`}
                                                             placeholder="Cancellation reason..."
+                                                            aria-label="Cancellation reason"
                                                             value={cancelReason}
                                                             onChange={(e) => setCancelReason(e.target.value)}
                                                             onKeyDown={(e) => {
@@ -406,6 +407,7 @@ export function BookingsPage() {
                                                     <div className="flex items-center gap-1">
                                                         <button
                                                             type="button"
+                                                            aria-label={`View details for ${booking.title}`}
                                                             title="View details"
                                                             className="flex size-7 items-center justify-center rounded-md transition-colors"
                                                             style={{ color: "var(--a-text-muted)" }}
@@ -424,6 +426,7 @@ export function BookingsPage() {
                                                             booking.status !== "completed" && (
                                                                 <button
                                                                     type="button"
+                                                                    aria-label={`Cancel ${booking.title}`}
                                                                     title="Cancel booking"
                                                                     onClick={() => setCancellingId(booking.id)}
                                                                     className="flex size-7 items-center justify-center rounded-md transition-colors"

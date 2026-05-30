@@ -88,9 +88,9 @@ const AppLayout = () => {
     };
 
     return (
-        <div className="relative min-h-dvh bg-black text-(--bone)">
+        <div className="relative min-h-dvh bg-[#050505] text-(--bone)">
             {/* Film grain overlay */}
-            <svg aria-hidden className="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-[0.016]">
+            <svg aria-hidden className="pointer-events-none fixed inset-0 z-50 size-full opacity-[0.016]">
                 <filter id="grain-app">
                     <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
                 </filter>
@@ -98,7 +98,7 @@ const AppLayout = () => {
             </svg>
 
             {/* Navigation — hairline editorial bar */}
-            <nav className="sticky top-0 z-40 border-b border-(--hairline) bg-black/90 backdrop-blur-xl">
+            <nav className="sticky top-0 z-40 border-b border-(--hairline) bg-[#050505]/90 backdrop-blur-xl">
                 <div className="flex h-16 items-center justify-between px-6 lg:px-10 2xl:px-14">
                     {/* Left: Monogram + Nav */}
                     <div className="flex items-center gap-12">
@@ -150,7 +150,7 @@ const AppLayout = () => {
                                 {unreadCount > 0 ? (
                                     <span
                                         className="absolute -top-1 -right-1 min-w-4 rounded-full border border-black bg-(--signal) px-1 text-center text-[0.55rem] leading-4 font-bold text-black"
-                                        style={{ animation: "signal-pulse 2.4s ease-in-out infinite" }}
+                                        style={{ animation: "signal-pulse 900ms ease-in-out infinite" }}
                                     >
                                         {unreadBadgeLabel}
                                     </span>

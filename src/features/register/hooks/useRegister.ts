@@ -21,6 +21,7 @@ export const useRegister = () => {
     const navigate = useNavigate();
     const registerFn = useServerFn(registerUserFn);
 
+    // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation -- Register navigates into the authenticated app; no query cache exists yet.
     const { mutate: submitRegister } = useMutation({
         mutationFn: registerFn,
         onSuccess: () => {

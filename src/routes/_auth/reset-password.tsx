@@ -11,7 +11,7 @@ const resetPasswordSearchSchema = z.object({
     error: z.string().optional(),
 });
 
-const ResetPasswordPage = () => {
+export const ResetPasswordPage = () => {
     const { src } = Route.useLoaderData();
     const { token, error } = Route.useSearch();
 
@@ -22,9 +22,10 @@ const ResetPasswordPage = () => {
     );
 };
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
 export const Route = createFileRoute("/_auth/reset-password")({
-    beforeLoad: redirectAuthenticatedUser,
     validateSearch: resetPasswordSearchSchema,
+    beforeLoad: redirectAuthenticatedUser,
     loader: async () => await getResetPasswordPage(),
     component: ResetPasswordPage,
 });

@@ -10,6 +10,50 @@ import { equipmentQueryOptions } from "@/features/admin/services/equipment/queri
 import { EquipmentCreateStoreProvider, useEquipmentCreateStore } from "@/features/admin/stores/equipment-create-store";
 
 type SortField = "name" | "brand" | "price";
+type SortDirection = "asc" | "desc";
+
+const EquipmentSortIndicator = ({ field, sort, dir }: { field: SortField; sort?: SortField; dir?: SortDirection }) => {
+    if (sort !== field || !dir) return null;
+
+    return <span className="ml-1 inline-block text-[0.5rem] text-(--a-accent)">{dir === "asc" ? "▲" : "▼"}</span>;
+};
+
+const EquipmentSortHeader = ({
+    field,
+    label,
+    width,
+    align,
+    sort,
+    dir,
+    onSort,
+}: {
+    field: SortField;
+    label: string;
+    width: string;
+    align?: "right";
+    sort?: SortField;
+    dir?: SortDirection;
+    onSort: (field: SortField) => void;
+}) => (
+    <th
+        data-sortable
+        style={{ width, textAlign: align }}
+        aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+        <button
+            type="button"
+            onClick={() => onSort(field)}
+            className={
+                align === "right"
+                    ? "flex w-full items-center justify-end gap-1 font-inherit"
+                    : "flex w-full items-center gap-1 text-left font-inherit"
+            }
+        >
+            {label}
+            <EquipmentSortIndicator field={field} sort={sort} dir={dir} />
+        </button>
+    </th>
+);
 
 export const EquipmentPage = () => {
     return (
@@ -66,39 +110,6 @@ const EquipmentContent = () => {
         });
     };
 
-    const SortIndicator = ({ field }: { field: SortField }) => {
-        if (sort !== field || !dir) return null;
-
-        return <span className="ml-1 inline-block text-[0.5rem] text-(--a-accent)">{dir === "asc" ? "▲" : "▼"}</span>;
-    };
-
-    const SortHeader = ({
-        field,
-        label,
-        width,
-        align,
-    }: {
-        field: SortField;
-        label: string;
-        width: string;
-        align?: "right";
-    }) => (
-        <th
-            data-sortable
-            style={{ width, textAlign: align }}
-            aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
-        >
-            <button
-                type="button"
-                onClick={() => toggleSort(field)}
-                className={`flex w-full items-center gap-1 font-inherit ${align === "right" ? "justify-end" : "text-left"}`}
-            >
-                {label}
-                <SortIndicator field={field} />
-            </button>
-        </th>
-    );
-
     return (
         <div className="p-6">
             {filtered.length === 0 && !normalizedQ ? (
@@ -115,9 +126,31 @@ const EquipmentContent = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <SortHeader field="name" label="Name" width="54%" />
-                                <SortHeader field="brand" label="Brand" width="24%" />
-                                <SortHeader field="price" label="Price" width="22%" align="right" />
+                                <EquipmentSortHeader
+                                    sort={sort}
+                                    dir={dir}
+                                    onSort={toggleSort}
+                                    field="name"
+                                    label="Name"
+                                    width="54%"
+                                />
+                                <EquipmentSortHeader
+                                    sort={sort}
+                                    dir={dir}
+                                    onSort={toggleSort}
+                                    field="brand"
+                                    label="Brand"
+                                    width="24%"
+                                />
+                                <EquipmentSortHeader
+                                    sort={sort}
+                                    dir={dir}
+                                    onSort={toggleSort}
+                                    field="price"
+                                    label="Price"
+                                    width="22%"
+                                    align="right"
+                                />
                             </tr>
                         </thead>
                         <tbody>

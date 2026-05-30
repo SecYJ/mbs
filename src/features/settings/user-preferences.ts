@@ -57,7 +57,7 @@ const parseUserPreferences = (value: string | null): UserPreferences => {
     }
 };
 
-export const readUserPreferences = () => {
+const readUserPreferences = () => {
     if (typeof window === "undefined") return defaultUserPreferences;
 
     try {
@@ -79,11 +79,9 @@ const writeUserPreferences = (preferences: UserPreferences) => {
 };
 
 export const useUserPreferences = () => {
-    const [preferences, setPreferences] = useState(defaultUserPreferences);
+    const [preferences, setPreferences] = useState(readUserPreferences);
 
     useEffect(() => {
-        setPreferences(readUserPreferences());
-
         const handleStorage = (event: StorageEvent) => {
             if (event.key !== userPreferencesStorageKey) return;
             setPreferences(parseUserPreferences(event.newValue));

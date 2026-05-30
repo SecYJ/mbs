@@ -1,25 +1,33 @@
 import { isRedirect, redirect } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
+import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
 
-import { auth } from "@/lib/auth";
+const getServerSession = createServerOnlyFn(async () => {
+    const [{ getRequest }, { auth }] = await Promise.all([
+        import("@tanstack/react-start/server"),
+        import("@/lib/auth"),
+    ]);
 
-export const getCurrentSession = createServerFn({ method: "GET" }).handler(async () => {
     const request = getRequest();
     return auth.api.getSession({ headers: request.headers });
 });
 
-export const redirectAuthenticatedUser = async () => {
-    try {
-        const session = await getCurrentSession();
+export const getCurrentSession = createServerFn({ method: "GET" }).handler(async () => {
+    return getServerSession();
+});
 
-        if (session) {
-            throw redirect({ to: "/bookings" });
-        }
+export const redirectAuthenticatedUser = async () => {
+    let session = null;
+
+    try {
+        session = await getCurrentSession();
     } catch (error) {
         if (isRedirect(error)) {
             throw error;
         }
+    }
+
+    if (session) {
+        throw redirect({ to: "/bookings" });
     }
 };
 

@@ -31,7 +31,7 @@ const notificationSearchSchema = z.object({
         .catch(notificationFilterDefaults.filter),
 });
 
-const NotificationsPage = () => {
+export const NotificationsPage = () => {
     const { data: notifications } = useSuspenseQuery(notificationsQueryOptions());
     const { markAsRead, markAllAsRead, isMarkingRead, isMarkingAllRead } = useNotificationReadActions();
     const { filter } = Route.useSearch();
@@ -181,6 +181,7 @@ const NotificationsPage = () => {
     );
 };
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
 export const Route = createFileRoute("/_bookings/notifications")({
     validateSearch: notificationSearchSchema,
     search: {

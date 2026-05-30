@@ -5,7 +5,7 @@ import { ForgotPasswordForm } from "@/features/forgot-password/components/Forgot
 import { getForgotPasswordPage } from "@/features/forgot-password/rsc/forgot-password";
 import { redirectAuthenticatedUser } from "@/lib/session";
 
-const ForgotPasswordPage = () => {
+export const ForgotPasswordPage = () => {
     const { src } = Route.useLoaderData();
 
     return (
@@ -15,6 +15,7 @@ const ForgotPasswordPage = () => {
     );
 };
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
 export const Route = createFileRoute("/_auth/forgot-password")({
     beforeLoad: redirectAuthenticatedUser,
     loader: async () => await getForgotPasswordPage(),
