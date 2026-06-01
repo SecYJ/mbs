@@ -1,37 +1,34 @@
 import { useState } from "react";
+import { addDays, format, formatDuration, intervalToDuration, isPast as isPastDate, startOfDay } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
+import type { RoomBookingDaySegment } from "@/features/bookings/hooks/useRoomBookingDayModel";
 import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
-import {
-    addDays,
-    formatDuration,
-    formatLongDate,
-    formatTime,
-    getBookableSlotForSegment,
-    isPastEvent,
-    startOfDay,
-    type RoomDaySegment,
-} from "@/features/bookings/utils/room-booking-day.utils";
+import { cn } from "@/lib/utils";
+
+const formatSlotDuration = (start: Date, end: Date) =>
+    formatDuration(intervalToDuration({ start, end }), { format: ["hours", "minutes"] }) || "0 minutes";
 
 const BookedRoomSlot = ({
     segment,
     onOpen,
 }: {
-    segment: Extract<RoomDaySegment, { type: "booking" }>;
+    segment: Extract<RoomBookingDaySegment, { type: "booking" }>;
     onOpen: () => void;
 }) => {
-    const past = isPastEvent(segment.event);
+    const past = isPastDate(new Date(segment.event.end));
 
     return (
         <button
             type="button"
             onClick={onOpen}
-            className={`grid w-full cursor-pointer gap-3 border-t border-[var(--hairline)] px-1 py-4 text-left first:border-t-0 sm:grid-cols-[120px_1fr_auto] sm:items-center ${
-                past ? "opacity-55" : "transition-colors hover:bg-[var(--surface-01)]"
-            }`}
+            className={cn(
+                "grid w-full cursor-pointer gap-3 border-t border-[var(--hairline)] px-1 py-4 text-left first:border-t-0 sm:grid-cols-[120px_1fr_auto] sm:items-center",
+                past ? "opacity-55" : "transition-colors hover:bg-[var(--surface-01)]",
+            )}
         >
             <div className="tabular-num text-[0.72rem] font-semibold tracking-[0.12em] text-[var(--gold)] uppercase">
-                {formatTime(segment.start)} - {formatTime(segment.end)}
+                {format(segment.start, "HH:mm")} - {format(segment.end, "HH:mm")}
             </div>
             <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-[var(--bone)]">{segment.event.title}</p>
@@ -51,23 +48,25 @@ const AvailableRoomSlot = ({
     roomAvailable,
     onBook,
 }: {
-    segment: Extract<RoomDaySegment, { type: "free" }>;
+    segment: Extract<RoomBookingDaySegment, { type: "free" }>;
     roomAvailable: boolean;
     onBook: (slot: { start: Date; end: Date }) => void;
 }) => {
     const [now] = useState(() => Date.now());
-    const slot = getBookableSlotForSegment(segment);
+    const slot = segment.bookableSlot;
     const isPast = segment.end.getTime() <= now;
     const canBook = roomAvailable && !isPast && !!slot;
 
     return (
         <div className="grid gap-3 border-t border-[var(--hairline)] px-1 py-4 first:border-t-0 sm:grid-cols-[120px_1fr_auto] sm:items-center">
             <div className="tabular-num text-[0.72rem] font-semibold tracking-[0.12em] text-[var(--bone-dim)] uppercase">
-                {formatTime(segment.start)} - {formatTime(segment.end)}
+                {format(segment.start, "HH:mm")} - {format(segment.end, "HH:mm")}
             </div>
             <div className="min-w-0">
                 <p className="text-sm font-semibold text-[var(--bone)]">Open</p>
-                <p className="mt-1 text-xs text-[var(--bone-muted)]">{formatDuration(segment.start, segment.end)}</p>
+                <p className="mt-1 text-xs text-[var(--bone-muted)]">
+                    {formatSlotDuration(segment.start, segment.end)}
+                </p>
             </div>
             <button
                 type="button"
@@ -94,7 +93,7 @@ export const RoomBookingSchedule = ({
     onDateChange: (date: Date) => void;
     onOpenBooking: (event: BookingCalendarEvent) => void;
     roomAvailable: boolean;
-    segments: RoomDaySegment[];
+    segments: RoomBookingDaySegment[];
     selectedDate: Date;
 }) => {
     const goToToday = () => {
@@ -106,7 +105,9 @@ export const RoomBookingSchedule = ({
             <div className="flex flex-wrap items-center justify-between gap-4 border-y border-[var(--hairline)] py-4">
                 <div>
                     <p className="eyebrow eyebrow-gold">Schedule</p>
-                    <h2 className="mt-1 text-xl font-semibold text-[var(--bone)]">{formatLongDate(selectedDate)}</h2>
+                    <h2 className="mt-1 text-xl font-semibold text-[var(--bone)]">
+                        {format(selectedDate, "EEEE, MMMM d, yyyy")}
+                    </h2>
                 </div>
                 <div className="flex items-center gap-1">
                     <button

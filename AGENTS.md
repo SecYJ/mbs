@@ -20,7 +20,7 @@ Before substantial work:
 - Conditional `className` values must use the `cn` function instead of string template literals or inline conditional strings.
 
 ## TypeScript
-
+- use type instead of interface
 - prefer auto-inferred return types over explicit return type annotations.
 
 ## React

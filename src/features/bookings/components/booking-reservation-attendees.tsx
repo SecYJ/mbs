@@ -1,22 +1,31 @@
 import { useState } from "react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Users, X } from "lucide-react";
+import { useFormContext, useWatch } from "react-hook-form";
 
 import { Label } from "@/components/ui/label";
 import { BookingAttendeePickerDialog } from "@/features/bookings/components/booking-attendee-picker-dialog";
-import type { BookableUser } from "@/features/bookings/components/booking-reservation-editor.types";
+import type { BookingReservationFormValues } from "@/features/bookings/hooks/useBookingReservationForm";
+import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
 
-interface BookingReservationAttendeesProps {
-    users: BookableUser[];
-    selectedIds: string[];
-    onChange: (ids: string[]) => void;
-}
-
-export const BookingReservationAttendees = ({ users, selectedIds, onChange }: BookingReservationAttendeesProps) => {
+export const BookingReservationAttendees = () => {
+    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+    const { control, setValue } = useFormContext<BookingReservationFormValues>();
     const [attendeePickerOpen, setAttendeePickerOpen] = useState(false);
+    const selectedIds = useWatch({ control, name: "attendeeIds" });
+    const users = data.currentUserId ? data.users.filter((user) => user.id !== data.currentUserId) : data.users;
     const selectedAttendees = users.filter((user) => selectedIds.includes(user.id));
 
+    const openAttendeePicker = () => {
+        setValue("draftAttendeeIds", selectedIds);
+        setAttendeePickerOpen(true);
+    };
+
     const removeAttendee = (userId: string) => {
-        onChange(selectedIds.filter((id) => id !== userId));
+        setValue(
+            "attendeeIds",
+            selectedIds.filter((id) => id !== userId),
+        );
     };
 
     return (
@@ -24,7 +33,7 @@ export const BookingReservationAttendees = ({ users, selectedIds, onChange }: Bo
             <Label className="eyebrow block">Attendees</Label>
             <button
                 type="button"
-                onClick={() => setAttendeePickerOpen(true)}
+                onClick={openAttendeePicker}
                 className="flex h-10 w-full cursor-pointer items-center justify-between border border-(--hairline) bg-(--surface-02) px-3 text-left transition-all hover:border-(--hairline-strong)"
             >
                 <span className="flex items-center gap-3">
@@ -56,13 +65,7 @@ export const BookingReservationAttendees = ({ users, selectedIds, onChange }: Bo
                 </div>
             )}
             {attendeePickerOpen ? (
-                <BookingAttendeePickerDialog
-                    open={attendeePickerOpen}
-                    onOpenChange={setAttendeePickerOpen}
-                    users={users}
-                    selectedIds={selectedIds}
-                    onCommit={onChange}
-                />
+                <BookingAttendeePickerDialog open={attendeePickerOpen} onOpenChange={setAttendeePickerOpen} />
             ) : null}
         </div>
     );

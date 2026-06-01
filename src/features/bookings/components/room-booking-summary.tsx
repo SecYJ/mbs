@@ -1,9 +1,45 @@
 import type { ReactNode } from "react";
+import { formatDuration, intervalToDuration } from "date-fns";
 import { CalendarDays, Clock, MapPin, Users } from "lucide-react";
 
-import type { BookingCalendarData } from "@/features/bookings/services/queries";
-import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
-import { formatMinuteDuration } from "@/features/bookings/utils/room-booking-day.utils";
+import { useRoomBookingSummaryModel } from "@/features/bookings/hooks/useRoomBookingSummaryModel";
+import { cn } from "@/lib/utils";
+
+export const RoomBookingSummary = () => {
+    const { bookingCount, freeMinutes, liveEvent, room } = useRoomBookingSummaryModel();
+
+    if (!room) return null;
+
+    return (
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <RoomBookingStat
+                icon={<MapPin className="size-4" strokeWidth={1.4} />}
+                label="Location"
+                value={room.location}
+            />
+            <RoomBookingStat
+                icon={<Users className="size-4" strokeWidth={1.4} />}
+                label="Capacity"
+                value={`${room.capacity} people`}
+            />
+            <RoomBookingStat
+                icon={<Clock className="size-4" strokeWidth={1.4} />}
+                label="Free Today"
+                value={formatFreeDuration(freeMinutes)}
+            />
+            <RoomBookingStat
+                icon={<CalendarDays className="size-4" strokeWidth={1.4} />}
+                label="Bookings"
+                value={bookingCount}
+                accent={liveEvent ? "signal" : undefined}
+            />
+        </section>
+    );
+};
+
+const formatFreeDuration = (minutes: number) =>
+    formatDuration(intervalToDuration({ start: 0, end: minutes * 60_000 }), { format: ["hours", "minutes"] }) ||
+    "0 minutes";
 
 const RoomBookingStat = ({
     icon,
@@ -23,48 +59,13 @@ const RoomBookingStat = ({
         <div className="min-w-0">
             <p className="eyebrow">{label}</p>
             <p
-                className={`mt-1 truncate text-sm font-semibold ${
-                    accent === "signal" ? "text-[var(--signal)]" : "text-[var(--bone)]"
-                }`}
+                className={cn(
+                    "mt-1 truncate text-sm font-semibold",
+                    accent === "signal" ? "text-[var(--signal)]" : "text-[var(--bone)]",
+                )}
             >
                 {value}
             </p>
         </div>
     </div>
-);
-
-export const RoomBookingSummary = ({
-    bookingCount,
-    freeMinutes,
-    liveEvent,
-    room,
-}: {
-    bookingCount: number;
-    freeMinutes: number;
-    liveEvent: BookingCalendarEvent | undefined;
-    room: BookingCalendarData["rooms"][number];
-}) => (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <RoomBookingStat
-            icon={<MapPin className="size-4" strokeWidth={1.4} />}
-            label="Location"
-            value={room.location}
-        />
-        <RoomBookingStat
-            icon={<Users className="size-4" strokeWidth={1.4} />}
-            label="Capacity"
-            value={`${room.capacity} people`}
-        />
-        <RoomBookingStat
-            icon={<Clock className="size-4" strokeWidth={1.4} />}
-            label="Free Today"
-            value={formatMinuteDuration(freeMinutes)}
-        />
-        <RoomBookingStat
-            icon={<CalendarDays className="size-4" strokeWidth={1.4} />}
-            label="Bookings"
-            value={bookingCount}
-            accent={liveEvent ? "signal" : undefined}
-        />
-    </section>
 );

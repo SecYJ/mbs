@@ -4,34 +4,37 @@ import type { EventInput } from "@fullcalendar/core";
 
 import type {
     BookingFormData,
-    BookingReservationEditorControls,
-    BookingReservationMode,
-    BookingReservationPrefill,
+    BookingReservationDialogState,
+    BookingReservationInitialDetails,
 } from "@/features/bookings/components/booking-reservation-editor.types";
 import { useBookingMutationFlow } from "@/features/bookings/hooks/useBookingMutationFlow";
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
 import { getBookingEventInput, type BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
+import { useShallow } from "zustand/shallow";
 
-const emptyPrefill: BookingReservationPrefill = {};
-
-type BookingReservationEditorState = {
-    event: EventInput | null;
-    mode: BookingReservationMode;
-    open: boolean;
-    prefill: BookingReservationPrefill;
-};
+const emptyInitialDetails: BookingReservationInitialDetails = {};
 
 const getEditorResetKey = ({
     currentUserId,
-    event,
-    mode,
-    prefill,
-}: BookingReservationEditorState & { currentUserId?: string }) => {
-    const eventKey = event?.id ? String(event.id) : "new";
-    const prefillStart = prefill.start?.toISOString() ?? "";
-    const prefillEnd = prefill.end?.toISOString() ?? "";
+    dialogState,
+}: {
+    currentUserId?: string;
+    dialogState: BookingReservationDialogState;
+}) => {
+    if (dialogState.mode === "view") {
+        return ["view", dialogState.event.id ? String(dialogState.event.id) : "new", currentUserId ?? ""].join("|");
+    }
 
-    return [mode, eventKey, prefill.roomId ?? "", prefillStart, prefillEnd, currentUserId ?? ""].join("|");
+    const initialDetails = dialogState.initialDetails ?? emptyInitialDetails;
+
+    return [
+        "create",
+        initialDetails.roomId ?? "",
+        initialDetails.start?.toISOString() ?? "",
+        initialDetails.end?.toISOString() ?? "",
+        currentUserId ?? "",
+    ].join("|");
 };
 
 const getSelectedBooking = (event: EventInput | null, events: BookingCalendarEvent[]) => {
@@ -42,70 +45,51 @@ const getSelectedBooking = (event: EventInput | null, events: BookingCalendarEve
 const getEventRoomId = (event: EventInput | null) =>
     String(event?.resourceId ?? event?.extendedProps?.resourceId ?? "");
 
-export const useBookingReservationEditor = ({
-    onClose,
-}: {
-    onClose?: () => void;
-} = {}) => {
+export const useBookingReservationEditor = () => {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
-    const [editor, setEditor] = useState<BookingReservationEditorState>({
-        event: null,
-        mode: "create",
-        open: false,
-        prefill: emptyPrefill,
-    });
     const [isEditing, setIsEditing] = useState(false);
+    const [dialogState, { closeReservationDialog }] = useBookingCalendarStore(
+        useShallow((state) => [state.activeReservationDialog, state.actions]),
+    );
+    const isExistingReservation = dialogState?.mode === "view";
+    const initialDetails =
+        dialogState?.mode === "create" ? (dialogState.initialDetails ?? emptyInitialDetails) : emptyInitialDetails;
+    const sourceEvent = dialogState?.mode === "view" ? dialogState.event : null;
+
+    const onOpenChange = (open: boolean) => {
+        if (!open) {
+            closeReservationDialog();
+        }
+    };
 
     const closeEditor = () => {
-        setEditor((current) => ({ ...current, open: false }));
         setIsEditing(false);
-        onClose?.();
+        onOpenChange(false);
     };
 
     const mutationFlow = useBookingMutationFlow({ onCompleted: closeEditor });
 
-    const openNewReservation: BookingReservationEditorControls["openNewReservation"] = (nextPrefill = {}) => {
-        mutationFlow.reset();
-        setIsEditing(false);
-        setEditor({
-            event: null,
-            mode: "create",
-            open: true,
-            prefill: nextPrefill,
-        });
-    };
-
-    const openExistingReservation: BookingReservationEditorControls["openExistingReservation"] = (event) => {
-        mutationFlow.reset();
-        setIsEditing(false);
-        setEditor({
-            event,
-            mode: "view",
-            open: true,
-            prefill: emptyPrefill,
-        });
-    };
-
     const handleOpenChange = (nextOpen: boolean) => {
         if (nextOpen) {
-            setEditor((current) => ({ ...current, open: true }));
+            onOpenChange(true);
             return;
         }
 
         closeEditor();
     };
 
-    const selectedBooking = getSelectedBooking(editor.event, data.events);
-    const event = selectedBooking ? getBookingEventInput(selectedBooking) : editor.event;
-    const isViewingDetails = editor.mode === "view" && !!event && !isEditing;
-    const isEditingReservation = editor.mode === "view" && isEditing;
-    const selectedRoomId = isViewingDetails ? getEventRoomId(event) : undefined;
+    const selectedBooking = getSelectedBooking(sourceEvent, data.events);
+    const event = selectedBooking ? getBookingEventInput(selectedBooking) : sourceEvent;
+    const isDetailsMode = isExistingReservation && !!event && !isEditing;
+    const isEditMode = isExistingReservation && isEditing;
+    const isMissingReservation = isExistingReservation && !event;
+    const selectedRoomId = isDetailsMode ? getEventRoomId(event) : undefined;
     const selectedRoom = selectedRoomId ? data.rooms.find((room) => room.id === selectedRoomId) : undefined;
     const canManage =
-        editor.mode === "view" && (selectedBooking?.canManage ?? event?.extendedProps?.canManage) === true;
+        isExistingReservation && (selectedBooking?.canManage ?? event?.extendedProps?.canManage) === true;
 
     const submitReservation = (formData: BookingFormData) => {
-        if (isEditingReservation && event?.id) {
+        if (isEditMode && event?.id) {
             mutationFlow.updateBookingReservation(String(event.id), formData);
             return;
         }
@@ -119,7 +103,7 @@ export const useBookingReservationEditor = ({
     };
 
     const cancelForm = () => {
-        if (isEditingReservation) {
+        if (isEditMode) {
             setIsEditing(false);
             return;
         }
@@ -128,33 +112,23 @@ export const useBookingReservationEditor = ({
     };
 
     return {
-        controls: {
-            openExistingReservation,
-            openNewReservation,
-        },
-        dialog: {
-            canManage,
-            cancelError: mutationFlow.cancelError,
-            cancelReservation,
-            currentUserId: data.currentUserId,
-            error: isEditingReservation ? mutationFlow.updateError : mutationFlow.createError,
-            event,
-            isCancelling: mutationFlow.isCancelling,
-            isEditingReservation,
-            isSubmitting: isEditingReservation ? mutationFlow.isUpdating : mutationFlow.isSubmitting,
-            isUnavailable: editor.mode === "view" && !event,
-            isViewingDetails,
-            onCancelForm: cancelForm,
-            onOpenChange: handleOpenChange,
-            onStartEditing: () => setIsEditing(true),
-            onSubmit: submitReservation,
-            open: editor.open,
-            prefill: editor.prefill,
-            resetKey: getEditorResetKey({ ...editor, currentUserId: data.currentUserId }),
-            rooms: data.rooms,
-            selectedRoom,
-            users: data.users,
-            widthClass: isViewingDetails ? "sm:max-w-md" : "sm:max-w-lg",
-        },
+        canManage,
+        cancelReservation,
+        dialogState,
+        event,
+        formError: isEditMode ? mutationFlow.updateError : mutationFlow.createError,
+        initialDetails,
+        isDetailsMode,
+        isEditMode,
+        isFormSubmitting: isEditMode ? mutationFlow.isUpdating : mutationFlow.isSubmitting,
+        isMissingReservation,
+        mutationFlow,
+        onCancelForm: cancelForm,
+        onOpenChange: handleOpenChange,
+        onStartEditing: () => setIsEditing(true),
+        onSubmit: submitReservation,
+        resetKey: dialogState ? getEditorResetKey({ currentUserId: data.currentUserId, dialogState }) : "closed",
+        selectedRoom,
+        widthClass: isDetailsMode ? "sm:max-w-md" : "sm:max-w-lg",
     };
 };

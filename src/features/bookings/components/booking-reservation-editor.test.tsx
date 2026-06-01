@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vite-plus/test";
 
-import { BookingReservationEditor } from "./booking-reservation-editor";
-import type { BookingReservationPrefill } from "./booking-reservation-editor.types";
+import { BookingReservationEditorDialog } from "./booking-reservation-editor-dialog";
+import type {
+    BookingReservationDialogState,
+    BookingReservationInitialDetails,
+} from "./booking-reservation-editor.types";
 
 type MockUser = {
     id: string;
@@ -90,22 +93,43 @@ vi.mock("@/features/bookings/hooks/useBookingMutationFlow", () => ({
     useBookingMutationFlow: () => mocks.mutationFlow,
 }));
 
-const basePrefill = {
+const baseInitialDetails = {
     roomId: "room-1",
     start: new Date("2099-04-29T09:00:00"),
     end: new Date("2099-04-29T10:00:00"),
 };
 
-const renderOpenEditor = (prefill: BookingReservationPrefill = basePrefill) => {
-    render(
-        <BookingReservationEditor>
-            {({ openNewReservation }) => (
-                <button type="button" onClick={() => openNewReservation(prefill)}>
+const renderOpenEditor = (initialDetails: BookingReservationInitialDetails = baseInitialDetails) => {
+    const ReservationEditorTestHarness = () => {
+        const [activeReservationDialog, setActiveReservationDialog] =
+            useState<BookingReservationDialogState | null>(null);
+
+        const handleOpenReservationEditor = () => {
+            setActiveReservationDialog({ mode: "create", initialDetails });
+        };
+
+        const handleReservationDialogOpenChange = (open: boolean) => {
+            if (!open) {
+                setActiveReservationDialog(null);
+            }
+        };
+
+        return (
+            <>
+                <button type="button" onClick={handleOpenReservationEditor}>
                     Open reservation editor
                 </button>
-            )}
-        </BookingReservationEditor>,
-    );
+                {activeReservationDialog ? (
+                    <BookingReservationEditorDialog
+                        dialogState={activeReservationDialog}
+                        onOpenChange={handleReservationDialogOpenChange}
+                    />
+                ) : null}
+            </>
+        );
+    };
+
+    render(<ReservationEditorTestHarness />);
 
     fireEvent.click(screen.getByRole("button", { name: "Open reservation editor" }));
 };

@@ -1,7 +1,7 @@
+import { format } from "date-fns";
 import { Monitor } from "lucide-react";
 
 import type { BookingCalendarData } from "@/features/bookings/services/queries";
-import { formatShortDate, formatTime } from "@/features/bookings/utils/room-booking-day.utils";
 
 export const RoomBookingEquipment = ({
     bookableSlot,
@@ -43,10 +43,10 @@ export const RoomBookingEquipment = ({
                     className="mt-4 block w-full cursor-pointer border border-[var(--hairline)] bg-[var(--surface-01)] p-4 text-left transition-colors hover:border-[var(--hairline-strong)] hover:bg-[var(--surface-02)]"
                 >
                     <span className="block text-sm font-semibold text-[var(--bone)]">
-                        {formatShortDate(bookableSlot.start)}
+                        {format(bookableSlot.start, "EEE, MMM d")}
                     </span>
                     <span className="tabular-num mt-2 block text-xl text-[var(--gold)]">
-                        {formatTime(bookableSlot.start)} - {formatTime(bookableSlot.end)}
+                        {format(bookableSlot.start, "HH:mm")} - {format(bookableSlot.end, "HH:mm")}
                     </span>
                     <span className="mt-2 block text-xs leading-5 text-[var(--bone-muted)]">
                         Next available reservation window.

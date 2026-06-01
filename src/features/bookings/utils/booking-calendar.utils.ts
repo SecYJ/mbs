@@ -6,13 +6,6 @@ export type BookingCalendarEvent = BookingCalendarData["events"][number];
 export const bookingCalendarViews = ["day", "week", "month", "year"] as const;
 export type BookingCalendarView = (typeof bookingCalendarViews)[number];
 
-export type RoomAccent = {
-    hue: string;
-    stripe: string;
-    wash: string;
-    washHover: string;
-};
-
 export type FilterableRoom = {
     capacity: number;
     equipment: string[];
@@ -31,41 +24,6 @@ export const bookingCalendarViewMap: Record<BookingCalendarView, string> = {
     month: "dayGridMonth",
     year: "multiMonthYear",
 };
-
-const roomAccents: RoomAccent[] = [
-    {
-        hue: "Amber",
-        stripe: "#e8c29a",
-        wash: "rgba(232,194,154,0.06)",
-        washHover: "rgba(232,194,154,0.12)",
-    },
-    {
-        hue: "Rust",
-        stripe: "#b66a4a",
-        wash: "rgba(182,106,74,0.07)",
-        washHover: "rgba(182,106,74,0.14)",
-    },
-    {
-        hue: "Steel",
-        stripe: "#7a8fa8",
-        wash: "rgba(122,143,168,0.07)",
-        washHover: "rgba(122,143,168,0.14)",
-    },
-    {
-        hue: "Sage",
-        stripe: "#6a8a6e",
-        wash: "rgba(106,138,110,0.07)",
-        washHover: "rgba(106,138,110,0.14)",
-    },
-    {
-        hue: "Plum",
-        stripe: "#8a6a8a",
-        wash: "rgba(138,106,138,0.07)",
-        washHover: "rgba(138,106,138,0.14)",
-    },
-];
-
-export const getRoomAccent = (index: number) => roomAccents[index % roomAccents.length] ?? roomAccents[0];
 
 export const getBookingEventInput = (event: BookingCalendarEvent) => ({
     id: event.id,

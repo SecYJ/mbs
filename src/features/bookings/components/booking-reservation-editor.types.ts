@@ -11,13 +11,10 @@ export interface BookingFormData {
     description: string;
 }
 
-export type BookingReservationPrefill = { roomId?: string; start?: Date; end?: Date };
-export type BookingReservationMode = "create" | "view";
-
-export interface BookingReservationEditorControls {
-    openExistingReservation: (event: EventInput) => void;
-    openNewReservation: (prefill?: BookingReservationPrefill) => void;
-}
+export type BookingReservationInitialDetails = { roomId?: string; start?: Date; end?: Date };
+export type BookingReservationDialogState =
+    | { mode: "create"; initialDetails?: BookingReservationInitialDetails }
+    | { mode: "view"; event: EventInput };
 
 export type BookingReservationRoom = BookingCalendarData["rooms"][number];
 export type BookableUser = BookingCalendarData["users"][number];

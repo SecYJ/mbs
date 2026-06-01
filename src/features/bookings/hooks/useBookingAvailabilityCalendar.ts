@@ -6,19 +6,13 @@ import { bookingCalendarQueryOptions } from "@/features/bookings/services/querie
 import {
     getBookingEventInput,
     getFilteredRooms,
-    getRoomAccent,
     getRoomFilterState,
     getVisibleEvents,
-    type RoomAccent,
 } from "@/features/bookings/utils/booking-calendar.utils";
 
-export const useBookingCalendarModel = () => {
+export const useBookingAvailabilityCalendar = () => {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
     const { capacity, equipment, location, view } = useSearch({ from: "/_bookings/bookings" });
-    const accentByRoomId: Record<string, RoomAccent> = {};
-    data.rooms.forEach((room, index) => {
-        accentByRoomId[room.id] = getRoomAccent(index);
-    });
 
     const roomFilterState = getRoomFilterState({ capacity, equipment, location });
     const filteredRooms = getFilteredRooms(data.rooms, roomFilterState);
@@ -30,24 +24,14 @@ export const useBookingCalendarModel = () => {
             location: room.location,
             capacity: room.capacity,
             equipment: room.equipment,
-            accent: accentByRoomId[room.id],
         },
     }));
 
     const events = data.events.map<EventInput>(getBookingEventInput);
-    const visibleEvents = getVisibleEvents(events, filteredRooms, view);
-    const hasRooms = data.rooms.length > 0;
-    const hasFilteredRooms = filteredRooms.length > 0;
 
     return {
-        accentByRoomId,
-        data,
-        filteredRooms,
-        hasRooms,
+        events: getVisibleEvents(events, filteredRooms, view),
         resources,
-        showCalendar: hasRooms && hasFilteredRooms,
-        showFilterZeroState: hasRooms && !hasFilteredRooms,
         view,
-        visibleEvents,
     };
 };

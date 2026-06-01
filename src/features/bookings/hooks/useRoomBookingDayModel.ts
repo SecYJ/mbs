@@ -1,21 +1,141 @@
-import type { BookingCalendarData } from "@/features/bookings/services/queries";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
 import {
-    getDayBounds,
-    getDaySegments,
-    getFirstBookableSlot,
-    getRoomDayEvents,
-    parseDateKey,
-} from "@/features/bookings/utils/room-booking-day.utils";
+    addDays,
+    addMinutes,
+    compareAsc,
+    differenceInMinutes,
+    format,
+    isAfter,
+    isBefore,
+    isValid,
+    max as maxDate,
+    min as minDate,
+    parse,
+    set,
+    startOfDay,
+} from "date-fns";
 
-export const useRoomBookingDayModel = ({
-    data,
-    date,
-    roomId,
-}: {
-    data: BookingCalendarData;
-    date: string | undefined;
-    roomId: string;
-}) => {
+import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
+
+export type RoomBookingSlot = {
+    start: Date;
+    end: Date;
+};
+
+export type RoomBookingDaySegment =
+    | {
+          type: "booking";
+          start: Date;
+          end: Date;
+          event: BookingCalendarEvent;
+      }
+    | {
+          type: "free";
+          start: Date;
+          end: Date;
+          bookableSlot: RoomBookingSlot | null;
+      };
+
+const parseDateKey = (value: string | undefined) => {
+    if (!value) return startOfDay(new Date());
+
+    const parsedDate = parse(value, "yyyy-MM-dd", new Date());
+
+    if (!isValid(parsedDate) || format(parsedDate, "yyyy-MM-dd") !== value) {
+        return startOfDay(new Date());
+    }
+
+    return startOfDay(parsedDate);
+};
+
+const getDayBounds = (date: Date) => {
+    const start = set(date, { hours: 7, minutes: 0, seconds: 0, milliseconds: 0 });
+    const end = addDays(startOfDay(date), 1);
+    return { start, end };
+};
+
+const roundUpToHalfHour = (date: Date) => {
+    const withoutSeconds = set(date, { seconds: 0, milliseconds: 0 });
+    const remainder = withoutSeconds.getMinutes() % 30;
+    const rounded = remainder > 0 ? addMinutes(withoutSeconds, 30 - remainder) : withoutSeconds;
+
+    return rounded.getTime() <= date.getTime() ? addMinutes(rounded, 30) : rounded;
+};
+
+const getBookableSlot = (start: Date, end: Date) => {
+    const slotStart = maxDate([start, roundUpToHalfHour(new Date())]);
+    const slotEnd = minDate([addMinutes(slotStart, 60), end]);
+
+    return isAfter(slotEnd, slotStart) ? { start: slotStart, end: slotEnd } : null;
+};
+
+const getRoomDayEvents = (events: BookingCalendarEvent[], roomId: string, dayStart: Date, dayEnd: Date) =>
+    events
+        .filter((event) => {
+            if (event.roomId !== roomId) return false;
+
+            return isBefore(new Date(event.start), dayEnd) && isAfter(new Date(event.end), dayStart);
+        })
+        .toSorted((a, b) => compareAsc(new Date(a.start), new Date(b.start)));
+
+const getDaySegments = (events: BookingCalendarEvent[], dayStart: Date, dayEnd: Date) => {
+    const segments: RoomBookingDaySegment[] = [];
+    let cursor = dayStart;
+
+    for (const event of events) {
+        const bookingStart = maxDate([new Date(event.start), dayStart]);
+        const bookingEnd = minDate([new Date(event.end), dayEnd]);
+
+        if (isAfter(bookingStart, cursor)) {
+            segments.push({
+                type: "free",
+                start: cursor,
+                end: bookingStart,
+                bookableSlot: getBookableSlot(cursor, bookingStart),
+            });
+        }
+
+        if (isAfter(bookingEnd, bookingStart)) {
+            segments.push({ type: "booking", start: bookingStart, end: bookingEnd, event });
+        }
+
+        if (isAfter(bookingEnd, cursor)) {
+            cursor = bookingEnd;
+        }
+    }
+
+    if (isBefore(cursor, dayEnd)) {
+        segments.push({
+            type: "free",
+            start: cursor,
+            end: dayEnd,
+            bookableSlot: getBookableSlot(cursor, dayEnd),
+        });
+    }
+
+    return segments;
+};
+
+const getFirstBookableSlot = (segments: RoomBookingDaySegment[], roomAvailable: boolean) => {
+    if (!roomAvailable) return null;
+
+    for (const segment of segments) {
+        if (segment.type === "free" && segment.bookableSlot) {
+            return segment.bookableSlot;
+        }
+    }
+
+    return null;
+};
+
+export const useRoomBookingDayModel = () => {
+    const { roomId } = useParams({ from: "/_bookings/rooms/$roomId" });
+    const { date } = useSearch({ from: "/_bookings/rooms/$roomId" });
+    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+    const navigate = useNavigate({ from: "/rooms/$roomId" });
+
     const selectedDate = parseDateKey(date);
     const room = data.rooms.find((item) => item.id === roomId);
     const { start: dayStart, end: dayEnd } = getDayBounds(selectedDate);
@@ -23,10 +143,7 @@ export const useRoomBookingDayModel = ({
     const segments = getDaySegments(dayEvents, dayStart, dayEnd);
     const bookableSlot = getFirstBookableSlot(segments, room?.available ?? false);
     const freeMinutes = segments.reduce(
-        (total, segment) =>
-            segment.type === "free"
-                ? total + Math.max(0, segment.end.getTime() - segment.start.getTime()) / 60_000
-                : total,
+        (total, segment) => (segment.type === "free" ? total + differenceInMinutes(segment.end, segment.start) : total),
         0,
     );
     const liveEvent = dayEvents.find((event) => {
@@ -35,6 +152,12 @@ export const useRoomBookingDayModel = ({
         const now = Date.now();
         return start <= now && now < end;
     });
+    const goToDate = (nextDate: Date) => {
+        navigate({
+            search: (prev) => ({ ...prev, date: format(nextDate, "yyyy-MM-dd") }),
+            replace: true,
+        });
+    };
 
     return {
         bookableSlot,
@@ -42,6 +165,7 @@ export const useRoomBookingDayModel = ({
         dayEvents,
         dayStart,
         freeMinutes,
+        goToDate,
         liveEvent,
         room,
         segments,

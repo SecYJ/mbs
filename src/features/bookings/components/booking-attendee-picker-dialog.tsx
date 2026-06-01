@@ -1,29 +1,26 @@
 import { useState } from "react";
 import { LegendList } from "@legendapp/list/react";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
+import { useFormContext, useWatch } from "react-hook-form";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { BOOKING_RESERVATION_DIALOG_CLASS } from "@/features/bookings/components/booking-reservation-editor.constants";
-import type { BookableUser } from "@/features/bookings/components/booking-reservation-editor.types";
+import type { BookingReservationFormValues } from "@/features/bookings/hooks/useBookingReservationForm";
+import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { cn } from "@/lib/utils";
 
-interface BookingAttendeePickerDialogProps {
+type BookingAttendeePickerDialogProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    users: BookableUser[];
-    selectedIds: string[];
-    onCommit: (ids: string[]) => void;
-}
+};
 
-export const BookingAttendeePickerDialog = ({
-    open,
-    onOpenChange,
-    users,
-    selectedIds,
-    onCommit,
-}: BookingAttendeePickerDialogProps) => {
+export const BookingAttendeePickerDialog = ({ open, onOpenChange }: BookingAttendeePickerDialogProps) => {
+    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+    const { control, setValue } = useFormContext<BookingReservationFormValues>();
     const [search, setSearch] = useState("");
-    const [draftIds, setDraftIds] = useState(() => selectedIds);
+    const draftIds = useWatch({ control, name: "draftAttendeeIds" });
+    const users = data.currentUserId ? data.users.filter((user) => user.id !== data.currentUserId) : data.users;
 
     const normalizedSearch = search.trim().toLowerCase();
     const filteredUsers =
@@ -37,19 +34,30 @@ export const BookingAttendeePickerDialog = ({
     const selectedUsers = users.filter((user) => draftIds.includes(user.id));
 
     const toggleUser = (userId: string) => {
-        setDraftIds((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]));
+        setValue(
+            "draftAttendeeIds",
+            draftIds.includes(userId) ? draftIds.filter((id) => id !== userId) : [...draftIds, userId],
+        );
     };
     const removeUser = (userId: string) => {
-        setDraftIds((prev) => prev.filter((id) => id !== userId));
+        setValue(
+            "draftAttendeeIds",
+            draftIds.filter((id) => id !== userId),
+        );
     };
     const handleDone = () => {
-        onCommit(draftIds);
+        setValue("attendeeIds", draftIds);
         onOpenChange(false);
     };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={`${BOOKING_RESERVATION_DIALOG_CLASS} sm:max-w-2xl`}>
+            <DialogContent
+                className={cn(
+                    "rounded-none border border-(--hairline) bg-(--surface-01) text-(--bone) shadow-[0_40px_80px_rgba(0,0,0,0.6)]",
+                    "sm:max-w-2xl",
+                )}
+            >
                 <DialogHeader>
                     <p className="eyebrow eyebrow-gold">Invite</p>
                     <DialogTitle className="display-italic mt-2 text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
@@ -107,6 +115,7 @@ export const BookingAttendeePickerDialog = ({
                             renderItem={({ item }) => {
                                 const checked = draftIds.includes(item.id);
                                 const inputId = `attendee-${item.id}`;
+
                                 return (
                                     <label
                                         htmlFor={inputId}

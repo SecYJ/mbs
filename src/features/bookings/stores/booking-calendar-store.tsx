@@ -1,7 +1,12 @@
 import { createContext, use, useState, type ReactNode } from "react";
-import type { DatesSetArg } from "@fullcalendar/core";
+import type { DatesSetArg, EventInput } from "@fullcalendar/core";
 import type FullCalendar from "@fullcalendar/react";
 import { createStore, useStore } from "zustand";
+
+import type {
+    BookingReservationDialogState,
+    BookingReservationInitialDetails,
+} from "@/features/bookings/components/booking-reservation-editor.types";
 
 type BookingCalendarVisibleRange = {
     activeEnd: Date;
@@ -10,9 +15,13 @@ type BookingCalendarVisibleRange = {
 };
 
 type BookingCalendarState = {
+    activeReservationDialog: BookingReservationDialogState | null;
     calendar: FullCalendar | null;
     visibleRange: BookingCalendarVisibleRange | null;
     actions: {
+        closeReservationDialog: () => void;
+        openExistingReservation: (event: EventInput) => void;
+        openNewReservation: (initialDetails?: BookingReservationInitialDetails) => void;
         goNext: () => void;
         goPrev: () => void;
         goToday: () => void;
@@ -24,9 +33,19 @@ type BookingCalendarState = {
 
 const createScopedStore = () =>
     createStore<BookingCalendarState>((set, get) => ({
+        activeReservationDialog: null,
         calendar: null,
         visibleRange: null,
         actions: {
+            closeReservationDialog: () => {
+                set({ activeReservationDialog: null });
+            },
+            openExistingReservation: (event) => {
+                set({ activeReservationDialog: { mode: "view", event } });
+            },
+            openNewReservation: (initialDetails) => {
+                set({ activeReservationDialog: { mode: "create", initialDetails } });
+            },
             goNext: () => get().calendar?.getApi().next(),
             goPrev: () => get().calendar?.getApi().prev(),
             goToday: () => get().calendar?.getApi().today(),

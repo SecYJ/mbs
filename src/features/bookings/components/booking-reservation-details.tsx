@@ -1,13 +1,14 @@
 import { useState, type ReactNode } from "react";
 import type { EventInput } from "@fullcalendar/core";
+import { format } from "date-fns";
 import { Ban, Clock, MapPin, Pencil, Users } from "lucide-react";
+import { z } from "zod";
 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { BookingReservationRoom } from "@/features/bookings/components/booking-reservation-editor.types";
-import { formatDateDisplay, formatTimeDisplay } from "@/features/bookings/utils/booking-reservation-display.utils";
 
-interface BookingReservationDetailsProps {
+type BookingReservationDetailsProps = {
     canManage: boolean;
     cancelError: string | null;
     event: EventInput;
@@ -15,11 +16,13 @@ interface BookingReservationDetailsProps {
     onCancelBooking: (cancelReason: string) => void;
     onEdit: () => void;
     selectedRoom?: BookingReservationRoom;
-}
+};
 
-const getStringArrayProp = (value: unknown) =>
-    Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-const getStringProp = (value: unknown) => (typeof value === "string" ? value : "");
+const bookingReservationExtendedPropsSchema = z.object({
+    attendees: z.string().array().catch([]),
+    description: z.string().catch(""),
+    organizer: z.string().catch(""),
+});
 
 export const BookingReservationDetails = ({
     canManage,
@@ -32,9 +35,16 @@ export const BookingReservationDetails = ({
 }: BookingReservationDetailsProps) => {
     const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
-    const attendees = getStringArrayProp(event.extendedProps?.attendees);
-    const description = getStringProp(event.extendedProps?.description);
-    const organizer = getStringProp(event.extendedProps?.organizer) || "Unknown";
+
+    const {
+        attendees,
+        description,
+        organizer: organizerName,
+    } = bookingReservationExtendedPropsSchema.parse(event.extendedProps);
+
+    const organizer = organizerName || "Unknown";
+    const startDate = event.start ? new Date(String(event.start)) : null;
+    const endDate = event.end ? new Date(String(event.end)) : null;
 
     const requestCancelBooking = () => {
         if (!event.id || isCancelling) return;
@@ -42,6 +52,7 @@ export const BookingReservationDetails = ({
         setCancelConfirmOpen(true);
         setCancelReason("");
     };
+
     const confirmCancelBooking = () => {
         if (!event.id || isCancelling) return;
 
@@ -50,12 +61,12 @@ export const BookingReservationDetails = ({
 
     return (
         <>
-            <div>
+            <div className="space-y-2">
                 <p className="eyebrow eyebrow-gold">Reservation</p>
-                <h2 className="display-italic mt-2 text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
+                <h2 className="display-italic text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
                     {event.title}
                 </h2>
-                <p className="mt-2 text-[0.78rem] text-(--bone-muted)">
+                <p className="text-[0.78rem] text-(--bone-muted)">
                     Organized by <span className="text-(--bone)">{organizer}</span>
                 </p>
             </div>
@@ -63,7 +74,7 @@ export const BookingReservationDetails = ({
             <div className="mt-4 border-t border-(--hairline) pt-6">
                 <dl className="space-y-5">
                     {selectedRoom && (
-                        <InfoRow icon={<MapPin className="size-[15px]" strokeWidth={1.4} />} label="Room">
+                        <InfoRow icon={<MapPin className="size-3.75" strokeWidth={1.4} />} label="Room">
                             <span className="text-[0.88rem] font-medium text-(--bone)">{selectedRoom.title}</span>
                             <span className="tabular-num ml-2 text-[0.72rem] text-(--bone-dim)">
                                 {selectedRoom.location} &middot; {selectedRoom.capacity}p
@@ -71,17 +82,18 @@ export const BookingReservationDetails = ({
                         </InfoRow>
                     )}
 
-                    <InfoRow icon={<Clock className="size-[15px]" strokeWidth={1.4} />} label="Time">
+                    <InfoRow icon={<Clock className="size-3.75" strokeWidth={1.4} />} label="Time">
                         <span className="tabular-num text-[0.95rem] font-medium text-(--gold)">
-                            {formatTimeDisplay(event.start as string)} &mdash; {formatTimeDisplay(event.end as string)}
+                            {startDate ? format(startDate, "HH:mm") : ""} &mdash;{" "}
+                            {endDate ? format(endDate, "HH:mm") : ""}
                         </span>
                         <span className="ml-3 text-[0.72rem] text-(--bone-dim)">
-                            {formatDateDisplay(event.start as string)}
+                            {startDate ? format(startDate, "EEE, MMM d") : ""}
                         </span>
                     </InfoRow>
 
                     {attendees.length > 0 ? (
-                        <InfoRow icon={<Users className="size-[15px]" strokeWidth={1.4} />} label="Attendees">
+                        <InfoRow icon={<Users className="size-3.75" strokeWidth={1.4} />} label="Attendees">
                             <div className="flex flex-wrap gap-1.5">
                                 {attendees.map((attendee) => (
                                     <span
@@ -96,7 +108,7 @@ export const BookingReservationDetails = ({
                     ) : null}
 
                     {description ? (
-                        <InfoRow icon={<Pencil className="size-[15px]" strokeWidth={1.4} />} label="Notes">
+                        <InfoRow icon={<Pencil className="size-3.75" strokeWidth={1.4} />} label="Notes">
                             <p className="text-[0.82rem] leading-relaxed text-(--bone-muted)">{description}</p>
                         </InfoRow>
                     ) : null}
@@ -193,7 +205,7 @@ const BookingReservationActionButtons = ({
 
 const InfoRow = ({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) => (
     <div className="grid grid-cols-[88px_1fr] items-start gap-4">
-        <div className="flex items-center gap-2 pt-[2px]">
+        <div className="flex items-center gap-2 pt-0.5">
             <span className="text-(--bone-dim)">{icon}</span>
             <span className="eyebrow">{label}</span>
         </div>

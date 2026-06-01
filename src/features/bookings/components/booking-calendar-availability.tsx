@@ -1,44 +1,47 @@
 import type { ComponentProps } from "react";
+import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { Link } from "@tanstack/react-router";
+import { isPast } from "date-fns";
 import { Building2, FilterX, Plus } from "lucide-react";
 
 import { BookingAvailabilityCalendar } from "@/features/bookings/components/booking-availability-calendar";
 import { BookingEmptyState } from "@/features/bookings/components/booking-empty-state";
-import { BookingRoomList } from "@/features/bookings/components/booking-room-list";
+import { useBookingCalendarAvailability } from "@/features/bookings/hooks/useBookingCalendarAvailability";
 import { bookingCalendarSearchDefaults } from "@/features/bookings/schemas/booking-calendar-search.schema";
-import type { BookingCalendarData } from "@/features/bookings/services/queries";
+import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { isPastCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
 
 type AvailabilityCalendarProps = ComponentProps<typeof BookingAvailabilityCalendar>;
 
-export const BookingCalendarAvailability = ({
-    accentByRoomId,
-    currentUserRole,
-    events,
-    filteredRooms,
-    onEventClick,
-    onSelect,
-    resources,
-    showCalendar,
-    showFilterZeroState,
-    showNoRoomsState,
-    view,
-}: {
-    accentByRoomId: AvailabilityCalendarProps["accentByRoomId"];
-    currentUserRole: BookingCalendarData["currentUserRole"];
-    events: AvailabilityCalendarProps["events"];
-    filteredRooms: ComponentProps<typeof BookingRoomList>["rooms"];
-    onEventClick: AvailabilityCalendarProps["onEventClick"];
-    onSelect: AvailabilityCalendarProps["onSelect"];
-    resources: AvailabilityCalendarProps["resources"];
-    showCalendar: boolean;
-    showFilterZeroState: boolean;
-    showNoRoomsState: boolean;
-    view: AvailabilityCalendarProps["view"];
-}) => (
-    <>
-        {showCalendar && <BookingRoomList accentByRoomId={accentByRoomId} rooms={filteredRooms} />}
+export const BookingCalendarAvailability = () => {
+    const { currentUserRole, showCalendar, showFilterZeroState, showNoRoomsState } =
+        useBookingCalendarAvailability();
+    const { openExistingReservation, openNewReservation } = useBookingCalendarStore((state) => state.actions);
 
-        {showNoRoomsState ? (
+    const handleSelect: AvailabilityCalendarProps["onSelect"] = (info: DateSelectArg) => {
+        if (isPast(info.start)) {
+            return;
+        }
+
+        openNewReservation({
+            roomId: info.resource?.id,
+            start: info.start,
+            end: info.end,
+        });
+    };
+
+    const handleEventClick: AvailabilityCalendarProps["onEventClick"] = (info: EventClickArg) => {
+        if (isPastCalendarEvent(info.event.toPlainObject())) {
+            info.jsEvent.preventDefault();
+            info.jsEvent.stopPropagation();
+            return;
+        }
+
+        openExistingReservation(info.event.toPlainObject());
+    };
+
+    if (showNoRoomsState) {
+        return (
             <BookingEmptyState
                 icon={Building2}
                 eyebrow="Inventory"
@@ -56,7 +59,11 @@ export const BookingCalendarAvailability = ({
                     ) : null
                 }
             />
-        ) : showFilterZeroState ? (
+        );
+    }
+
+    if (showFilterZeroState) {
+        return (
             <BookingEmptyState
                 icon={FilterX}
                 eyebrow="Refine"
@@ -79,15 +86,12 @@ export const BookingCalendarAvailability = ({
                     </Link>
                 }
             />
-        ) : (
-            <BookingAvailabilityCalendar
-                accentByRoomId={accentByRoomId}
-                events={events}
-                onEventClick={onEventClick}
-                onSelect={onSelect}
-                resources={resources}
-                view={view}
-            />
-        )}
-    </>
-);
+        );
+    }
+
+    if (showCalendar) {
+        return <BookingAvailabilityCalendar onEventClick={handleEventClick} onSelect={handleSelect} />;
+    }
+
+    return null;
+};

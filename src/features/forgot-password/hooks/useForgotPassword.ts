@@ -53,7 +53,6 @@ export const useForgotPassword = () => {
         isSuccess,
         data,
         reset,
-        // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation -- Password reset request only starts an email cooldown, not cached query data.
     } = useMutation({
         mutationFn: requestReset,
         onSuccess: () => {
