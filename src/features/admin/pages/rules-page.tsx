@@ -106,7 +106,7 @@ export const RulesPage = () => {
                                 name="maxBookingDurationHours"
                                 control={form.control}
                                 render={({ field, fieldState }) => (
-                                    <div className="space-y-6 px-6 py-6">
+                                    <div className="space-y-6 p-6">
                                         <div
                                             className="flex items-baseline gap-2 rounded-xl border px-5 py-4"
                                             style={{

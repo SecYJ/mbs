@@ -11,6 +11,44 @@ import { roomsQueryOptions } from "@/features/admin/services/rooms/queries";
 import { RoomsCreateStoreProvider } from "@/features/admin/stores/rooms-create-store";
 
 type SortField = "name" | "location" | "capacity";
+type SortDirection = "asc" | "desc";
+
+const RoomsSortIndicator = ({ field, sort, dir }: { field: SortField; sort?: SortField; dir?: SortDirection }) => {
+    if (sort !== field || !dir) return null;
+
+    return <span className="ml-1 inline-block text-[0.5rem] text-(--a-accent)">{dir === "asc" ? "▲" : "▼"}</span>;
+};
+
+const RoomsSortHeader = ({
+    field,
+    label,
+    width,
+    sort,
+    dir,
+    onSort,
+}: {
+    field: SortField;
+    label: string;
+    width: string;
+    sort?: SortField;
+    dir?: SortDirection;
+    onSort: (field: SortField) => void;
+}) => (
+    <th
+        data-sortable
+        style={{ width }}
+        aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+        <button
+            type="button"
+            onClick={() => onSort(field)}
+            className="flex w-full items-center gap-1 text-left font-inherit"
+        >
+            {label}
+            <RoomsSortIndicator field={field} sort={sort} dir={dir} />
+        </button>
+    </th>
+);
 
 export const RoomsPage = () => {
     return (
@@ -64,29 +102,6 @@ const RoomsContent = () => {
         });
     };
 
-    const SortIndicator = ({ field }: { field: SortField }) => {
-        if (sort !== field || !dir) return null;
-
-        return <span className="ml-1 inline-block text-[0.5rem] text-(--a-accent)">{dir === "asc" ? "▲" : "▼"}</span>;
-    };
-
-    const SortHeader = ({ field, label, width }: { field: SortField; label: string; width: string }) => (
-        <th
-            data-sortable
-            style={{ width }}
-            aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
-        >
-            <button
-                type="button"
-                onClick={() => toggleSort(field)}
-                className="flex w-full items-center gap-1 text-left font-inherit"
-            >
-                {label}
-                <SortIndicator field={field} />
-            </button>
-        </th>
-    );
-
     return (
         <div className="p-6">
             {filtered.length === 0 && !normalizedQ ? (
@@ -103,9 +118,30 @@ const RoomsContent = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <SortHeader field="name" label="Name" width="36%" />
-                                <SortHeader field="location" label="Location" width="34%" />
-                                <SortHeader field="capacity" label="Capacity" width="16%" />
+                                <RoomsSortHeader
+                                    sort={sort}
+                                    dir={dir}
+                                    onSort={toggleSort}
+                                    field="name"
+                                    label="Name"
+                                    width="36%"
+                                />
+                                <RoomsSortHeader
+                                    sort={sort}
+                                    dir={dir}
+                                    onSort={toggleSort}
+                                    field="location"
+                                    label="Location"
+                                    width="34%"
+                                />
+                                <RoomsSortHeader
+                                    sort={sort}
+                                    dir={dir}
+                                    onSort={toggleSort}
+                                    field="capacity"
+                                    label="Capacity"
+                                    width="16%"
+                                />
                                 <th style={{ width: "14%" }}>Status</th>
                             </tr>
                         </thead>

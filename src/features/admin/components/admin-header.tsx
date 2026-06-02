@@ -23,7 +23,7 @@ export const AdminHeader = ({
             className="sticky top-0 z-20 flex h-14 items-center justify-between gap-4 border-b border-(--a-border-hover) px-6"
             style={{
                 background: "rgba(15,17,23,0.88)",
-                backdropFilter: "blur(12px)",
+                backdropFilter: "blur(8px)",
             }}
         >
             <div className="flex items-center gap-2.5">

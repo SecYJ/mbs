@@ -1,4 +1,4 @@
-import { Link, Outlet, linkOptions, useMatches } from "@tanstack/react-router";
+import { Link, Outlet, useMatches } from "@tanstack/react-router";
 import {
     ArrowLeft,
     Building2,
@@ -10,7 +10,7 @@ import {
     ChevronsLeft,
     ChevronsRight,
 } from "lucide-react";
-import { useState, useRef, createContext, useContext } from "react";
+import { use, useRef, useState, createContext } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { adminToastClasses } from "@/features/admin/admin-classes";
 // oxlint-disable-next-line import/no-unassigned-import -- Admin stylesheet is imported for its side effects.
@@ -18,39 +18,38 @@ import "@/features/admin/admin.css";
 
 /* ── Toast context ── */
 
-interface Toast {
+type Toast = {
     id: number;
     message: string;
     variant: "success" | "danger" | "info";
     leaving?: boolean;
-}
+};
 
-interface ToastCtx {
+type ToastCtx = {
     toast: (message: string, variant?: Toast["variant"]) => void;
-}
+};
 
 const ToastContext = createContext<ToastCtx>({ toast: () => {} });
-export const useAdminToast = () => useContext(ToastContext);
+export const useAdminToast = () => use(ToastContext);
 
 /* ── Sidebar context ── */
 
-interface SidebarCtx {
+type SidebarCtx = {
     collapsed: boolean;
     toggle: () => void;
-}
+};
 
 const SidebarContext = createContext<SidebarCtx>({ collapsed: false, toggle: () => {} });
-export const useSidebar = () => useContext(SidebarContext);
 
 /* ── Nav config ── */
 
-const navItems = linkOptions([
+const navItems = [
     { to: "/admin/rooms", label: "Rooms", icon: Building2 },
     { to: "/admin/users", label: "Users", icon: Users },
     { to: "/admin/rules", label: "Rules", icon: Settings },
     { to: "/admin/equipment", label: "Equipment", icon: Wrench },
     { to: "/admin/bookings", label: "All Bookings", icon: CalendarDays },
-]);
+] as const;
 
 /* ── Layout ── */
 
@@ -62,8 +61,7 @@ interface AdminLayoutProps {
 const getInitials = (name: string) =>
     name
         .split(" ")
-        .map((part) => part[0])
-        .filter(Boolean)
+        .flatMap((part) => (part[0] ? [part[0]] : []))
         .slice(0, 2)
         .join("")
         .toUpperCase() || "?";
@@ -246,7 +244,7 @@ export const AdminLayout = ({ user, onSignOut }: AdminLayoutProps) => {
 
                     {/* ── Main content ── */}
                     <main
-                        className="flex-1 overflow-y-auto transition-[margin-left] duration-[250ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+                        className="flex-1 overflow-y-auto transition-[margin-left] duration-250 ease-in-out"
                         style={{
                             marginLeft: sidebarWidth,
                             background: "var(--a-bg)",

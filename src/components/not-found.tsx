@@ -5,7 +5,7 @@ export const NotFound = () => {
     const year = new Date().getFullYear();
 
     return (
-        <div className="relative flex min-h-dvh bg-black text-(--bone)">
+        <div className="relative flex min-h-dvh bg-[#050505] text-(--bone)">
             {/* Film grain overlay — unique filter id per route per §6 */}
             <svg aria-hidden className="pointer-events-none fixed inset-0 z-50 h-full w-full opacity-[0.016]">
                 <filter id="grain-not-found">
@@ -20,7 +20,7 @@ export const NotFound = () => {
 			    claimed — anchored by a hollow hairline
 			    square where the folio mark should have been.
 			════════════════════════════════════════════ */}
-            <aside className="relative hidden overflow-hidden bg-black lg:flex lg:w-[58%]">
+            <aside className="relative hidden overflow-hidden bg-[#050505] lg:flex lg:w-[58%]">
                 {/* Margin rule — centered at 50%, standing in for the ledger's spine */}
                 <div
                     aria-hidden
@@ -93,7 +93,7 @@ export const NotFound = () => {
                 {/* Bottom-left: missing-folio stamp */}
                 <div
                     className="absolute bottom-14 left-14 flex items-center gap-3"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 1100ms both" }}
+                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
                 >
                     <span className="eyebrow">Folio</span>
                     <span className="tabular-num text-[0.7rem] tracking-[0.2em] text-(--bone-muted)">
@@ -105,7 +105,7 @@ export const NotFound = () => {
 				    the folio mark would have been. Unique ornament to 404. */}
                 <div
                     className="absolute bottom-14 right-14 flex items-center gap-4"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 1200ms both" }}
+                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
                 >
                     <span className="eyebrow">Mark</span>
                     <div
@@ -121,7 +121,7 @@ export const NotFound = () => {
 			    RETURN COLUMN — right 42%
 			    A directory of ways back onto the ledger.
 			════════════════════════════════════════════ */}
-            <main className="relative flex w-full flex-col justify-center bg-black px-8 sm:px-14 lg:w-[42%] lg:px-16 xl:px-20">
+            <main className="relative flex w-full flex-col justify-center bg-[#050505] px-8 sm:px-14 lg:w-[42%] lg:px-16 xl:px-20">
                 {/* Mobile: compact top ornament mirroring the canvas mark */}
                 <div
                     className="absolute left-8 top-8 flex items-center gap-3 lg:hidden"
@@ -208,7 +208,7 @@ export const NotFound = () => {
                 {/* Footer — tabular colophon matches login/register */}
                 <div
                     className="absolute bottom-6 left-0 right-0 flex items-center justify-between px-8 sm:px-14 lg:px-16 xl:px-20"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 1100ms both" }}
+                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
                 >
                     <span className="tabular-num text-[0.62rem] tracking-[0.2em] text-(--bone-faint)">
                         &copy; {year}

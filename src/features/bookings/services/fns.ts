@@ -12,8 +12,8 @@ import {
     cancelBookingSchema,
     createBookingSchema,
     updateBookingSchema,
-} from "@/features/bookings/schema/booking.schema";
-import { requireAuthenticatedUser } from "@/lib/session";
+} from "@/features/bookings/schemas/booking.schema";
+import { authenticatedUserMiddleware } from "@/middleware/auth";
 
 const DEFAULT_MAX_BOOKING_DURATION_HOURS = 8;
 const BOOKING_RULES_ID = 1;
@@ -146,162 +146,167 @@ const validateBookingDetails = async ({
     }
 };
 
-export const getBookingCalendarDataFn = createServerFn({ method: "GET" }).handler(async () => {
-    const session = await requireAuthenticatedUser();
+export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .handler(async ({ context }) => {
+        const session = context.session;
 
-    const roomRows = await db
-        .select({
-            room: rooms,
-            equipmentName: equipment.name,
-        })
-        .from(rooms)
-        .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
-        .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
-        .orderBy(asc(rooms.name));
+        const roomRows = await db
+            .select({
+                room: rooms,
+                equipmentName: equipment.name,
+            })
+            .from(rooms)
+            .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
+            .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
+            .orderBy(asc(rooms.name));
 
-    type RoomRow = (typeof roomRows)[number]["room"];
-    const groupedRooms = new Map<string, RoomRow & { equipment: string[] }>();
+        type RoomRow = (typeof roomRows)[number]["room"];
+        const groupedRooms = new Map<string, RoomRow & { equipment: string[] }>();
 
-    for (const row of roomRows) {
-        const existing = groupedRooms.get(row.room.roomId);
-        const target = existing ?? { ...row.room, equipment: [] };
-        if (!existing) groupedRooms.set(row.room.roomId, target);
-        if (row.equipmentName && !target.equipment.includes(row.equipmentName)) {
-            target.equipment.push(row.equipmentName);
+        for (const row of roomRows) {
+            const existing = groupedRooms.get(row.room.roomId);
+            const target = existing ?? { ...row.room, equipment: [] };
+            if (!existing) groupedRooms.set(row.room.roomId, target);
+            if (row.equipmentName && !target.equipment.includes(row.equipmentName)) {
+                target.equipment.push(row.equipmentName);
+            }
         }
-    }
 
-    const bookingRows = await db
-        .select({
-            booking: bookings,
-            organizer: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-            },
-        })
-        .from(bookings)
-        .innerJoin(user, eq(user.id, bookings.userId))
-        .where(eq(bookings.status, "active"))
-        .orderBy(asc(bookings.startTime));
-
-    const bookingIds = bookingRows.map((row) => row.booking.bookingId);
-    const attendeesByBooking = await getAttendeesByBooking(bookingIds);
-
-    const users = await db
-        .select({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-        })
-        .from(user)
-        .where(ne(user.id, session.user.id))
-        .orderBy(asc(user.name));
-
-    const now = Date.now();
-    const attendedBookingRows = await db
-        .select({ bookingId: attendees.bookingId })
-        .from(attendees)
-        .where(eq(attendees.userId, session.user.id));
-    const attendedBookingIds = attendedBookingRows.map((row) => row.bookingId);
-    const historyWhere =
-        attendedBookingIds.length > 0
-            ? or(eq(bookings.userId, session.user.id), inArray(bookings.bookingId, attendedBookingIds))
-            : eq(bookings.userId, session.user.id);
-    const historyRows = await db
-        .select({
-            booking: bookings,
-            room: {
-                name: rooms.name,
-                location: rooms.location,
-            },
-            organizer: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-            },
-        })
-        .from(bookings)
-        .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
-        .innerJoin(user, eq(user.id, bookings.userId))
-        .where(historyWhere)
-        .orderBy(desc(bookings.startTime));
-    const historyBookingIds = historyRows.map((row) => row.booking.bookingId);
-    const historyAttendeesByBooking = await getAttendeesByBooking(historyBookingIds);
-    const cancelledByIds = Array.from(
-        new Set(
-            historyRows
-                .map((row) => row.booking.cancelledBy)
-                .filter((cancelledById): cancelledById is string => !!cancelledById),
-        ),
-    );
-    const cancelledByRows =
-        cancelledByIds.length === 0
-            ? []
-            : await db
-                  .select({
-                      id: user.id,
-                      name: user.name,
-                      email: user.email,
-                  })
-                  .from(user)
-                  .where(inArray(user.id, cancelledByIds));
-    const cancelledByUser = new Map(cancelledByRows.map((cancelledBy) => [cancelledBy.id, cancelledBy]));
-
-    return {
-        currentUserId: session.user.id,
-        currentUserRole: session.user.role,
-        rooms: Array.from(groupedRooms.values()).map((room) => ({
-            id: room.roomId,
-            title: room.name,
-            location: room.location,
-            capacity: room.capacity,
-            available: room.available,
-            equipment: room.equipment,
-        })),
-        events: bookingRows.map((row) => ({
-            id: row.booking.bookingId,
-            roomId: row.booking.roomId,
-            title: row.booking.title,
-            start: toIso(row.booking.startTime),
-            end: toIso(row.booking.endTime),
-            description: row.booking.description ?? "",
-            organizer: row.organizer,
-            attendees: attendeesByBooking.get(row.booking.bookingId) ?? [],
-            canManage: row.booking.userId === session.user.id && new Date(row.booking.endTime).getTime() > now,
-        })),
-        history: historyRows.map((row) =>
-            getBookingHistoryItem({
-                booking: {
-                    id: row.booking.bookingId,
-                    roomId: row.booking.roomId,
-                    title: row.booking.title,
-                    description: row.booking.description,
-                    startTime: row.booking.startTime,
-                    endTime: row.booking.endTime,
-                    status: row.booking.status,
-                    cancelledAt: row.booking.cancelledAt,
-                    cancelReason: row.booking.cancelReason,
+        const bookingRows = await db
+            .select({
+                booking: bookings,
+                organizer: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
                 },
-                room: row.room,
+            })
+            .from(bookings)
+            .innerJoin(user, eq(user.id, bookings.userId))
+            .where(eq(bookings.status, "active"))
+            .orderBy(asc(bookings.startTime));
+
+        const bookingIds = bookingRows.map((row) => row.booking.bookingId);
+        const attendeesByBooking = await getAttendeesByBooking(bookingIds);
+
+        const users = await db
+            .select({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            })
+            .from(user)
+            .where(ne(user.id, session.user.id))
+            .orderBy(asc(user.name));
+
+        const now = Date.now();
+        const attendedBookingRows = await db
+            .select({ bookingId: attendees.bookingId })
+            .from(attendees)
+            .where(eq(attendees.userId, session.user.id));
+        const attendedBookingIds = attendedBookingRows.map((row) => row.bookingId);
+        const historyWhere =
+            attendedBookingIds.length > 0
+                ? or(eq(bookings.userId, session.user.id), inArray(bookings.bookingId, attendedBookingIds))
+                : eq(bookings.userId, session.user.id);
+        const historyRows = await db
+            .select({
+                booking: bookings,
+                room: {
+                    name: rooms.name,
+                    location: rooms.location,
+                },
+                organizer: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                },
+            })
+            .from(bookings)
+            .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+            .innerJoin(user, eq(user.id, bookings.userId))
+            .where(historyWhere)
+            .orderBy(desc(bookings.startTime));
+        const historyBookingIds = historyRows.map((row) => row.booking.bookingId);
+        const historyAttendeesByBooking = await getAttendeesByBooking(historyBookingIds);
+        const cancelledByIds = Array.from(
+            new Set(
+                historyRows
+                    .map((row) => row.booking.cancelledBy)
+                    .filter((cancelledById): cancelledById is string => !!cancelledById),
+            ),
+        );
+        const cancelledByRows =
+            cancelledByIds.length === 0
+                ? []
+                : await db
+                      .select({
+                          id: user.id,
+                          name: user.name,
+                          email: user.email,
+                      })
+                      .from(user)
+                      .where(inArray(user.id, cancelledByIds));
+        const cancelledByUser = new Map(cancelledByRows.map((cancelledBy) => [cancelledBy.id, cancelledBy]));
+
+        return {
+            currentUserId: session.user.id,
+            currentUserRole: session.user.role,
+            rooms: Array.from(groupedRooms.values()).map((room) => ({
+                id: room.roomId,
+                title: room.name,
+                location: room.location,
+                capacity: room.capacity,
+                available: room.available,
+                equipment: room.equipment,
+            })),
+            events: bookingRows.map((row) => ({
+                id: row.booking.bookingId,
+                roomId: row.booking.roomId,
+                title: row.booking.title,
+                start: toIso(row.booking.startTime),
+                end: toIso(row.booking.endTime),
+                description: row.booking.description ?? "",
                 organizer: row.organizer,
-                cancelledBy: row.booking.cancelledBy ? (cancelledByUser.get(row.booking.cancelledBy) ?? null) : null,
-                attendees: historyAttendeesByBooking.get(row.booking.bookingId) ?? [],
-                currentUserId: session.user.id,
-            }),
-        ),
-        users,
-    };
-});
+                attendees: attendeesByBooking.get(row.booking.bookingId) ?? [],
+                canManage: row.booking.userId === session.user.id && new Date(row.booking.endTime).getTime() > now,
+            })),
+            history: historyRows.map((row) =>
+                getBookingHistoryItem({
+                    booking: {
+                        id: row.booking.bookingId,
+                        roomId: row.booking.roomId,
+                        title: row.booking.title,
+                        description: row.booking.description,
+                        startTime: row.booking.startTime,
+                        endTime: row.booking.endTime,
+                        status: row.booking.status,
+                        cancelledAt: row.booking.cancelledAt,
+                        cancelReason: row.booking.cancelReason,
+                    },
+                    room: row.room,
+                    organizer: row.organizer,
+                    cancelledBy: row.booking.cancelledBy
+                        ? (cancelledByUser.get(row.booking.cancelledBy) ?? null)
+                        : null,
+                    attendees: historyAttendeesByBooking.get(row.booking.bookingId) ?? [],
+                    currentUserId: session.user.id,
+                }),
+            ),
+            users,
+        };
+    });
 
 export const getBookingDetailsFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
     .inputValidator(
         z.object({
-            bookingId: z.string().uuid(),
+            bookingId: z.uuid(),
         }),
     )
-    .handler(async ({ data }) => {
-        const session = await requireAuthenticatedUser();
+    .handler(async ({ context, data }) => {
+        const session = context.session;
 
         const [bookingRow] = await db
             .select({
@@ -399,14 +404,15 @@ export const getBookingDetailsFn = createServerFn({ method: "GET" })
     });
 
 export const rsvpBookingInviteFn = createServerFn({ method: "POST" })
+    .middleware([authenticatedUserMiddleware])
     .inputValidator(
         z.object({
             bookingId: z.string().uuid(),
             status: z.enum(["accepted", "declined"]),
         }),
     )
-    .handler(async ({ data }) => {
-        const session = await requireAuthenticatedUser();
+    .handler(async ({ context, data }) => {
+        const session = context.session;
 
         const [booking] = await db
             .select({
@@ -455,9 +461,10 @@ export const rsvpBookingInviteFn = createServerFn({ method: "POST" })
     });
 
 export const createBookingFn = createServerFn({ method: "POST" })
+    .middleware([authenticatedUserMiddleware])
     .inputValidator(createBookingSchema)
-    .handler(async ({ data }) => {
-        const session = await requireAuthenticatedUser();
+    .handler(async ({ context, data }) => {
+        const session = context.session;
         const startTime = new Date(data.startTime);
         const endTime = new Date(data.endTime);
         const attendeeIds = getAttendeeIds(data.attendeeIds, session.user.id);
@@ -506,9 +513,10 @@ export const createBookingFn = createServerFn({ method: "POST" })
     });
 
 export const updateBookingFn = createServerFn({ method: "POST" })
+    .middleware([authenticatedUserMiddleware])
     .inputValidator(updateBookingSchema)
-    .handler(async ({ data }) => {
-        const session = await requireAuthenticatedUser();
+    .handler(async ({ context, data }) => {
+        const session = context.session;
         const [existingBooking] = await db
             .select({
                 id: bookings.bookingId,
@@ -585,9 +593,10 @@ export const updateBookingFn = createServerFn({ method: "POST" })
     });
 
 export const cancelBookingFn = createServerFn({ method: "POST" })
+    .middleware([authenticatedUserMiddleware])
     .inputValidator(cancelBookingSchema)
-    .handler(async ({ data }) => {
-        const session = await requireAuthenticatedUser();
+    .handler(async ({ context, data }) => {
+        const session = context.session;
         const [booking] = await db
             .select({
                 id: bookings.bookingId,

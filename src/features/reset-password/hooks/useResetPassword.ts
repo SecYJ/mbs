@@ -28,6 +28,7 @@ export const useResetPassword = ({ token }: Args) => {
         mutate: submitReset,
         isPending,
         isSuccess,
+        // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation -- Password reset completion has no cached query data to invalidate.
     } = useMutation({
         mutationFn: reset,
         onSuccess: () => {

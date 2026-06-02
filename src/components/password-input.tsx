@@ -58,8 +58,7 @@ export const PasswordInput = <T extends FieldValues>({
                     type="button"
                     onClick={toggle}
                     aria-label={show ? "Hide passphrase" : "Show passphrase"}
-                    className="absolute right-0 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center cursor-pointer text-(--bone-dim) transition-colors hover:text-(--gold)"
-                    tabIndex={-1}
+                    className="absolute right-0 top-1/2 flex size-9 -translate-y-1/2 items-center justify-center cursor-pointer text-(--bone-dim) transition-colors hover:text-(--gold)"
                 >
                     {show ? (
                         <EyeOff className="size-4.25" strokeWidth={1.4} />

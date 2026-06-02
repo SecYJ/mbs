@@ -6,8 +6,8 @@ import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import {
     filterNotifications,
-    notificationFilterDefaults,
-    notificationFilterOptions,
+    NOTIFICATION_FILTER_DEFAULTS,
+    NOTIFICATION_FILTER_OPTIONS,
 } from "@/features/notifications/notification-filter";
 import {
     formatNotificationDate,
@@ -17,6 +17,7 @@ import {
 import { useNotificationReadActions } from "@/features/notifications/hooks/use-notification-read-actions";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 import { stripDefaultSearchParams } from "@/lib/router-search";
+import { cn } from "@/lib/utils";
 
 const statusLabel = {
     pending: "Pending",
@@ -27,11 +28,11 @@ const statusLabel = {
 const notificationSearchSchema = z.object({
     filter: z
         .enum(["all", "unread"])
-        .default(notificationFilterDefaults.filter)
-        .catch(notificationFilterDefaults.filter),
+        .default(NOTIFICATION_FILTER_DEFAULTS.filter)
+        .catch(NOTIFICATION_FILTER_DEFAULTS.filter),
 });
 
-const NotificationsPage = () => {
+export const NotificationsPage = () => {
     const { data: notifications } = useSuspenseQuery(notificationsQueryOptions());
     const { markAsRead, markAllAsRead, isMarkingRead, isMarkingAllRead } = useNotificationReadActions();
     const { filter } = Route.useSearch();
@@ -73,16 +74,17 @@ const NotificationsPage = () => {
 
             <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex border border-(--hairline) p-1">
-                    {notificationFilterOptions.map((option) => (
+                    {NOTIFICATION_FILTER_OPTIONS.map((option) => (
                         <Link
                             key={option.value}
                             to="/notifications"
                             search={{ filter: option.value }}
-                            className={
+                            className={cn(
+                                "border px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] uppercase no-underline",
                                 filter === option.value
-                                    ? "border border-(--hairline-strong) bg-(--surface-02) px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] text-(--bone) uppercase no-underline"
-                                    : "border border-transparent px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] text-(--bone-dim) uppercase no-underline transition-colors hover:border-(--hairline) hover:text-(--bone)"
-                            }
+                                    ? "border-(--hairline-strong) bg-(--surface-02) text-(--bone)"
+                                    : "border-transparent text-(--bone-dim) transition-colors hover:border-(--hairline) hover:text-(--bone)",
+                            )}
                         >
                             {option.label}
                         </Link>
@@ -132,11 +134,11 @@ const NotificationsPage = () => {
                                         <h2 className="text-sm font-semibold text-(--bone)">{notification.message}</h2>
                                         <Badge
                                             variant="outline"
-                                            className={
+                                            className={cn(
                                                 notification.status === "unread"
                                                     ? "border-(--signal)/40 bg-(--signal)/10 text-(--signal)"
-                                                    : "border-(--hairline) text-(--bone-muted)"
-                                            }
+                                                    : "border-(--hairline) text-(--bone-muted)",
+                                            )}
                                         >
                                             {statusLabel[notification.status]}
                                         </Badge>
@@ -181,10 +183,11 @@ const NotificationsPage = () => {
     );
 };
 
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
 export const Route = createFileRoute("/_bookings/notifications")({
     validateSearch: notificationSearchSchema,
     search: {
-        middlewares: [stripDefaultSearchParams(notificationFilterDefaults)],
+        middlewares: [stripDefaultSearchParams(NOTIFICATION_FILTER_DEFAULTS)],
     },
     loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(notificationsQueryOptions()),
     component: NotificationsPage,

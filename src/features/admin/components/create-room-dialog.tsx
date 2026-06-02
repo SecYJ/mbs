@@ -60,7 +60,7 @@ export const CreateRoomDialog = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-5 px-5 py-5">
+                    <div className="space-y-5 p-5">
                         <Controller
                             control={form.control}
                             name="name"

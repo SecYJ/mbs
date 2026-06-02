@@ -76,6 +76,7 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
                                         </label>
                                         <input
                                             id={`room-name-${room.id}`}
+                                            aria-label="Room name"
                                             readOnly
                                             className={`${adminInputClasses} w-full`}
                                             value={room.name}
@@ -90,6 +91,7 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
                                         </label>
                                         <input
                                             id={`room-location-${room.id}`}
+                                            aria-label="Room location"
                                             readOnly
                                             className={`${adminInputClasses} w-full`}
                                             value={room.location}
@@ -106,6 +108,7 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
                                         </label>
                                         <input
                                             id={`room-capacity-${room.id}`}
+                                            aria-label="Room capacity"
                                             type="number"
                                             readOnly
                                             className={`${adminInputClasses} w-24`}

@@ -13,6 +13,42 @@ import type { AdminUser } from "@/features/admin/types";
 export type { AdminUser };
 
 type SortField = "name" | "email" | "role" | "lastLogin";
+type SortDirection = "asc" | "desc";
+
+const UsersSortHeader = ({
+    field,
+    label,
+    width,
+    sort,
+    dir,
+    onSort,
+}: {
+    field: SortField;
+    label: string;
+    width: string;
+    sort?: SortField;
+    dir?: SortDirection;
+    onSort: (field: SortField) => void;
+}) => (
+    <th
+        data-sortable
+        style={{ width }}
+        aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
+    >
+        <button
+            type="button"
+            onClick={() => onSort(field)}
+            className="flex w-full items-center gap-1 text-left font-inherit"
+        >
+            {label}
+            {sort === field && dir ? (
+                <span className="ml-1 text-[0.5rem]" style={{ color: "var(--a-accent)" }}>
+                    {dir === "asc" ? "▲" : "▼"}
+                </span>
+            ) : null}
+        </button>
+    </th>
+);
 
 export const UsersPage = () => {
     const { data: users } = useSuspenseQuery(usersQueryOptions());
@@ -48,8 +84,7 @@ export const UsersPage = () => {
         );
     }
     if (sort && dir) {
-        // oxlint-disable-next-line unicorn/no-array-sort -- tsconfig targets ES2022, so Array#toSorted is not typed.
-        filtered = [...filtered].sort((a, b) => {
+        filtered = filtered.toSorted((a, b) => {
             if (sort === "lastLogin") {
                 const aTime = a.lastLoginAt ? new Date(a.lastLoginAt).getTime() : 0;
                 const bTime = b.lastLoginAt ? new Date(b.lastLoginAt).getTime() : 0;
@@ -60,27 +95,6 @@ export const UsersPage = () => {
             return dir === "asc" ? cmp : -cmp;
         });
     }
-
-    const SortHeader = ({ field, label, width }: { field: SortField; label: string; width: string }) => (
-        <th
-            data-sortable
-            style={{ width }}
-            aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
-        >
-            <button
-                type="button"
-                onClick={() => toggleSort(field)}
-                className="flex w-full items-center gap-1 text-left font-inherit"
-            >
-                {label}
-                {sort === field && dir ? (
-                    <span className="ml-1 text-[0.5rem]" style={{ color: "var(--a-accent)" }}>
-                        {dir === "asc" ? "▲" : "▼"}
-                    </span>
-                ) : null}
-            </button>
-        </th>
-    );
 
     return (
         <div>
@@ -119,10 +133,38 @@ export const UsersPage = () => {
                         <table className="admin-table">
                             <thead>
                                 <tr>
-                                    <SortHeader field="name" label="User" width="30%" />
-                                    <SortHeader field="email" label="Email" width="28%" />
-                                    <SortHeader field="role" label="Role" width="14%" />
-                                    <SortHeader field="lastLogin" label="Last Login" width="28%" />
+                                    <UsersSortHeader
+                                        sort={sort}
+                                        dir={dir}
+                                        onSort={toggleSort}
+                                        field="name"
+                                        label="User"
+                                        width="30%"
+                                    />
+                                    <UsersSortHeader
+                                        sort={sort}
+                                        dir={dir}
+                                        onSort={toggleSort}
+                                        field="email"
+                                        label="Email"
+                                        width="28%"
+                                    />
+                                    <UsersSortHeader
+                                        sort={sort}
+                                        dir={dir}
+                                        onSort={toggleSort}
+                                        field="role"
+                                        label="Role"
+                                        width="14%"
+                                    />
+                                    <UsersSortHeader
+                                        sort={sort}
+                                        dir={dir}
+                                        onSort={toggleSort}
+                                        field="lastLogin"
+                                        label="Last Login"
+                                        width="28%"
+                                    />
                                 </tr>
                             </thead>
                             <tbody>

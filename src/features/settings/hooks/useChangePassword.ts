@@ -28,6 +28,7 @@ export const useChangePassword = () => {
         isPending,
         isSuccess,
         reset,
+        // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation -- Password change mutates auth state outside the query cache.
     } = useMutation({
         mutationFn: async (values: ChangePasswordValues) => {
             const { error } = await authClient.changePassword({

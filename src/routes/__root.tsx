@@ -1,14 +1,32 @@
 import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 
+import type { ReactNode } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 
 import appCss from "@/styles.css?url";
 import { NotFound } from "@/components/not-found";
+import { PersistentClientStoreHydrator } from "@/stores/persistent-client-store-hydrator";
 
-interface MyRouterContext {
+type MyRouterContext = {
     queryClient: QueryClient;
-}
+};
 
+const RootDocument = ({ children }: { children: ReactNode }) => {
+    return (
+        <html lang="en" className="dark" suppressHydrationWarning>
+            <head>
+                <HeadContent />
+            </head>
+            <body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(79,184,178,0.24)]">
+                <PersistentClientStoreHydrator />
+                {children}
+                <Scripts />
+            </body>
+        </html>
+    );
+};
+
+// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
 export const Route = createRootRouteWithContext<MyRouterContext>()({
     head: () => ({
         meta: [
@@ -33,17 +51,3 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     shellComponent: RootDocument,
     notFoundComponent: NotFound,
 });
-
-function RootDocument({ children }: { children: React.ReactNode }) {
-    return (
-        <html lang="en" className="dark" suppressHydrationWarning>
-            <head>
-                <HeadContent />
-            </head>
-            <body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(79,184,178,0.24)]">
-                {children}
-                <Scripts />
-            </body>
-        </html>
-    );
-}

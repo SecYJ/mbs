@@ -15,6 +15,7 @@ const AdminRoute = () => {
         await authClient.signOut();
         queryClient.clear();
         await router.invalidate();
+        // react-doctor-disable-next-line react-doctor/tanstack-start-no-navigate-in-render -- Sign-out navigation runs inside an async click handler.
         navigate({ to: "/login" });
     };
 
