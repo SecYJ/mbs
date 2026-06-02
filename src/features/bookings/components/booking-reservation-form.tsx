@@ -22,6 +22,7 @@ type BookingReservationFormProps = {
     isSubmitting: boolean;
     onCancel: () => void;
     onSubmit: (data: BookingFormData) => void;
+    useUrlBackedAttendeeSearch?: boolean;
 };
 
 export const BookingReservationForm = ({
@@ -32,6 +33,7 @@ export const BookingReservationForm = ({
     isSubmitting,
     onCancel,
     onSubmit,
+    useUrlBackedAttendeeSearch = true,
 }: BookingReservationFormProps) => {
     const reservationForm = useBookingReservationForm({
         error,
@@ -123,7 +125,10 @@ export const BookingReservationForm = ({
                     </div>
                 </div>
 
-                <BookingReservationAttendees />
+                <BookingReservationAttendees
+                    inviteableUsers={reservationForm.inviteableUsers}
+                    useUrlBackedSearch={useUrlBackedAttendeeSearch}
+                />
 
                 <div className="space-y-2">
                     <Label className="eyebrow block">

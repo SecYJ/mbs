@@ -24,6 +24,8 @@ export const redirectAuthenticatedUser = async () => {
         if (isRedirect(error)) {
             throw error;
         }
+
+        throw error;
     }
 
     if (session) {

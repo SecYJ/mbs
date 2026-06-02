@@ -8,6 +8,7 @@ import { EquipmentRow } from "@/features/admin/components/equipment-row";
 import { EquipmentPageHeader } from "@/features/admin/components/equipment-page-header";
 import { equipmentQueryOptions } from "@/features/admin/services/equipment/queries";
 import { EquipmentCreateStoreProvider, useEquipmentCreateStore } from "@/features/admin/stores/equipment-create-store";
+import { cn } from "@/lib/utils";
 
 type SortField = "name" | "brand" | "price";
 type SortDirection = "asc" | "desc";
@@ -43,11 +44,10 @@ const EquipmentSortHeader = ({
         <button
             type="button"
             onClick={() => onSort(field)}
-            className={
-                align === "right"
-                    ? "flex w-full items-center justify-end gap-1 font-inherit"
-                    : "flex w-full items-center gap-1 text-left font-inherit"
-            }
+            className={cn(
+                "flex w-full items-center gap-1 font-inherit",
+                align === "right" ? "justify-end" : "text-left",
+            )}
         >
             {label}
             <EquipmentSortIndicator field={field} sort={sort} dir={dir} />

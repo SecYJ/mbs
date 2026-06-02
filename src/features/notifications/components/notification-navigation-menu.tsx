@@ -138,6 +138,7 @@ const NotificationFilterControls = ({ filter, setFilter }: NotificationFilterCon
                 key={option.value}
                 type="button"
                 onClick={() => setFilter(option.value)}
+                aria-pressed={filter === option.value}
                 className={cn(
                     "flex-1 cursor-pointer border px-3 py-2 text-[0.62rem] font-semibold tracking-[0.22em] uppercase",
                     filter === option.value

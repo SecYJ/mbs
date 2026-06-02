@@ -22,6 +22,7 @@ Before substantial work:
 ## TypeScript
 - use type instead of interface
 - prefer auto-inferred return types over explicit return type annotations.
+- For Zod schema fallbacks, do not chain `.default()` together with `.catch()`; `.catch()` already covers the fallback cases `.default()` would handle.
 
 ## React
 

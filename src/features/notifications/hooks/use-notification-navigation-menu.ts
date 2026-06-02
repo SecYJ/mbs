@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { getRouteApi } from "@tanstack/react-router";
 
 import {
     filterNotifications,
@@ -11,13 +12,15 @@ import { notificationsQueryOptions, type NotificationsData } from "@/features/no
 
 export type NotificationNavigationItem = NotificationsData[number];
 
+const bookingsRoute = getRouteApi("/_bookings");
+
 export const useNotificationNavigationMenu = () => {
     const { data: notifications } = useSuspenseQuery(notificationsQueryOptions());
     const { markAsRead, markAllAsRead, isMarkingAllRead } = useNotificationReadActions();
-    const [notificationFilter, setNotificationFilter] = useState<NotificationFilter>(
-        NOTIFICATION_FILTER_DEFAULTS.filter,
-    );
+    const search = bookingsRoute.useSearch();
+    const navigate = bookingsRoute.useNavigate();
     const [isOpen, setIsOpen] = useState(false);
+    const notificationFilter = search.filter;
 
     const unreadCount = notifications.filter((notification) => notification.status === "unread").length;
     const unreadBadgeLabel = unreadCount > 99 ? "99+" : String(unreadCount);
@@ -26,7 +29,19 @@ export const useNotificationNavigationMenu = () => {
 
     const setOpen = (open: boolean) => {
         setIsOpen(open);
-        if (open) setNotificationFilter(NOTIFICATION_FILTER_DEFAULTS.filter);
+        if (open) {
+            navigate({
+                search: (prev) => ({ ...prev, filter: NOTIFICATION_FILTER_DEFAULTS.filter }),
+                replace: true,
+            });
+        }
+    };
+
+    const setNotificationFilter = (filter: NotificationFilter) => {
+        navigate({
+            search: (prev) => ({ ...prev, filter }),
+            replace: true,
+        });
     };
 
     const selectNotification = (notification: NotificationNavigationItem) => {

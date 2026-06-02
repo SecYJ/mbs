@@ -1,37 +1,49 @@
 import { useState } from "react";
 import { LegendList } from "@legendapp/list/react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { getRouteApi } from "@tanstack/react-router";
 import { Search, X } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import type { BookableUser } from "@/features/bookings/components/booking-reservation-editor.types";
 import type { BookingReservationFormValues } from "@/features/bookings/hooks/useBookingReservationForm";
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
 import { cn } from "@/lib/utils";
 
+const bookingsRoute = getRouteApi("/_bookings");
+
 type BookingAttendeePickerDialogProps = {
+    inviteableUsers: BookableUser[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    useUrlBackedSearch?: boolean;
 };
 
-export const BookingAttendeePickerDialog = ({ open, onOpenChange }: BookingAttendeePickerDialogProps) => {
-    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
-    const { control, setValue } = useFormContext<BookingReservationFormValues>();
-    const [search, setSearch] = useState("");
-    const draftIds = useWatch({ control, name: "draftAttendeeIds" });
-    const users = data.currentUserId ? data.users.filter((user) => user.id !== data.currentUserId) : data.users;
+type BookingAttendeePickerDialogContentProps = BookingAttendeePickerDialogProps & {
+    attendeeSearch: string;
+    setAttendeeSearch: (value: string) => void;
+};
 
-    const normalizedSearch = search.trim().toLowerCase();
+const BookingAttendeePickerDialogContent = ({
+    attendeeSearch,
+    inviteableUsers,
+    open,
+    onOpenChange,
+    setAttendeeSearch,
+}: BookingAttendeePickerDialogContentProps) => {
+    const { control, setValue } = useFormContext<BookingReservationFormValues>();
+    const draftIds = useWatch({ control, name: "draftAttendeeIds" });
+
+    const normalizedSearch = attendeeSearch.trim().toLowerCase();
     const filteredUsers =
         normalizedSearch.length === 0
-            ? users
-            : users.filter(
+            ? inviteableUsers
+            : inviteableUsers.filter(
                   (user) =>
                       user.name.toLowerCase().includes(normalizedSearch) ||
                       user.email.toLowerCase().includes(normalizedSearch),
               );
-    const selectedUsers = users.filter((user) => draftIds.includes(user.id));
+    const selectedUsers = inviteableUsers.filter((user) => draftIds.includes(user.id));
 
     const toggleUser = (userId: string) => {
         setValue(
@@ -76,8 +88,8 @@ export const BookingAttendeePickerDialog = ({ open, onOpenChange }: BookingAtten
                             strokeWidth={1.5}
                         />
                         <Input
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
+                            value={attendeeSearch}
+                            onChange={(e) => setAttendeeSearch(e.target.value)}
                             placeholder="Search users..."
                             aria-label="Search users"
                             className="h-10 rounded-none border border-(--hairline) bg-(--surface-02) pr-3 pl-10 text-[0.9rem] text-(--bone) shadow-none placeholder:text-(--bone-faint) focus:border-(--gold) focus-visible:ring-0"
@@ -176,3 +188,46 @@ export const BookingAttendeePickerDialog = ({ open, onOpenChange }: BookingAtten
         </Dialog>
     );
 };
+
+const UrlBackedBookingAttendeePickerDialog = (props: BookingAttendeePickerDialogProps) => {
+    const search = bookingsRoute.useSearch();
+    const navigate = bookingsRoute.useNavigate();
+    const attendeeSearch = typeof search.attendeeSearch === "string" ? search.attendeeSearch : "";
+
+    const setAttendeeSearch = (value: string) => {
+        navigate({
+            search: (prev) => ({ ...prev, attendeeSearch: value.trim() ? value : undefined }),
+            replace: true,
+        });
+    };
+
+    return (
+        <BookingAttendeePickerDialogContent
+            {...props}
+            attendeeSearch={attendeeSearch}
+            setAttendeeSearch={setAttendeeSearch}
+        />
+    );
+};
+
+const LocalBookingAttendeePickerDialog = (props: BookingAttendeePickerDialogProps) => {
+    const [attendeeSearch, setAttendeeSearch] = useState("");
+
+    return (
+        <BookingAttendeePickerDialogContent
+            {...props}
+            attendeeSearch={attendeeSearch}
+            setAttendeeSearch={setAttendeeSearch}
+        />
+    );
+};
+
+export const BookingAttendeePickerDialog = ({
+    useUrlBackedSearch = true,
+    ...props
+}: BookingAttendeePickerDialogProps) =>
+    useUrlBackedSearch ? (
+        <UrlBackedBookingAttendeePickerDialog {...props} />
+    ) : (
+        <LocalBookingAttendeePickerDialog {...props} />
+    );

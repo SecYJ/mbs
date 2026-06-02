@@ -101,8 +101,9 @@ const baseInitialDetails = {
 
 const renderOpenEditor = (initialDetails: BookingReservationInitialDetails = baseInitialDetails) => {
     const ReservationEditorTestHarness = () => {
-        const [activeReservationDialog, setActiveReservationDialog] =
-            useState<BookingReservationDialogState | null>(null);
+        const [activeReservationDialog, setActiveReservationDialog] = useState<BookingReservationDialogState | null>(
+            null,
+        );
 
         const handleOpenReservationEditor = () => {
             setActiveReservationDialog({ mode: "create", initialDetails });

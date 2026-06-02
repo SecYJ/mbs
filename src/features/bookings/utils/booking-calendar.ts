@@ -1,4 +1,6 @@
 import type { EventInput } from "@fullcalendar/core";
+import { addDays, compareAsc, format, isBefore, isSameMonth, isSameYear, parseISO } from "date-fns";
+import { z } from "zod";
 
 import type { BookingCalendarData } from "@/features/bookings/services/queries";
 
@@ -86,50 +88,41 @@ export const getVisibleEvents = (events: EventInput[], filteredRooms: { id: stri
 export const getLiveBookingCount = (events: BookingCalendarEvent[], now: Date) => {
     let count = 0;
     for (const event of events) {
-        const start = new Date(event.start);
-        const end = new Date(event.end);
-        if (start <= now && now < end) count += 1;
+        const start = parseISO(event.start);
+        const end = parseISO(event.end);
+        if (compareAsc(start, now) <= 0 && isBefore(now, end)) count += 1;
     }
     return count;
 };
 
 export const getBookingCalendarTitle = (view: BookingCalendarView, date: Date) => {
     if (view === "day") {
-        return date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+        return format(date, "EEEE, MMMM d, yyyy");
     }
     if (view === "week") {
-        const start = new Date(date);
-        const end = new Date(start);
-        end.setDate(start.getDate() + 6);
-        const sameMonth = start.getMonth() === end.getMonth();
-        const sameYear = start.getFullYear() === end.getFullYear();
-        const startStr = start.toLocaleDateString("en-US", {
-            month: "short",
-            day: "numeric",
-            ...(sameYear ? {} : { year: "numeric" }),
-        });
-        const endStr = end.toLocaleDateString("en-US", {
-            month: sameMonth ? undefined : "short",
-            day: "numeric",
-            year: "numeric",
-        });
-        return `${startStr} – ${endStr}`;
+        const start = date;
+        const end = addDays(start, 6);
+        const startFormat = isSameYear(start, end) ? "MMM d" : "MMM d, yyyy";
+        const endFormat = isSameMonth(start, end) ? "d, yyyy" : "MMM d, yyyy";
+
+        return `${format(start, startFormat)} - ${format(end, endFormat)}`;
     }
     if (view === "year") {
-        return String(date.getFullYear());
+        return format(date, "yyyy");
     }
-    return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    return format(date, "MMMM yyyy");
 };
 
-export const formatTodayButtonDate = (date: Date) =>
-    date.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+export const formatTodayButtonDate = (date: Date) => format(date, "EEEE, MMMM d, yyyy");
 
-const getEventEndDate = (event: EventInput) => {
-    if (!event.end) return null;
-    return typeof event.end === "string" ? new Date(event.end) : (event.end as Date);
-};
+const eventEndDateSchema = z
+    .preprocess((value) => (value ? value : undefined), z.coerce.date().optional())
+    .transform((date) => date ?? null)
+    .catch(null);
+
+const getEventEndDate = (event: EventInput) => eventEndDateSchema.parse(event.end);
 
 export const isPastCalendarEvent = (event: EventInput, now = new Date()) => {
     const end = getEventEndDate(event);
-    return !!end && end.getTime() <= now.getTime();
+    return !!end && compareAsc(end, now) <= 0;
 };

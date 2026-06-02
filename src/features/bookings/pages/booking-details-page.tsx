@@ -2,6 +2,7 @@ import { CalendarDays, Check, CheckCircle2, Clock, Mail, MapPin, UserRound, User
 import type { ReactNode } from "react";
 
 import { useBookingDetailsPage } from "@/features/bookings/hooks/useBookingDetailsPage";
+import { cn } from "@/lib/utils";
 
 export const BookingDetailsPage = () => {
     const {
@@ -33,7 +34,10 @@ export const BookingDetailsPage = () => {
                     <div className="flex flex-wrap items-center gap-3">
                         <p className="eyebrow eyebrow-gold">{pageLabel}</p>
                         <span
-                            className={`inline-flex items-center border px-2.5 py-1 text-[0.62rem] font-semibold tracking-[0.18em] uppercase ${bookingState.className}`}
+                            className={cn(
+                                "inline-flex items-center border px-2.5 py-1 text-[0.62rem] font-semibold tracking-[0.18em] uppercase",
+                                bookingState.className,
+                            )}
                         >
                             {bookingState.label}
                         </span>
@@ -235,7 +239,10 @@ const PersonRow = ({
                 <p className="mt-1 truncate text-xs text-(--bone-muted)">{email}</p>
             </div>
             <span
-                className={`inline-flex shrink-0 items-center gap-2 border px-2.5 py-1 text-[0.62rem] font-semibold tracking-[0.18em] uppercase ${statusMeta.className}`}
+                className={cn(
+                    "inline-flex shrink-0 items-center gap-2 border px-2.5 py-1 text-[0.62rem] font-semibold tracking-[0.18em] uppercase",
+                    statusMeta.className,
+                )}
             >
                 {statusMeta.icon}
                 {statusMeta.label}

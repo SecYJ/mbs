@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate, useRouter } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { LogOut, Settings } from "lucide-react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { authClient } from "@/lib/auth-client";
+import { useSignOut } from "@/features/account/hooks/useSignOut";
 
 type AuthenticatedAccountMenuProps = {
     user: {
@@ -24,16 +23,7 @@ const getInitials = (name: string) =>
 
 export const AuthenticatedAccountMenu = ({ user }: AuthenticatedAccountMenuProps) => {
     const [accountOpen, setAccountOpen] = useState(false);
-    const navigate = useNavigate();
-    const router = useRouter();
-    const queryClient = useQueryClient();
-
-    const handleSignOut = async () => {
-        await authClient.signOut();
-        queryClient.clear();
-        await router.invalidate();
-        navigate({ to: "/login" });
-    };
+    const { error: signOutError, isPending: isSigningOut, signOut } = useSignOut();
 
     return (
         <Popover open={accountOpen} onOpenChange={setAccountOpen}>
@@ -62,12 +52,14 @@ export const AuthenticatedAccountMenu = ({ user }: AuthenticatedAccountMenuProps
                 </Link>
                 <button
                     type="button"
-                    onClick={handleSignOut}
+                    onClick={() => signOut()}
+                    disabled={isSigningOut}
                     className="flex w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-left text-[0.66rem] font-semibold tracking-[0.24em] text-(--bone-dim) uppercase transition-colors hover:bg-(--surface-02) hover:text-(--bone)"
                 >
                     <LogOut className="size-4" strokeWidth={1.4} />
                     <span>Sign Out</span>
                 </button>
+                {signOutError ? <p className="px-3 py-2 text-xs leading-5 text-red-200">{signOutError}</p> : null}
             </PopoverContent>
         </Popover>
     );

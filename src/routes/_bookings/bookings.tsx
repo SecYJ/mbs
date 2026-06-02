@@ -10,7 +10,14 @@ import { bookingCalendarQueryOptions } from "@/features/bookings/services/querie
 export const Route = createFileRoute("/_bookings/bookings")({
     validateSearch: bookingCalendarSearchSchema,
     search: {
-        middlewares: [stripSearchParams(bookingCalendarSearchDefaults)],
+        middlewares: [
+            stripSearchParams({
+                view: bookingCalendarSearchDefaults.view,
+                capacity: bookingCalendarSearchDefaults.capacity,
+                equipment: [],
+                location: [],
+            }),
+        ],
     },
     loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(bookingCalendarQueryOptions()),
     component: BookingCalendarPage,

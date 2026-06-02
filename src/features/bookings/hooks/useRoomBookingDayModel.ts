@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate, useParams, useSearch } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import {
     addDays,
     addMinutes,
@@ -17,9 +17,11 @@ import {
 } from "date-fns";
 
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
+import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 
-export type RoomBookingSlot = {
+const roomBookingRoute = getRouteApi("/_bookings/rooms/$roomId");
+
+type RoomBookingSlot = {
     start: Date;
     end: Date;
 };
@@ -131,10 +133,10 @@ const getFirstBookableSlot = (segments: RoomBookingDaySegment[], roomAvailable: 
 };
 
 export const useRoomBookingDayModel = () => {
-    const { roomId } = useParams({ from: "/_bookings/rooms/$roomId" });
-    const { date } = useSearch({ from: "/_bookings/rooms/$roomId" });
+    const { roomId } = roomBookingRoute.useParams();
+    const { date } = roomBookingRoute.useSearch();
+    const navigate = roomBookingRoute.useNavigate();
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
-    const navigate = useNavigate({ from: "/rooms/$roomId" });
 
     const selectedDate = parseDateKey(date);
     const room = data.rooms.find((item) => item.id === roomId);

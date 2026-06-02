@@ -6,7 +6,7 @@ import {
     getFilteredRoomCount,
     getLiveBookingCount,
     getRoomFilterState,
-} from "@/features/bookings/utils/booking-calendar.utils";
+} from "@/features/bookings/utils/booking-calendar";
 
 export const useBookingCalendarSummary = () => {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());

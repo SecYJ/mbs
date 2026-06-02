@@ -7,15 +7,13 @@ import { Building2, FilterX, Plus } from "lucide-react";
 import { BookingAvailabilityCalendar } from "@/features/bookings/components/booking-availability-calendar";
 import { BookingEmptyState } from "@/features/bookings/components/booking-empty-state";
 import { useBookingCalendarAvailability } from "@/features/bookings/hooks/useBookingCalendarAvailability";
-import { bookingCalendarSearchDefaults } from "@/features/bookings/schemas/booking-calendar-search.schema";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
-import { isPastCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
+import { isPastCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 
 type AvailabilityCalendarProps = ComponentProps<typeof BookingAvailabilityCalendar>;
 
 export const BookingCalendarAvailability = () => {
-    const { currentUserRole, showCalendar, showFilterZeroState, showNoRoomsState } =
-        useBookingCalendarAvailability();
+    const { currentUserRole, showCalendar, showFilterZeroState, showNoRoomsState } = useBookingCalendarAvailability();
     const { openExistingReservation, openNewReservation } = useBookingCalendarStore((state) => state.actions);
 
     const handleSelect: AvailabilityCalendarProps["onSelect"] = (info: DateSelectArg) => {
@@ -73,12 +71,6 @@ export const BookingCalendarAvailability = () => {
                     <Link
                         from="/bookings"
                         to="."
-                        search={(prev) => ({
-                            ...prev,
-                            capacity: bookingCalendarSearchDefaults.capacity,
-                            equipment: bookingCalendarSearchDefaults.equipment,
-                            location: bookingCalendarSearchDefaults.location,
-                        })}
                         className="flex items-center justify-center gap-3 border border-(--bone) bg-(--bone) px-5 py-3 text-[0.66rem] font-semibold tracking-[0.28em] text-black uppercase no-underline transition-all hover:bg-white hover:tracking-[0.32em]"
                     >
                         <FilterX className="size-4" strokeWidth={1.6} />

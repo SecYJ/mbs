@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import type { FormEvent } from "react";
 import type { EventInput } from "@fullcalendar/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSuspenseQuery } from "@tanstack/react-query";
@@ -171,8 +171,8 @@ export const useBookingReservationForm = ({
     onSubmit,
 }: UseBookingReservationFormOptions) => {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
-    const [now] = useState(() => Date.now());
-    const [formSchema] = useState(() => createBookingReservationFormSchema(now));
+    const now = Date.now();
+    const formSchema = createBookingReservationFormSchema(now);
     const form = useForm({
         resolver: zodResolver(formSchema, undefined, { mode: "sync" }),
         defaultValues: getBookingReservationDefaultValues({
@@ -212,7 +212,7 @@ export const useBookingReservationForm = ({
         e.preventDefault();
         if (isSubmitting) return;
 
-        const result = formSchema.safeParse(getValues());
+        const result = createBookingReservationFormSchema(Date.now()).safeParse(getValues());
 
         if (!result.success) {
             clearErrors();

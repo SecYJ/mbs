@@ -1,20 +1,25 @@
+"use client";
+
 import { useState } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { Users, X } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { Label } from "@/components/ui/label";
 import { BookingAttendeePickerDialog } from "@/features/bookings/components/booking-attendee-picker-dialog";
+import type { BookableUser } from "@/features/bookings/components/booking-reservation-editor.types";
 import type { BookingReservationFormValues } from "@/features/bookings/hooks/useBookingReservationForm";
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
 
-export const BookingReservationAttendees = () => {
-    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+export const BookingReservationAttendees = ({
+    inviteableUsers,
+    useUrlBackedSearch = true,
+}: {
+    inviteableUsers: BookableUser[];
+    useUrlBackedSearch?: boolean;
+}) => {
     const { control, setValue } = useFormContext<BookingReservationFormValues>();
     const [attendeePickerOpen, setAttendeePickerOpen] = useState(false);
     const selectedIds = useWatch({ control, name: "attendeeIds" });
-    const users = data.currentUserId ? data.users.filter((user) => user.id !== data.currentUserId) : data.users;
-    const selectedAttendees = users.filter((user) => selectedIds.includes(user.id));
+    const selectedAttendees = inviteableUsers.filter((user) => selectedIds.includes(user.id));
 
     const openAttendeePicker = () => {
         setValue("draftAttendeeIds", selectedIds);
@@ -65,7 +70,12 @@ export const BookingReservationAttendees = () => {
                 </div>
             )}
             {attendeePickerOpen ? (
-                <BookingAttendeePickerDialog open={attendeePickerOpen} onOpenChange={setAttendeePickerOpen} />
+                <BookingAttendeePickerDialog
+                    inviteableUsers={inviteableUsers}
+                    open={attendeePickerOpen}
+                    onOpenChange={setAttendeePickerOpen}
+                    useUrlBackedSearch={useUrlBackedSearch}
+                />
             ) : null}
         </div>
     );

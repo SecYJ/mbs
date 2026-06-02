@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
 
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import { getFilteredRooms, getRoomFilterState } from "@/features/bookings/utils/booking-calendar.utils";
+import { getFilteredRooms, getRoomFilterState } from "@/features/bookings/utils/booking-calendar";
 
 export const useBookingCalendarAvailability = () => {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());

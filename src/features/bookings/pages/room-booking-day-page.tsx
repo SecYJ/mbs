@@ -8,7 +8,7 @@ import { RoomBookingEquipment } from "@/features/bookings/components/room-bookin
 import { RoomBookingSchedule } from "@/features/bookings/components/room-booking-schedule";
 import { RoomBookingSummary } from "@/features/bookings/components/room-booking-summary";
 import { useRoomBookingDayModel } from "@/features/bookings/hooks/useRoomBookingDayModel";
-import { getBookingEventInput, type BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
+import { getBookingEventInput, type BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 import { cn } from "@/lib/utils";
 
 export const RoomBookingDayPage = () => <RoomBookingDayPageContent />;
@@ -135,6 +135,7 @@ const RoomBookingDayPageContent = () => {
                 <BookingReservationEditorDialog
                     dialogState={activeReservationDialog}
                     onOpenChange={handleReservationDialogOpenChange}
+                    useUrlBackedAttendeeSearch
                 />
             ) : null}
         </>

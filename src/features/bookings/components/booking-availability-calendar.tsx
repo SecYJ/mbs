@@ -9,10 +9,7 @@ import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 
 import { useBookingAvailabilityCalendar } from "@/features/bookings/hooks/useBookingAvailabilityCalendar";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
-import {
-    bookingCalendarViewMap,
-    isPastCalendarEvent,
-} from "@/features/bookings/utils/booking-calendar.utils";
+import { bookingCalendarViewMap, isPastCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 
 export const BookingAvailabilityCalendar = ({
     onEventClick,

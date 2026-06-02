@@ -52,8 +52,8 @@ const RoomBookingStat = ({
     value: number | string;
     accent?: "signal";
 }) => (
-    <div className="flex gap-3 border-y border-[var(--hairline)] py-4">
-        <div className="flex size-9 shrink-0 items-center justify-center border border-[var(--hairline)] text-[var(--gold)]">
+    <div className="flex gap-3 border-y border-(--hairline) py-4">
+        <div className="flex size-9 shrink-0 items-center justify-center border border-(--hairline) text-(--gold)">
             {icon}
         </div>
         <div className="min-w-0">
@@ -61,7 +61,7 @@ const RoomBookingStat = ({
             <p
                 className={cn(
                     "mt-1 truncate text-sm font-semibold",
-                    accent === "signal" ? "text-[var(--signal)]" : "text-[var(--bone)]",
+                    accent === "signal" ? "text-(--signal)" : "text-(--bone)",
                 )}
             >
                 {value}

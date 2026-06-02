@@ -6,9 +6,10 @@ import {
     getLiveBookingCount,
     getRoomFilterState,
     getVisibleEvents,
+    isPastCalendarEvent,
     sortStrings,
     type BookingCalendarEvent,
-} from "./booking-calendar.utils";
+} from "./booking-calendar";
 
 const bookingEvent = {
     id: "booking-1",
@@ -76,5 +77,13 @@ describe("booking calendar utilities", () => {
 
         expect(sortStrings(values)).toEqual(["Camera", "Display", "Projector"]);
         expect(values).toEqual(["Projector", "Display", "Camera"]);
+    });
+
+    it("parses calendar event end dates for past event checks", () => {
+        const now = new Date("2099-04-29T10:00:00.000Z");
+
+        expect(isPastCalendarEvent({ end: "2099-04-29T09:00:00.000Z" }, now)).toBe(true);
+        expect(isPastCalendarEvent({ end: "not-a-date" }, now)).toBe(false);
+        expect(isPastCalendarEvent({}, now)).toBe(false);
     });
 });

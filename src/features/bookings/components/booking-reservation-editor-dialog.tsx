@@ -1,10 +1,47 @@
+"use client";
+
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { BookingReservationDetails } from "@/features/bookings/components/booking-reservation-details";
 import { BookingReservationForm } from "@/features/bookings/components/booking-reservation-form";
+import type { BookingReservationDialogState } from "@/features/bookings/components/booking-reservation-editor.types";
 import { useBookingReservationEditor } from "@/features/bookings/hooks/useBookingReservationEditor";
+import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
 import { cn } from "@/lib/utils";
+import { useShallow } from "zustand/shallow";
 
-export const BookingReservationEditorDialog = () => {
+type BookingReservationEditorDialogProps = {
+    dialogState?: BookingReservationDialogState | null;
+    onOpenChange?: (open: boolean) => void;
+    useUrlBackedAttendeeSearch?: boolean;
+};
+
+export const BookingReservationEditorDialog = ({
+    dialogState,
+    onOpenChange,
+    useUrlBackedAttendeeSearch,
+}: BookingReservationEditorDialogProps = {}) => {
+    if (dialogState !== undefined && onOpenChange) {
+        return (
+            <BookingReservationEditorDialogContent
+                dialogState={dialogState}
+                onOpenChange={onOpenChange}
+                useUrlBackedAttendeeSearch={useUrlBackedAttendeeSearch ?? false}
+            />
+        );
+    }
+
+    return <StoreBackedBookingReservationEditorDialog />;
+};
+
+const BookingReservationEditorDialogContent = ({
+    dialogState: activeDialogState,
+    onOpenChange,
+    useUrlBackedAttendeeSearch,
+}: {
+    dialogState: BookingReservationDialogState | null;
+    onOpenChange: (open: boolean) => void;
+    useUrlBackedAttendeeSearch: boolean;
+}) => {
     const {
         canManage,
         cancelReservation,
@@ -24,7 +61,7 @@ export const BookingReservationEditorDialog = () => {
         resetKey,
         selectedRoom,
         widthClass,
-    } = useBookingReservationEditor();
+    } = useBookingReservationEditor({ dialogState: activeDialogState, onOpenChange });
 
     if (!dialogState) return null;
 
@@ -73,9 +110,28 @@ export const BookingReservationEditorDialog = () => {
                         onCancel={onCancelForm}
                         onSubmit={onSubmit}
                         initialDetails={initialDetails}
+                        useUrlBackedAttendeeSearch={useUrlBackedAttendeeSearch}
                     />
                 )}
             </DialogContent>
         </Dialog>
+    );
+};
+
+const StoreBackedBookingReservationEditorDialog = () => {
+    const [dialogState, { closeReservationDialog }] = useBookingCalendarStore(
+        useShallow((state) => [state.activeReservationDialog, state.actions]),
+    );
+
+    const handleOpenChange = (open: boolean) => {
+        if (!open) closeReservationDialog();
+    };
+
+    return (
+        <BookingReservationEditorDialogContent
+            dialogState={dialogState}
+            onOpenChange={handleOpenChange}
+            useUrlBackedAttendeeSearch
+        />
     );
 };

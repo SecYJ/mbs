@@ -9,6 +9,7 @@ import { cancelBookingFn, rsvpBookingInviteFn } from "@/features/bookings/servic
 import { bookingCalendarQueryOptions, type BookingCalendarData } from "@/features/bookings/services/queries";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 import { stripDefaultSearchParams } from "@/lib/router-search";
+import { cn } from "@/lib/utils";
 
 type BookingHistoryItem = BookingCalendarData["history"][number];
 type BookingGroup = "all" | "upcoming" | "in-progress" | "past";
@@ -96,18 +97,18 @@ export function MyBookingsPage() {
 
     return (
         <div className="mx-auto w-full max-w-7xl space-y-8">
-            <header className="grid gap-6 border-b border-[var(--hairline)] pb-7 lg:grid-cols-[1fr_auto] lg:items-end">
+            <header className="grid gap-6 border-b border-(--hairline) pb-7 lg:grid-cols-[1fr_auto] lg:items-end">
                 <div>
                     <p className="eyebrow eyebrow-gold">BOOKINGS &middot; PERSONAL LEDGER</p>
-                    <h1 className="display-italic mt-3 text-4xl leading-none font-normal text-[var(--bone)] md:text-5xl">
+                    <h1 className="display-italic mt-3 text-4xl leading-none font-normal text-(--bone) md:text-5xl">
                         My Bookings
                     </h1>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-[var(--bone-muted)]">
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-(--bone-muted)">
                         Meetings you organize or attend, grouped by what needs attention now.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-3 divide-x divide-[var(--hairline)] border-y border-[var(--hairline)] py-3">
+                <div className="grid grid-cols-3 divide-x divide-(--hairline) border-y border-(--hairline) py-3">
                     <Stat label="Active" value={activeCount} accent={activeCount > 0 ? "signal" : undefined} />
                     <Stat label="Owned" value={ownedCount} />
                     <Stat label="Invited" value={attendingCount} />
@@ -115,7 +116,7 @@ export function MyBookingsPage() {
             </header>
 
             <section className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-center">
-                <label className="flex min-h-12 items-center gap-3 border-b border-[var(--hairline)] text-[var(--bone-muted)] transition-colors focus-within:border-[var(--gold)] focus-within:text-[var(--gold)]">
+                <label className="flex min-h-12 items-center gap-3 border-b border-(--hairline) text-(--bone-muted) transition-colors focus-within:border-(--gold) focus-within:text-(--gold)">
                     <Search className="size-4 shrink-0" strokeWidth={1.4} />
                     <span className="sr-only">Search bookings</span>
                     <input
@@ -123,31 +124,32 @@ export function MyBookingsPage() {
                         value={q}
                         onChange={(event) => updateSearch({ q: event.target.value })}
                         placeholder="Search title, room, organizer, or attendee"
-                        className="h-12 min-w-0 flex-1 bg-transparent text-sm text-[var(--bone)] outline-none placeholder:text-[var(--bone-faint)]"
+                        className="h-12 min-w-0 flex-1 bg-transparent text-sm text-(--bone) outline-none placeholder:text-(--bone-faint)"
                     />
                     {q ? (
                         <button
                             type="button"
                             onClick={() => updateSearch({ q: "" })}
                             aria-label="Clear search"
-                            className="flex size-8 cursor-pointer items-center justify-center text-[var(--bone-dim)] transition-colors hover:text-[var(--bone)]"
+                            className="flex size-8 cursor-pointer items-center justify-center text-(--bone-dim) transition-colors hover:text-(--bone)"
                         >
                             <X className="size-4" strokeWidth={1.4} />
                         </button>
                     ) : null}
                 </label>
 
-                <div className="flex flex-wrap border border-[var(--hairline)] p-1">
+                <div className="flex flex-wrap border border-(--hairline) p-1">
                     {groupOptions.map((option) => (
                         <Link
                             key={option.value}
                             to="/my-bookings"
                             search={(prev) => ({ ...prev, group: option.value })}
-                            className={
+                            className={cn(
+                                "border px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] uppercase no-underline",
                                 group === option.value
-                                    ? "border border-[var(--hairline-strong)] bg-[var(--surface-02)] px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] text-[var(--bone)] uppercase no-underline"
-                                    : "border border-transparent px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] text-[var(--bone-dim)] uppercase no-underline transition-colors hover:border-[var(--hairline)] hover:text-[var(--bone)]"
-                            }
+                                    ? "border-(--hairline-strong) bg-(--surface-02) text-(--bone)"
+                                    : "border-transparent text-(--bone-dim) transition-colors hover:border-(--hairline) hover:text-(--bone)",
+                            )}
                         >
                             {option.label}
                         </Link>
@@ -237,15 +239,15 @@ const statusMeta: Record<
 > = {
     upcoming: {
         label: "Upcoming",
-        className: "border-[var(--gold)]/40 bg-[var(--gold-wash)] text-[var(--gold)]",
+        className: "border-(--gold)/40 bg-(--gold-wash) text-(--gold)",
     },
     "in-progress": {
         label: "In Session",
-        className: "border-[var(--signal)]/40 bg-[var(--signal)]/10 text-[var(--signal)]",
+        className: "border-(--signal)/40 bg-(--signal)/10 text-(--signal)",
     },
     completed: {
         label: "Completed",
-        className: "border-[var(--hairline)] bg-[var(--surface-02)] text-[var(--bone-muted)]",
+        className: "border-(--hairline) bg-(--surface-02) text-(--bone-muted)",
     },
     cancelled: {
         label: "Cancelled",
@@ -256,7 +258,7 @@ const statusMeta: Record<
 const rsvpMeta = {
     accepted: {
         label: "Accepted",
-        className: "border-[var(--signal)]/40 bg-[var(--signal)]/10 text-[var(--signal)]",
+        className: "border-(--signal)/40 bg-(--signal)/10 text-(--signal)",
     },
     declined: {
         label: "Declined",
@@ -264,7 +266,7 @@ const rsvpMeta = {
     },
     pending: {
         label: "Pending RSVP",
-        className: "border-[var(--hairline)] bg-[var(--surface-02)] text-[var(--bone-muted)]",
+        className: "border-(--hairline) bg-(--surface-02) text-(--bone-muted)",
     },
 };
 
@@ -325,7 +327,10 @@ const Stat = ({ label, value, accent }: { label: string; value: number; accent?:
     <div className="min-w-24 px-4 text-center">
         <p className="eyebrow">{label}</p>
         <p
-            className={`tabular-num mt-1 text-xl font-semibold ${accent === "signal" ? "text-(--signal)" : "text-(--bone)"}`}
+            className={cn("tabular-num mt-1 text-xl font-semibold", {
+                "text-(--signal)": accent === "signal",
+                "text-(--bone)": accent !== "signal",
+            })}
         >
             {value}
         </p>
@@ -467,7 +472,10 @@ const BookingRow = ({
                     <div className="flex flex-wrap items-center gap-2">
                         <h3 className="text-sm font-semibold text-(--bone)">{booking.title}</h3>
                         <span
-                            className={`border px-2 py-0.5 text-[0.62rem] font-semibold tracking-[0.18em] uppercase ${meta.className}`}
+                            className={cn(
+                                "border px-2 py-0.5 text-[0.62rem] font-semibold tracking-[0.18em] uppercase",
+                                meta.className,
+                            )}
                         >
                             {meta.label}
                         </span>
@@ -476,7 +484,10 @@ const BookingRow = ({
                         </span>
                         {responseMeta ? (
                             <span
-                                className={`border px-2 py-0.5 text-[0.62rem] font-semibold tracking-[0.18em] uppercase ${responseMeta.className}`}
+                                className={cn(
+                                    "border px-2 py-0.5 text-[0.62rem] font-semibold tracking-[0.18em] uppercase",
+                                    responseMeta.className,
+                                )}
                             >
                                 {responseMeta.label}
                             </span>
@@ -560,7 +571,7 @@ const BookingRow = ({
                 <Link
                     to="/bookings/$bookingId"
                     params={{ bookingId: booking.id }}
-                    className="inline-flex min-h-9 items-center gap-2 border border-[var(--hairline)] px-3 text-[0.62rem] font-semibold tracking-[0.22em] text-[var(--bone-dim)] uppercase no-underline transition-colors hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
+                    className="inline-flex min-h-9 items-center gap-2 border border-(--hairline) px-3 text-[0.62rem] font-semibold tracking-[0.22em] text-(--bone-dim) uppercase no-underline transition-colors hover:border-(--hairline-strong) hover:text-(--bone)"
                 >
                     <Eye className="size-3.5" strokeWidth={1.4} />
                     <span>View</span>
@@ -569,7 +580,7 @@ const BookingRow = ({
                     <Link
                         to="/bookings"
                         search={{ bookingId: booking.id }}
-                        className="inline-flex min-h-9 items-center gap-2 border border-[var(--hairline)] px-3 text-[0.62rem] font-semibold tracking-[0.22em] text-[var(--bone-dim)] uppercase no-underline transition-colors hover:border-[var(--hairline-strong)] hover:text-[var(--bone)]"
+                        className="inline-flex min-h-9 items-center gap-2 border border-(--hairline) px-3 text-[0.62rem] font-semibold tracking-[0.22em] text-(--bone-dim) uppercase no-underline transition-colors hover:border-(--hairline-strong) hover:text-(--bone)"
                     >
                         <Pencil className="size-3.5" strokeWidth={1.4} />
                         <span>Edit</span>
@@ -590,7 +601,7 @@ const BookingRow = ({
                         type="button"
                         onClick={() => onRsvp("accepted")}
                         disabled={isResponding}
-                        className="inline-flex min-h-9 cursor-pointer items-center gap-2 border border-[var(--signal)]/40 bg-[var(--signal)]/10 px-3 text-[0.62rem] font-semibold tracking-[0.22em] text-[var(--signal)] uppercase transition-colors hover:border-[var(--signal)] disabled:cursor-wait disabled:opacity-60"
+                        className="inline-flex min-h-9 cursor-pointer items-center gap-2 border border-(--signal)/40 bg-(--signal)/10 px-3 text-[0.62rem] font-semibold tracking-[0.22em] text-(--signal) uppercase transition-colors hover:border-(--signal) disabled:cursor-wait disabled:opacity-60"
                     >
                         <Check className="size-3.5" strokeWidth={1.4} />
                         <span>{isResponding ? "Saving" : "Accept"}</span>

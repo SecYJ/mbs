@@ -135,8 +135,8 @@ CLI looks for `auth.ts` in: `./`, `./lib`, `./utils`, or under `./src`. Use `--c
 
 **Import from dedicated paths for tree-shaking:**
 
-```
-import { twoFactor } from "better-auth/plugins/two-factor"
+```ts
+import { twoFactor } from "better-auth/plugins/two-factor";
 ```
 
 NOT `from "better-auth/plugins"`.

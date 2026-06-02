@@ -21,7 +21,7 @@ This skill produces exhaustive documentation research on any React API or concep
 
 ## Invocation
 
-```
+```text
 /react-expert useTransition
 /react-expert suspense boundaries
 /react-expert startTransition
@@ -81,9 +81,9 @@ Spawn these agents IN PARALLEL using the Task tool. Each agent receives the skep
 
 Use these exact prompts when spawning agents:
 
-#### test-explorer
+### test-explorer
 
-````
+````text
 You are researching React's <TOPIC>.
 
 CRITICAL: Do NOT rely on your prior knowledge about this API. Your training may contain outdated or incorrect patterns. Only report what you find in the source files.
@@ -103,14 +103,15 @@ Format your output as:
 ### Test: "<test description>"
 ```javascript
 <exact code from test>
-````
+```
 
 **Behavior:** <what the test asserts>
 
-```
+````
 
-#### source-explorer
-```
+### source-explorer
+
+```text
 
 You are researching React's <TOPIC>.
 
@@ -141,9 +142,9 @@ Format your output as:
 <key details from source code>
 ```
 
-#### git-historian
+### git-historian
 
-```
+```text
 You are researching React's <TOPIC>.
 
 CRITICAL: Do NOT rely on your prior knowledge. Only report what you find in git history.
@@ -166,9 +167,9 @@ Format your output as:
 **Impact:** <what behavior changed>
 ```
 
-#### pr-researcher
+### pr-researcher
 
-```
+```text
 You are researching React's <TOPIC>.
 
 CRITICAL: Do NOT rely on your prior knowledge. Only report what you find in PRs.
@@ -192,9 +193,9 @@ Format your output as:
 **Discussion Highlights:** <key points from comments>
 ```
 
-#### issue-hunter
+### issue-hunter
 
-```
+```text
 You are researching React's <TOPIC>.
 
 CRITICAL: Do NOT rely on your prior knowledge. Only report what you find in issues.
@@ -217,9 +218,9 @@ Format your output as:
 **Gotcha:** <if applicable>
 ```
 
-#### types-inspector
+### types-inspector
 
-````
+````text
 You are researching React's <TOPIC>.
 
 CRITICAL: Do NOT rely on your prior knowledge. Only report what you find in type definitions.
@@ -235,7 +236,7 @@ Format your output as:
 **File:** <path>
 ```flow
 <exact type definition>
-````
+```
 
 ## TypeScript Types
 
@@ -248,7 +249,7 @@ Format your output as:
 ## Discrepancies
 
 <any differences between Flow and TS definitions>
-```
+````
 
 ### Step 4: Synthesize Results
 

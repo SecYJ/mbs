@@ -1,6 +1,3 @@
-"use client";
-
-import { useEffect } from "react";
 import { z } from "zod";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -15,18 +12,6 @@ const defaultUserPreferences: UserPreferences = {
     soundEnabled: true,
 };
 
-const persistedClientStateSchema = z
-    .object({
-        userPreferences: z
-            .object({
-                soundEnabled: z.boolean().catch(defaultUserPreferences.soundEnabled),
-            })
-            .catch(defaultUserPreferences),
-    })
-    .catch({
-        userPreferences: defaultUserPreferences,
-    });
-
 type PersistentClientState = {
     userPreferences: UserPreferences;
     actions: {
@@ -35,7 +20,15 @@ type PersistentClientState = {
 };
 
 const mergePersistentClientState = (persistedState: unknown, currentState: PersistentClientState) => {
-    const parsedState = persistedClientStateSchema.parse(persistedState);
+    const parsedState = z
+        .object({
+            userPreferences: z
+                .object({
+                    soundEnabled: z.boolean().catch(defaultUserPreferences.soundEnabled),
+                })
+                .catch(defaultUserPreferences),
+        })
+        .parse(persistedState);
 
     return {
         ...currentState,
@@ -58,17 +51,9 @@ export const usePersistentClientStore = create<PersistentClientState>()(
         {
             name: PERSISTENT_CLIENT_STORE_STORAGE_KEY,
             storage: createJSONStorage(() => localStorage),
+            skipHydration: true,
             partialize: (state) => ({ userPreferences: state.userPreferences }),
             merge: mergePersistentClientState,
-            skipHydration: true,
         },
     ),
 );
-
-export const PersistentClientStoreHydrator = () => {
-    useEffect(() => {
-        void usePersistentClientStore.persist.rehydrate();
-    }, []);
-
-    return null;
-};

@@ -4,12 +4,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { BookingRoomFilters } from "@/features/bookings/components/booking-room-filters";
 import { useBookingCalendarControls } from "@/features/bookings/hooks/useBookingCalendarControls";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
-import { bookingCalendarViewMap, bookingCalendarViews } from "@/features/bookings/utils/booking-calendar.utils";
+import { bookingCalendarViewMap, bookingCalendarViews } from "@/features/bookings/utils/booking-calendar";
 import { cn } from "@/lib/utils";
 
 export const BookingCalendarControls = () => {
-    const { allEquipment, allLocations, rooms, todayButtonLabel, view, viewContainsToday } =
-        useBookingCalendarControls();
+    const { todayButtonLabel, view, viewContainsToday } = useBookingCalendarControls();
     const { changeView, goNext, goPrev, goToday } = useBookingCalendarStore((state) => state.actions);
 
     return (
@@ -75,12 +74,7 @@ export const BookingCalendarControls = () => {
                     ))}
                 </div>
 
-                <BookingRoomFilters
-                    allEquipment={allEquipment}
-                    allLocations={allLocations}
-                    rooms={rooms}
-                    totalRooms={rooms.length}
-                />
+                <BookingRoomFilters />
             </div>
         </div>
     );

@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
+import { useNavigate, useSearch } from "@tanstack/react-router";
 import { CalendarDays, TrendingUp, Building2, Eye, Ban, Check, Filter } from "lucide-react";
 import {
     adminBadgeClasses,
@@ -15,7 +16,7 @@ import { useAdminToast } from "@/features/admin/components/admin-layout";
 
 type BookingStatus = "upcoming" | "in-progress" | "completed" | "cancelled";
 
-interface Booking {
+type Booking = {
     id: string;
     title: string;
     room: string;
@@ -24,7 +25,7 @@ interface Booking {
     date: string;
     time: string;
     status: BookingStatus;
-}
+};
 
 const initialBookings: Booking[] = [
     {
@@ -116,36 +117,38 @@ const STATUS_STYLES: Record<BookingStatus, { bg: string; color: string; label: s
     cancelled: { bg: "var(--a-danger-subtle)", color: "var(--a-danger)", label: "Cancelled" },
 };
 
-export function BookingsPage() {
+export const BookingsPage = () => {
     const { toast } = useAdminToast();
     const [bookings, setBookings] = useState(initialBookings);
-    const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [roomFilter, setRoomFilter] = useState<string>("all");
+    const { q: search, status: statusFilter, room: roomFilter } = useSearch({ from: "/admin/bookings" });
+    const navigate = useNavigate({ from: "/admin/bookings" });
     const [cancellingId, setCancellingId] = useState<string | null>(null);
     const [cancelReason, setCancelReason] = useState("");
 
-    const rooms = useMemo(() => [...new Set(bookings.map((b) => b.room))], [bookings]);
+    const rooms = [...new Set(bookings.map((b) => b.room))];
+    let filtered = bookings;
+    if (search) {
+        const q = search.toLowerCase();
+        filtered = filtered.filter(
+            (b) =>
+                b.title.toLowerCase().includes(q) ||
+                b.bookedBy.toLowerCase().includes(q) ||
+                b.room.toLowerCase().includes(q),
+        );
+    }
+    if (statusFilter !== "all") {
+        filtered = filtered.filter((b) => b.status === statusFilter);
+    }
+    if (roomFilter !== "all") {
+        filtered = filtered.filter((b) => b.room === roomFilter);
+    }
 
-    const filtered = useMemo(() => {
-        let list = bookings;
-        if (search) {
-            const q = search.toLowerCase();
-            list = list.filter(
-                (b) =>
-                    b.title.toLowerCase().includes(q) ||
-                    b.bookedBy.toLowerCase().includes(q) ||
-                    b.room.toLowerCase().includes(q),
-            );
-        }
-        if (statusFilter !== "all") {
-            list = list.filter((b) => b.status === statusFilter);
-        }
-        if (roomFilter !== "all") {
-            list = list.filter((b) => b.room === roomFilter);
-        }
-        return list;
-    }, [bookings, search, statusFilter, roomFilter]);
+    const updateSearch = (next: Partial<{ q: string; room: string; status: BookingStatus | "all" }>) => {
+        navigate({
+            search: (prev) => ({ ...prev, ...next }),
+            replace: true,
+        });
+    };
 
     /* ── Stats ── */
     const todayCount = bookings.filter((b) => b.date === "2026-04-14" && b.status !== "cancelled").length;
@@ -172,7 +175,7 @@ export function BookingsPage() {
                 title="All Bookings"
                 searchPlaceholder="Search bookings..."
                 searchValue={search}
-                onSearchChange={setSearch}
+                onSearchChange={(value) => updateSearch({ q: value })}
             />
 
             <div className="p-6">
@@ -261,7 +264,7 @@ export function BookingsPage() {
                     <select
                         className={adminSelectClasses}
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
+                        onChange={(e) => updateSearch({ status: e.target.value as BookingStatus | "all" })}
                     >
                         <option value="all">All statuses</option>
                         <option value="upcoming">Upcoming</option>
@@ -272,7 +275,7 @@ export function BookingsPage() {
                     <select
                         className={adminSelectClasses}
                         value={roomFilter}
-                        onChange={(e) => setRoomFilter(e.target.value)}
+                        onChange={(e) => updateSearch({ room: e.target.value })}
                     >
                         <option value="all">All rooms</option>
                         {rooms.map((r) => (
@@ -285,8 +288,7 @@ export function BookingsPage() {
                         <button
                             type="button"
                             onClick={() => {
-                                setStatusFilter("all");
-                                setRoomFilter("all");
+                                updateSearch({ status: "all", room: "all" });
                             }}
                             className="ml-auto text-[0.75rem] font-medium transition-colors"
                             style={{ color: "var(--a-accent)" }}
@@ -428,7 +430,10 @@ export function BookingsPage() {
                                                                     type="button"
                                                                     aria-label={`Cancel ${booking.title}`}
                                                                     title="Cancel booking"
-                                                                    onClick={() => setCancellingId(booking.id)}
+                                                                    onClick={() => {
+                                                                        setCancellingId(booking.id);
+                                                                        setCancelReason("");
+                                                                    }}
                                                                     className="flex size-7 items-center justify-center rounded-md transition-colors"
                                                                     style={{ color: "var(--a-text-muted)" }}
                                                                     onMouseEnter={(e) => {
@@ -459,4 +464,4 @@ export function BookingsPage() {
             </div>
         </div>
     );
-}
+};

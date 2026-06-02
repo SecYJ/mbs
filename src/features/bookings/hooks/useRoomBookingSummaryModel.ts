@@ -16,7 +16,7 @@ import {
 } from "date-fns";
 
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar.utils";
+import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 
 type OccupiedWindow = {
     start: Date;

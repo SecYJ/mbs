@@ -1,30 +1,21 @@
 import { z } from "zod";
 
-import { bookingCalendarViews } from "@/features/bookings/utils/booking-calendar.utils";
-
-const stringArraySearch = z
-    .union([z.string().array(), z.string()])
-    .optional()
-    .transform((value) => {
-        if (!value) return [];
-        return Array.isArray(value) ? value : [value];
-    })
-    .catch([]);
+import { bookingCalendarViews } from "@/features/bookings/utils/booking-calendar";
 
 export const bookingCalendarSearchDefaults = {
     view: "day",
     capacity: 0,
-    equipment: [] as string[],
-    location: [] as string[],
+    equipment: [],
+    location: [],
 } as const;
 
 export const bookingCalendarSearchSchema = z.object({
     bookingId: z.uuid().optional().catch(undefined),
     view: z
         .enum(bookingCalendarViews)
-        .default(bookingCalendarSearchDefaults.view)
-        .catch(bookingCalendarSearchDefaults.view),
-    capacity: z.number().default(bookingCalendarSearchDefaults.capacity).catch(bookingCalendarSearchDefaults.capacity),
-    equipment: stringArraySearch.default(bookingCalendarSearchDefaults.equipment),
-    location: stringArraySearch.default(bookingCalendarSearchDefaults.location),
+        .catch(bookingCalendarSearchDefaults.view)
+        .prefault(bookingCalendarSearchDefaults.view),
+    capacity: z.number().catch(bookingCalendarSearchDefaults.capacity).prefault(bookingCalendarSearchDefaults.capacity),
+    equipment: z.string().array().catch([]).prefault([]),
+    location: z.string().array().catch([]).prefault([]),
 });
