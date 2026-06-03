@@ -66,7 +66,9 @@ export const NotificationNavigationMenu = () => {
                     markAllAsRead={markAllAsRead}
                     unreadCount={unreadCount}
                 />
-                <NotificationFilterControls filter={notificationFilter} setFilter={setNotificationFilter} />
+                {notifications.length > 0 ? (
+                    <NotificationFilterControls filter={notificationFilter} setFilter={setNotificationFilter} />
+                ) : null}
                 <NotificationPreviewList
                     notifications={notifications}
                     previewNotifications={previewNotifications}

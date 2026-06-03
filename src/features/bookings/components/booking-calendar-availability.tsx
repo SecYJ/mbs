@@ -1,12 +1,13 @@
 import type { ComponentProps } from "react";
 import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
 import { Link } from "@tanstack/react-router";
-import { isPast } from "date-fns";
+import { addMinutes, isPast } from "date-fns";
 import { Building2, FilterX, Plus } from "lucide-react";
 
 import { BookingAvailabilityCalendar } from "@/features/bookings/components/booking-availability-calendar";
 import { BookingEmptyState } from "@/features/bookings/components/booking-empty-state";
 import { useBookingCalendarAvailability } from "@/features/bookings/hooks/useBookingCalendarAvailability";
+import { isAdminRole } from "@/lib/roles";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
 import { isPastCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 
@@ -15,6 +16,18 @@ type AvailabilityCalendarProps = ComponentProps<typeof BookingAvailabilityCalend
 export const BookingCalendarAvailability = () => {
     const { currentUserRole, showCalendar, showFilterZeroState, showNoRoomsState } = useBookingCalendarAvailability();
     const { openExistingReservation, openNewReservation } = useBookingCalendarStore((state) => state.actions);
+
+    const handleDateClick: AvailabilityCalendarProps["onDateClick"] = ({ date, resourceId }) => {
+        if (isPast(date)) {
+            return;
+        }
+
+        openNewReservation({
+            roomId: resourceId,
+            start: date,
+            end: addMinutes(date, 30),
+        });
+    };
 
     const handleSelect: AvailabilityCalendarProps["onSelect"] = (info: DateSelectArg) => {
         if (isPast(info.start)) {
@@ -46,7 +59,7 @@ export const BookingCalendarAvailability = () => {
                 title="No rooms to book yet"
                 description="Add meeting rooms before guests can browse availability or reserve time on the calendar."
                 action={
-                    currentUserRole === "admin" ? (
+                    isAdminRole(currentUserRole) ? (
                         <Link
                             to="/admin/rooms"
                             className="group flex items-center justify-center gap-3 border border-(--bone) bg-(--bone) px-5 py-3 text-[0.66rem] font-semibold tracking-[0.28em] text-black uppercase no-underline transition-all hover:bg-white hover:tracking-[0.32em]"
@@ -82,7 +95,13 @@ export const BookingCalendarAvailability = () => {
     }
 
     if (showCalendar) {
-        return <BookingAvailabilityCalendar onEventClick={handleEventClick} onSelect={handleSelect} />;
+        return (
+            <BookingAvailabilityCalendar
+                onDateClick={handleDateClick}
+                onEventClick={handleEventClick}
+                onSelect={handleSelect}
+            />
+        );
     }
 
     return null;

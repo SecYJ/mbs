@@ -1,5 +1,3 @@
-"use client";
-
 import { Check, KeyRound, ShieldCheck } from "lucide-react";
 import { useId } from "react";
 import { Controller, FormStateSubscribe } from "react-hook-form";

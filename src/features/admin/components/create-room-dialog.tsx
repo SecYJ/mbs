@@ -1,5 +1,3 @@
-"use client";
-
 import { Controller, FormStateSubscribe } from "react-hook-form";
 import { Building2, MapPin, UsersRound } from "lucide-react";
 import type { ReactNode } from "react";

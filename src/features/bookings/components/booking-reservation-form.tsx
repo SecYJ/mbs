@@ -1,9 +1,13 @@
 import type { EventInput } from "@fullcalendar/core";
-import { ArrowRight, Save } from "lucide-react";
+import { format, isBefore, isSameDay, startOfDay } from "date-fns";
+import { ArrowRight, CalendarDays, Clock, Save } from "lucide-react";
 import { Controller, FormProvider, FormStateSubscribe } from "react-hook-form";
+import { useState } from "react";
 
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { BookingReservationAttendees } from "@/features/bookings/components/booking-reservation-attendees";
@@ -13,6 +17,7 @@ import type {
     BookingReservationRoom,
 } from "@/features/bookings/components/booking-reservation-editor.types";
 import { useBookingReservationForm } from "@/features/bookings/hooks/useBookingReservationForm";
+import { cn } from "@/lib/utils";
 
 type BookingReservationFormProps = {
     error: string | null;
@@ -92,37 +97,42 @@ export const BookingReservationForm = ({
                     )}
                 />
 
-                <div className="grid grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                        <Label className="eyebrow block">Start Time</Label>
+                <div
+                    className={cn(
+                        "grid gap-x-4 gap-y-2",
+                        reservationForm.showStartTimeField
+                            ? "grid-cols-[minmax(0,1fr)_5.75rem_minmax(0,1fr)_5.75rem]"
+                            : "grid-cols-[minmax(0,1fr)_5.75rem]",
+                    )}
+                >
+                    {reservationForm.showStartTimeField ? (
                         <Controller
                             name="startTime"
                             render={({ field }) => (
-                                <Input
-                                    {...field}
-                                    type="datetime-local"
+                                <BookingReservationDateTimeField
+                                    label="Start Time"
                                     min={reservationForm.minimumStartTime}
-                                    required
-                                    className="login-input-underline tabular-num h-10 rounded-none bg-transparent text-[0.85rem] text-(--bone) shadow-none focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
+                                    placement="start"
+                                    showStartTimeField={reservationForm.showStartTimeField}
+                                    value={field.value}
+                                    onChange={field.onChange}
                                 />
                             )}
                         />
-                    </div>
-                    <div className="space-y-2">
-                        <Label className="eyebrow block">End Time</Label>
-                        <Controller
-                            name="endTime"
-                            render={({ field }) => (
-                                <Input
-                                    {...field}
-                                    type="datetime-local"
-                                    min={reservationForm.minimumEndTime}
-                                    required
-                                    className="login-input-underline tabular-num h-10 rounded-none bg-transparent text-[0.85rem] text-(--bone) shadow-none focus-visible:ring-0 [&::-webkit-calendar-picker-indicator]:invert"
-                                />
-                            )}
-                        />
-                    </div>
+                    ) : null}
+                    <Controller
+                        name="endTime"
+                        render={({ field }) => (
+                            <BookingReservationDateTimeField
+                                label="End Time"
+                                min={reservationForm.minimumEndTime}
+                                placement="end"
+                                showStartTimeField={reservationForm.showStartTimeField}
+                                value={field.value}
+                                onChange={field.onChange}
+                            />
+                        )}
+                    />
                 </div>
 
                 <BookingReservationAttendees
@@ -172,6 +182,153 @@ export const BookingReservationForm = ({
                 />
             </form>
         </FormProvider>
+    );
+};
+
+const dateDisplayFormat = "EEE, MMM d";
+const dateValueFormat = "yyyy-MM-dd";
+const fallbackTimeValue = "09:00";
+const timeOptions = Array.from({ length: 48 }, (_, index) => {
+    const hour = Math.floor(index / 2);
+    const minute = index % 2 === 0 ? "00" : "30";
+
+    return `${String(hour).padStart(2, "0")}:${minute}`;
+});
+
+const getDateTimeValueDate = (value: string) => {
+    if (!value) return undefined;
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? undefined : date;
+};
+
+const getDateTimeValueTime = (value: string) => {
+    const time = value.split("T")[1]?.slice(0, 5);
+    return time || fallbackTimeValue;
+};
+
+const combineDateAndTime = (date: Date, time: string) =>
+    `${format(date, dateValueFormat)}T${time || fallbackTimeValue}`;
+
+const getMinimumDate = (min?: string) => (min ? getDateTimeValueDate(min) : undefined);
+
+const getTimeOptionMinimum = (selectedDate: Date | undefined, min?: string) => {
+    const minimumDate = getMinimumDate(min);
+
+    if (!selectedDate || !minimumDate || !isSameDay(selectedDate, minimumDate)) {
+        return undefined;
+    }
+
+    return format(minimumDate, "HH:mm");
+};
+
+const BookingReservationDateTimeField = ({
+    label,
+    min,
+    placement,
+    showStartTimeField,
+    value,
+    onChange,
+}: {
+    label: string;
+    min?: string;
+    placement: "start" | "end";
+    showStartTimeField: boolean;
+    value: string;
+    onChange: (value: string) => void;
+}) => {
+    const [open, setOpen] = useState(false);
+    const selectedDate = getDateTimeValueDate(value);
+    const minimumDate = getMinimumDate(min);
+    const minimumDay = minimumDate ? startOfDay(minimumDate) : undefined;
+    const timeValue = selectedDate ? format(selectedDate, "HH:mm") : "";
+    const timeMin = getTimeOptionMinimum(selectedDate, min);
+    const availableTimeOptions = timeMin ? timeOptions.filter((time) => time >= timeMin) : timeOptions;
+    const timeSelectItems = availableTimeOptions.map((time) => ({ label: time, value: time }));
+    const gridPlacement =
+        placement === "start" && showStartTimeField
+            ? {
+                  label: "col-span-2 col-start-1 row-start-1",
+                  date: "col-start-1 row-start-2",
+                  time: "col-start-2 row-start-2",
+              }
+            : placement === "end" && showStartTimeField
+              ? {
+                    label: "col-span-2 col-start-3 row-start-1",
+                    date: "col-start-3 row-start-2",
+                    time: "col-start-4 row-start-2",
+                }
+              : {
+                    label: "col-span-2 col-start-1 row-start-1",
+                    date: "col-start-1 row-start-2",
+                    time: "col-start-2 row-start-2",
+                };
+
+    const handleDateSelect = (date?: Date) => {
+        if (!date) return;
+
+        onChange(combineDateAndTime(date, getDateTimeValueTime(value)));
+        setOpen(false);
+    };
+
+    const handleTimeChange = (time: string | null) => {
+        if (!time) return;
+
+        const date = selectedDate ?? minimumDate ?? new Date();
+        onChange(combineDateAndTime(date, time));
+    };
+
+    return (
+        <>
+            <Label className={cn("eyebrow block", gridPlacement.label)}>{label}</Label>
+            <Popover open={open} onOpenChange={setOpen}>
+                <PopoverTrigger
+                    type="button"
+                    className={cn(
+                        "login-input-underline flex h-10 min-w-0 cursor-pointer items-center gap-2 rounded-none bg-transparent px-0 text-left text-[0.85rem] text-(--bone) shadow-none transition-colors hover:text-(--gold)",
+                        !selectedDate && "text-(--bone-faint)",
+                        gridPlacement.date,
+                    )}
+                >
+                    <CalendarDays className="size-4 shrink-0 text-(--bone-dim)" strokeWidth={1.4} />
+                    <span className="truncate tabular-num">
+                        {selectedDate ? format(selectedDate, dateDisplayFormat) : "Pick date"}
+                    </span>
+                </PopoverTrigger>
+                <PopoverContent align="start" className="w-auto rounded-none border-0 bg-transparent p-0 shadow-xl">
+                    <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={handleDateSelect}
+                        disabled={(date) => (minimumDay ? isBefore(date, minimumDay) : false)}
+                    />
+                </PopoverContent>
+            </Popover>
+            <Select value={timeValue} onValueChange={handleTimeChange} items={timeSelectItems}>
+                <SelectTrigger
+                    aria-label={`${label} time`}
+                    className={cn(
+                        "login-input-underline h-10 w-full rounded-none border-0 bg-transparent px-0 text-[0.85rem] text-(--bone) shadow-none ring-0 focus:border-(--gold) focus:ring-0 data-[size=default]:h-10 [&>svg]:text-(--bone-dim)",
+                        !timeValue && "text-(--bone-faint)",
+                        gridPlacement.time,
+                    )}
+                >
+                    <Clock className="size-4 shrink-0 text-(--bone-dim)" strokeWidth={1.4} />
+                    <SelectValue placeholder="--:--" />
+                </SelectTrigger>
+                <SelectContent align="end" className="max-h-64 rounded-none border-(--hairline) bg-(--surface-02)">
+                    {availableTimeOptions.map((time) => (
+                        <SelectItem
+                            key={time}
+                            value={time}
+                            className="rounded-none font-mono text-[0.82rem] text-(--bone) focus:bg-(--gold-wash) focus:text-(--bone)"
+                        >
+                            {time}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </>
     );
 };
 

@@ -22,17 +22,20 @@ export const useRegister = () => {
     const registerFn = useServerFn(registerUserFn);
 
     // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation -- Register navigates into the authenticated app; no query cache exists yet.
-    const { mutate: submitRegister } = useMutation({
+    const { mutate: submitRegister, isPending } = useMutation({
         mutationFn: registerFn,
         onSuccess: () => {
             navigate({ to: "/bookings" });
         },
         onError: (error) => {
-            console.log("error", error);
+            form.setError("root", {
+                message: error instanceof Error ? error.message : "Unable to register. Please try again.",
+            });
         },
     });
 
     const onSubmit = form.handleSubmit((values) => {
+        form.clearErrors("root");
         submitRegister({
             data: {
                 email: values.email,
@@ -42,5 +45,5 @@ export const useRegister = () => {
         });
     });
 
-    return { form, onSubmit };
+    return { form, onSubmit, isPending };
 };

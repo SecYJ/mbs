@@ -1,9 +1,11 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { count } from "drizzle-orm";
 import { Resend } from "resend";
 
 import { db } from "@/db";
+import { user as userTable } from "@/db/schema";
 import {
     RESET_PASSWORD_TOKEN_EXPIRES_IN_MINUTES,
     RESET_PASSWORD_TOKEN_EXPIRES_IN_SECONDS,
@@ -11,6 +13,12 @@ import {
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Meridian <onboarding@resend.dev>";
+
+const getNewRegisteredUserRole = async () => {
+    const [existingUsers] = await db.select({ count: count() }).from(userTable);
+
+    return existingUsers?.count === 0 ? "super_admin" : "user";
+};
 
 const buildResetEmail = (resetUrl: string) => {
     const text = [
@@ -96,6 +104,18 @@ export const auth = betterAuth({
                 required: true,
                 defaultValue: "user",
                 input: false,
+            },
+        },
+    },
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (newUser) => ({
+                    data: {
+                        ...newUser,
+                        role: await getNewRegisteredUserRole(),
+                    },
+                }),
             },
         },
     },

@@ -193,6 +193,7 @@ export const useBookingReservationForm = ({
     const selectedRoomId = roomId || initialDetails.roomId;
     const selectedRoom = data.rooms.find((room) => room.id === selectedRoomId);
     const roomIsLockedToInitialDetails = !isEditing && !!initialDetails.roomId && !!selectedRoom;
+    const showStartTimeField = isEditing || !initialDetails.start;
     const minimumStartTime = formatDateTimeLocal(addMinutes(startOfMinute(new Date(now)), 1));
     const minimumEndTime = startTime && startTime > minimumStartTime ? startTime : minimumStartTime;
     const selectedStartDate = startTime ? new Date(startTime) : null;
@@ -242,6 +243,7 @@ export const useBookingReservationForm = ({
         rooms: data.rooms,
         roomIsLockedToInitialDetails,
         selectedRoom,
+        showStartTimeField,
         submitDisabled: !!timeValidationError,
         submitLabel,
         submitReservation,

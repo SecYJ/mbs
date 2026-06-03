@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, desc, eq, gt, inArray, lt, ne, or } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, lt, lte, ne, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -13,6 +13,7 @@ import {
     createBookingSchema,
     updateBookingSchema,
 } from "@/features/bookings/schemas/booking.schema";
+import { myBookingGroups, type MyBookingGroup } from "@/features/bookings/my-bookings.constants";
 import { authenticatedUserMiddleware } from "@/middleware/auth";
 
 const DEFAULT_MAX_BOOKING_DURATION_HOURS = 8;
@@ -56,6 +57,37 @@ const getAttendeesByBooking = async (bookingIds: string[]) => {
     }
 
     return attendeesByBooking;
+};
+
+const getMyBookingGroupCondition = (group: MyBookingGroup, now: Date) => {
+    if (group === "upcoming") {
+        return and(eq(bookings.status, "active"), gt(bookings.startTime, now));
+    }
+
+    if (group === "in-progress") {
+        return and(eq(bookings.status, "active"), lte(bookings.startTime, now), gt(bookings.endTime, now));
+    }
+
+    return or(eq(bookings.status, "cancelled"), lte(bookings.endTime, now));
+};
+
+const matchesMyBookingQuery = (booking: ReturnType<typeof getBookingHistoryItem>, query: string) => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return true;
+
+    const haystack = [
+        booking.title,
+        booking.description,
+        booking.room.name,
+        booking.room.location,
+        booking.organizer.name,
+        booking.organizer.email,
+        ...booking.attendees.flatMap((attendee) => [attendee.name, attendee.email]),
+    ]
+        .join(" ")
+        .toLowerCase();
+
+    return haystack.includes(normalized);
 };
 
 const getBookingRules = async () => {
@@ -295,6 +327,129 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
                 }),
             ),
             users,
+        };
+    });
+
+export const getMyBookingsDataFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .inputValidator(
+        z.object({
+            group: z.enum(myBookingGroups),
+            q: z.string(),
+        }),
+    )
+    .handler(async ({ context, data }) => {
+        const session = context.session;
+        const now = new Date();
+
+        const attendedBookingRows = await db
+            .select({ bookingId: attendees.bookingId })
+            .from(attendees)
+            .where(eq(attendees.userId, session.user.id));
+        const attendedBookingIds = attendedBookingRows.map((row) => row.bookingId);
+        const historyOwnerCondition =
+            attendedBookingIds.length > 0
+                ? or(eq(bookings.userId, session.user.id), inArray(bookings.bookingId, attendedBookingIds))
+                : eq(bookings.userId, session.user.id);
+
+        const historyRows = await db
+            .select({
+                booking: bookings,
+                room: {
+                    name: rooms.name,
+                    location: rooms.location,
+                },
+                organizer: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                },
+            })
+            .from(bookings)
+            .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+            .innerJoin(user, eq(user.id, bookings.userId))
+            .where(and(historyOwnerCondition, getMyBookingGroupCondition(data.group, now)))
+            .orderBy(data.group === "past" ? desc(bookings.startTime) : asc(bookings.startTime));
+        const historyBookingIds = historyRows.map((row) => row.booking.bookingId);
+        const historyAttendeesByBooking = await getAttendeesByBooking(historyBookingIds);
+        const cancelledByIds = Array.from(
+            new Set(
+                historyRows
+                    .map((row) => row.booking.cancelledBy)
+                    .filter((cancelledById): cancelledById is string => !!cancelledById),
+            ),
+        );
+        const cancelledByRows =
+            cancelledByIds.length === 0
+                ? []
+                : await db
+                      .select({
+                          id: user.id,
+                          name: user.name,
+                          email: user.email,
+                      })
+                      .from(user)
+                      .where(inArray(user.id, cancelledByIds));
+        const cancelledByUser = new Map(cancelledByRows.map((cancelledBy) => [cancelledBy.id, cancelledBy]));
+        const history = historyRows.map((row) =>
+            getBookingHistoryItem({
+                booking: {
+                    id: row.booking.bookingId,
+                    roomId: row.booking.roomId,
+                    title: row.booking.title,
+                    description: row.booking.description,
+                    startTime: row.booking.startTime,
+                    endTime: row.booking.endTime,
+                    status: row.booking.status,
+                    cancelledAt: row.booking.cancelledAt,
+                    cancelReason: row.booking.cancelReason,
+                },
+                room: row.room,
+                organizer: row.organizer,
+                cancelledBy: row.booking.cancelledBy ? (cancelledByUser.get(row.booking.cancelledBy) ?? null) : null,
+                attendees: historyAttendeesByBooking.get(row.booking.bookingId) ?? [],
+                currentUserId: session.user.id,
+            }),
+        );
+
+        return {
+            currentUserId: session.user.id,
+            history: history.filter((booking) => matchesMyBookingQuery(booking, data.q)),
+        };
+    });
+
+export const getMyBookingsStatsFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .handler(async ({ context }) => {
+        const session = context.session;
+        const now = new Date();
+
+        const attendedBookingRows = await db
+            .select({ bookingId: attendees.bookingId })
+            .from(attendees)
+            .where(eq(attendees.userId, session.user.id));
+        const attendedBookingIds = attendedBookingRows.map((row) => row.bookingId);
+        const historyOwnerCondition =
+            attendedBookingIds.length > 0
+                ? or(eq(bookings.userId, session.user.id), inArray(bookings.bookingId, attendedBookingIds))
+                : eq(bookings.userId, session.user.id);
+
+        const statsRows = await db
+            .select({
+                userId: bookings.userId,
+                status: bookings.status,
+                endTime: bookings.endTime,
+            })
+            .from(bookings)
+            .where(historyOwnerCondition);
+        const ownedCount = statsRows.filter((booking) => booking.userId === session.user.id).length;
+
+        return {
+            activeCount: statsRows.filter(
+                (booking) => booking.status === "active" && new Date(booking.endTime).getTime() > now.getTime(),
+            ).length,
+            attendingCount: statsRows.length - ownedCount,
+            ownedCount,
         };
     });
 

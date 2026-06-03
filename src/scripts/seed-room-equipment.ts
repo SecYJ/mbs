@@ -62,6 +62,12 @@ for (const { roomName, items } of assignments) {
     const rows = await Promise.all(
         items.map(async (it) => {
             const equip = await findEquipment(it.brand, it.model);
+            if (it.quantity > equip.quantity) {
+                throw new Error(
+                    `Assignment exceeds inventory for ${it.brand} ${it.model}: requested ${it.quantity}, available ${equip.quantity}`,
+                );
+            }
+
             return { roomId: room.roomId, equipmentId: equip.equipmentId, quantity: it.quantity };
         }),
     );
@@ -88,7 +94,7 @@ for (const { roomName, items } of assignments) {
             .values(rows)
             .onConflictDoUpdate({
                 target: [roomEquipment.roomId, roomEquipment.equipmentId],
-                set: { quantity: sql`excluded.quantity` },
+                set: { quantity: sql`excluded.quantity`, updatedAt: sql`now()` },
             })
             .returning();
         console.log(`[${roomName}] upserted ${inserted.length} equipment line(s)`);

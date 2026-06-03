@@ -6,6 +6,7 @@ import { AuthenticatedAccountMenu } from "@/features/account/components/authenti
 import { NotificationNavigationMenu } from "@/features/notifications/components/notification-navigation-menu";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 import { requireAuthenticatedUser } from "@/lib/session";
+import { isAdminRole } from "@/lib/roles";
 
 const BOOKING_SEARCH_DEFAULTS = {
     attendeeSearch: "",
@@ -86,7 +87,7 @@ function AppLayout() {
 
                     {/* Right: Admin shortcut + Notifications + Avatar */}
                     <div className="flex items-center gap-2">
-                        {user.role === "admin" ? (
+                        {isAdminRole(user.role) ? (
                             <Link
                                 to="/admin/rooms"
                                 aria-label="Admin dashboard"
