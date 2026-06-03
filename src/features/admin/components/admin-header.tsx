@@ -3,13 +3,13 @@ import type { ReactNode } from "react";
 
 import { adminInputClasses } from "@/features/admin/admin-classes";
 
-interface AdminHeaderProps {
+type AdminHeaderProps = {
     title: string;
     children?: ReactNode;
     searchPlaceholder?: string;
     searchValue?: string;
     onSearchChange?: (value: string) => void;
-}
+};
 
 export const AdminHeader = ({
     title,
