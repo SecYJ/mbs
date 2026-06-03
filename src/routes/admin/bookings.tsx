@@ -14,11 +14,9 @@ export const Route = createFileRoute("/admin/bookings")({
         middlewares: [stripDefaultSearchParams(ADMIN_BOOKING_SEARCH_DEFAULTS)],
     },
     loaderDeps: (loaderDeps) => loaderDeps.search,
-    loader: async ({ context: { queryClient }, deps }) => {
-        await Promise.all([
-            queryClient.ensureQueryData(adminBookingsQueryOptions(deps)),
-            queryClient.ensureQueryData(adminBookingStatsQueryOptions()),
-        ]);
+    loader: ({ context: { queryClient }, deps }) => {
+        queryClient.ensureQueryData(adminBookingsQueryOptions(deps));
+        queryClient.ensureQueryData(adminBookingStatsQueryOptions());
     },
     component: BookingsPage,
 });

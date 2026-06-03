@@ -11,7 +11,7 @@ export type AdminBookingFilters = {
     status: AdminBookingStatus | "all";
 };
 
-export type AdminBooking = {
+type AdminBooking = {
     id: string;
     title: string;
     room: string;

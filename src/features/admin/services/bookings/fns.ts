@@ -136,6 +136,7 @@ export const cancelAdminBookingFn = createServerFn({ method: "POST" })
                 endTime: bookings.endTime,
                 startTime: bookings.startTime,
                 title: bookings.title,
+                userId: bookings.userId,
                 roomName: rooms.name,
                 roomLocation: rooms.location,
             })
@@ -161,6 +162,7 @@ export const cancelAdminBookingFn = createServerFn({ method: "POST" })
             .from(attendees)
             .where(eq(attendees.bookingId, data.bookingId));
         const attendeeIds = attendeeRows.map((attendee) => attendee.userId);
+        const recipientIds = [...new Set([...attendeeIds, booking.userId])];
         const cancelledAt = new Date();
 
         await db.transaction(async (tx) => {
@@ -180,10 +182,10 @@ export const cancelAdminBookingFn = createServerFn({ method: "POST" })
                 throw new Error("Failed to cancel booking");
             }
 
-            if (attendeeIds.length > 0) {
+            if (recipientIds.length > 0) {
                 await tx.insert(notifications).values(
                     getBookingCancellationNotificationValues({
-                        attendeeIds,
+                        attendeeIds: recipientIds,
                         booking: {
                             id: booking.id,
                             title: booking.title,
