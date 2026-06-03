@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import {
+    bookingCalendarViewMap,
     getBookingEventInput,
     getFilteredRooms,
     getLiveBookingCount,
@@ -47,6 +48,11 @@ describe("booking calendar utilities", () => {
                 organizer: "Avery",
             },
         });
+    });
+
+    it("keeps room data visible in day and week calendar views", () => {
+        expect(bookingCalendarViewMap.day).toBe("resourceTimeGridDay");
+        expect(bookingCalendarViewMap.week).toBe("resourceTimeGridWeek");
     });
 
     it("uses filtered room ids for non-day event visibility", () => {

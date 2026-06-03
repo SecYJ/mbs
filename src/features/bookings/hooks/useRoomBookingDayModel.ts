@@ -154,6 +154,7 @@ export const useRoomBookingDayModel = () => {
         const now = Date.now();
         return start <= now && now < end;
     });
+
     const goToDate = (nextDate: Date) => {
         navigate({
             search: (prev) => ({ ...prev, date: format(nextDate, "yyyy-MM-dd") }),
