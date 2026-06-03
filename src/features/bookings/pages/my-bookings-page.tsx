@@ -1,7 +1,6 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi, Link } from "@tanstack/react-router";
 import { Ban, CalendarDays, Check, Clock, Eye, Pencil, Search, UserRound, Users, X, XCircle } from "lucide-react";
-import { useForm } from "react-hook-form";
 
 import { MyBookingsHeader } from "@/features/bookings/components/my-bookings-header";
 import { useMyBookingsPage } from "@/features/bookings/hooks/useMyBookingsPage";
@@ -14,6 +13,7 @@ import {
     myBookingsSearchDefaults,
 } from "@/features/bookings/my-bookings.constants";
 import { myBookingsQueryOptions } from "@/features/bookings/services/queries";
+import { isSuperAdminRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 const myBookingsRoute = getRouteApi("/_bookings/my-bookings");
@@ -21,10 +21,6 @@ const myBookingsRoute = getRouteApi("/_bookings/my-bookings");
 type MyBookingRowItem = BookingHistoryItem & {
     displayDate: string;
     displayTime: string;
-};
-
-type BookingCancellationFormValues = {
-    cancelReason: string;
 };
 
 type MyBookingsPageModel = ReturnType<typeof useMyBookingsPage>;
@@ -141,18 +137,28 @@ const MyBookingsFilteredPage = () => {
                 </div>
             ) : (
                 <div className="divide-y divide-(--hairline) border-y border-(--hairline)">
-                    {bookings.map((booking) => (
-                        <BookingRow
-                            key={booking.id}
-                            booking={booking}
-                            currentUserId={model.currentUserId}
-                            isConfirmingCancel={model.cancelId === booking.id}
-                            cancelMutation={model.cancelMutation}
-                            rsvpMutation={model.rsvpMutation}
-                            onRequestCancel={() => model.requestCancellation(booking.id)}
-                            onClearCancel={model.clearCancellation}
-                        />
-                    ))}
+                    {bookings.map((booking) => {
+                        const cancellationIndex = model.cancellationFields.findIndex(
+                            (cancellation) => cancellation.bookingId === booking.id,
+                        );
+
+                        return (
+                            <BookingRow
+                                key={booking.id}
+                                booking={booking}
+                                currentUserId={model.currentUserId}
+                                currentUserRole={model.currentUserRole}
+                                isConfirmingCancel={cancellationIndex !== -1}
+                                cancellationForm={model.cancellationForm}
+                                cancellationIndex={cancellationIndex}
+                                cancelMutation={model.cancelMutation}
+                                rsvpMutation={model.rsvpMutation}
+                                onRequestCancel={() => model.requestCancellation(booking.id)}
+                                onClearCancel={() => model.clearCancellation(booking.id)}
+                                onSubmitCancel={() => model.submitCancellation(booking.id)}
+                            />
+                        );
+                    })}
                 </div>
             )}
         </section>
@@ -176,32 +182,45 @@ const EmptyBookings = ({ hasQuery }: { hasQuery: boolean }) => (
 const BookingRow = ({
     booking,
     currentUserId,
+    currentUserRole,
     isConfirmingCancel,
+    cancellationForm,
+    cancellationIndex,
     cancelMutation,
     rsvpMutation,
     onRequestCancel,
     onClearCancel,
+    onSubmitCancel,
 }: {
     booking: MyBookingRowItem;
     currentUserId: string;
+    currentUserRole: string;
     isConfirmingCancel: boolean;
+    cancellationForm: MyBookingsPageModel["cancellationForm"];
+    cancellationIndex: number;
     cancelMutation: MyBookingsPageModel["cancelMutation"];
     rsvpMutation: MyBookingsPageModel["rsvpMutation"];
     onRequestCancel: () => void;
     onClearCancel: () => void;
+    onSubmitCancel: () => void;
 }) => {
     const isOrganizer = booking.organizer.id === currentUserId;
+    const canCancelAsSuperAdmin = isSuperAdminRole(currentUserRole);
     const canEdit = isOrganizer && booking.status === "upcoming";
-    const canCancel = isOrganizer && (booking.status === "upcoming" || booking.status === "in-progress");
+    const canCancel =
+        (isOrganizer || canCancelAsSuperAdmin) && (booking.status === "upcoming" || booking.status === "in-progress");
     const attendanceStatus = booking.currentUserAttendance?.status ?? null;
     const canRespond =
         !isOrganizer && !!attendanceStatus && (booking.status === "upcoming" || booking.status === "in-progress");
     const meta = myBookingStatusMeta[booking.status];
     const responseMeta = attendanceStatus ? myBookingRsvpMeta[attendanceStatus] : null;
-    const cancelError = isConfirmingCancel ? cancelMutation.error : null;
+    const isCancellingBooking = cancelMutation.variables?.data.bookingId === booking.id && cancelMutation.isPending;
+    const cancelError =
+        isConfirmingCancel && cancelMutation.variables?.data.bookingId === booking.id ? cancelMutation.error : null;
+    const cancelValidationError = cancellationForm.formState.errors.cancellations?.[cancellationIndex]?.reason?.message;
     const isResponding = rsvpMutation.variables?.data.bookingId === booking.id && rsvpMutation.isPending;
     const rsvpError = rsvpMutation.variables?.data.bookingId === booking.id ? rsvpMutation.error : null;
-    const cancelMessage = cancelError instanceof Error ? cancelError.message : null;
+    const cancelMessage = cancelValidationError ?? (cancelError instanceof Error ? cancelError.message : null);
     const rsvpMessage = rsvpError instanceof Error ? rsvpError.message : null;
 
     return (
@@ -272,10 +291,12 @@ const BookingRow = ({
 
                     {isConfirmingCancel ? (
                         <BookingCancellationForm
-                            bookingId={booking.id}
+                            cancellationForm={cancellationForm}
+                            cancellationIndex={cancellationIndex}
                             cancelMessage={cancelMessage}
-                            cancelMutation={cancelMutation}
+                            isCancellingBooking={isCancellingBooking}
                             onClearCancel={onClearCancel}
+                            onSubmitCancel={onSubmitCancel}
                         />
                     ) : null}
                 </div>
@@ -338,32 +359,26 @@ const BookingRow = ({
 };
 
 const BookingCancellationForm = ({
-    bookingId,
+    cancellationForm,
+    cancellationIndex,
     cancelMessage,
-    cancelMutation,
+    isCancellingBooking,
     onClearCancel,
+    onSubmitCancel,
 }: {
-    bookingId: string;
+    cancellationForm: MyBookingsPageModel["cancellationForm"];
+    cancellationIndex: number;
     cancelMessage: string | null;
-    cancelMutation: MyBookingsPageModel["cancelMutation"];
+    isCancellingBooking: boolean;
     onClearCancel: () => void;
+    onSubmitCancel: () => void;
 }) => {
-    const form = useForm<BookingCancellationFormValues>({
-        defaultValues: {
-            cancelReason: "",
-        },
-    });
-
     return (
         <form
-            onSubmit={form.handleSubmit((values) =>
-                cancelMutation.mutate({
-                    data: {
-                        bookingId,
-                        cancelReason: values.cancelReason,
-                    },
-                }),
-            )}
+            onSubmit={(event) => {
+                event.preventDefault();
+                onSubmitCancel();
+            }}
             noValidate
             className="mt-5 space-y-3 border border-red-300/30 bg-red-500/10 p-4"
         >
@@ -378,25 +393,25 @@ const BookingCancellationForm = ({
                 rows={3}
                 placeholder="Reason (optional)"
                 className="w-full resize-none border border-red-300/30 bg-black/20 px-3 py-2 text-sm text-red-50 outline-none placeholder:text-red-100/35 focus:border-red-200"
-                {...form.register("cancelReason")}
+                {...cancellationForm.register(`cancellations.${cancellationIndex}.reason` as const)}
             />
             {cancelMessage ? <p className="text-xs text-red-100">{cancelMessage}</p> : null}
             <div className="flex flex-wrap justify-end gap-3">
                 <button
                     type="button"
                     onClick={onClearCancel}
-                    disabled={cancelMutation.isPending}
+                    disabled={isCancellingBooking}
                     className="min-h-9 cursor-pointer border border-red-100/20 px-4 text-[0.62rem] font-semibold tracking-[0.24em] text-red-100/70 uppercase transition-colors hover:border-red-100/40 hover:text-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                     Keep
                 </button>
                 <button
                     type="submit"
-                    disabled={cancelMutation.isPending}
+                    disabled={isCancellingBooking}
                     className="inline-flex min-h-9 cursor-pointer items-center gap-2 border border-red-200/70 bg-red-500/20 px-4 text-[0.62rem] font-semibold tracking-[0.24em] text-red-50 uppercase transition-colors hover:bg-red-500/30 disabled:cursor-wait disabled:opacity-60"
                 >
                     <Ban className="size-3.5" strokeWidth={1.5} />
-                    <span>{cancelMutation.isPending ? "Cancelling" : "Confirm"}</span>
+                    <span>{isCancellingBooking ? "Cancelling" : "Confirm"}</span>
                 </button>
             </div>
         </form>

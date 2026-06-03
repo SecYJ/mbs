@@ -9,7 +9,6 @@ export type MyBookingGroup = (typeof myBookingGroups)[number];
 export const myBookingsSearchDefaults = {
     group: "upcoming" as MyBookingGroup,
     q: "",
-    cancel: undefined as string | undefined,
 };
 
 export const myBookingGroupOptions: Array<{ value: MyBookingGroup; label: string }> = [

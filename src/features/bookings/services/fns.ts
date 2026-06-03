@@ -14,6 +14,7 @@ import {
     updateBookingSchema,
 } from "@/features/bookings/schemas/booking.schema";
 import { myBookingGroups, type MyBookingGroup } from "@/features/bookings/my-bookings.constants";
+import { isSuperAdminRole } from "@/lib/roles";
 import { authenticatedUserMiddleware } from "@/middleware/auth";
 
 const DEFAULT_MAX_BOOKING_DURATION_HOURS = 8;
@@ -414,6 +415,7 @@ export const getMyBookingsDataFn = createServerFn({ method: "GET" })
 
         return {
             currentUserId: session.user.id,
+            currentUserRole: session.user.role,
             history: history.filter((booking) => matchesMyBookingQuery(booking, data.q)),
         };
     });
@@ -772,8 +774,10 @@ export const cancelBookingFn = createServerFn({ method: "POST" })
             throw new Error("Booking no longer exists");
         }
 
-        if (booking.userId !== session.user.id) {
-            throw new Error("You can only cancel bookings you created");
+        const isSuperAdmin = isSuperAdminRole(session.user.role);
+
+        if (booking.userId !== session.user.id && !isSuperAdmin) {
+            throw new Error("Only a super admin or the booking creator can cancel this booking");
         }
 
         if (booking.status === "cancelled") {
@@ -802,11 +806,13 @@ export const cancelBookingFn = createServerFn({ method: "POST" })
                     updatedAt: cancelledAt,
                 })
                 .where(
-                    and(
-                        eq(bookings.bookingId, data.bookingId),
-                        eq(bookings.userId, session.user.id),
-                        eq(bookings.status, "active"),
-                    ),
+                    isSuperAdmin
+                        ? and(eq(bookings.bookingId, data.bookingId), eq(bookings.status, "active"))
+                        : and(
+                              eq(bookings.bookingId, data.bookingId),
+                              eq(bookings.userId, session.user.id),
+                              eq(bookings.status, "active"),
+                          ),
                 )
                 .returning({ id: bookings.bookingId });
 

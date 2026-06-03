@@ -9,5 +9,4 @@ export const myBookingsSearchSchema = z.object({
         .catch(myBookingsSearchDefaults.group)
         .prefault(myBookingsSearchDefaults.group),
     q: z.string().catch(myBookingsSearchDefaults.q).prefault(myBookingsSearchDefaults.q),
-    cancel: z.uuid().optional().catch(myBookingsSearchDefaults.cancel),
 });

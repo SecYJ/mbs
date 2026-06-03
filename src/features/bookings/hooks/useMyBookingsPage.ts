@@ -1,6 +1,9 @@
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { useFieldArray, useForm } from "react-hook-form";
+import { z } from "zod";
 
 import { myBookingSectionMeta, myBookingsSearchDefaults } from "@/features/bookings/my-bookings.constants";
 import { cancelBookingFn, rsvpBookingInviteFn } from "@/features/bookings/services/fns";
@@ -13,13 +16,34 @@ import { notificationsQueryOptions } from "@/features/notifications/services/que
 
 const myBookingsRoute = getRouteApi("/_bookings/my-bookings");
 
+const bookingCancellationFormSchema = z.object({
+    cancellations: z
+        .object({
+            bookingId: z.uuid("Select a valid booking"),
+            reason: z.string().trim().max(500, "Cancellation reason is too long").optional(),
+        })
+        .array(),
+});
+
 export const useMyBookingsPage = () => {
-    const { group, q, cancel } = myBookingsRoute.useSearch();
+    const { group, q } = myBookingsRoute.useSearch();
     const { data } = useSuspenseQuery(myBookingsQueryOptions({ group, q }));
     const navigate = myBookingsRoute.useNavigate();
     const queryClient = useQueryClient();
     const cancelBooking = useServerFn(cancelBookingFn);
     const rsvpBookingInvite = useServerFn(rsvpBookingInviteFn);
+    const cancellationForm = useForm({
+        resolver: zodResolver(bookingCancellationFormSchema),
+        defaultValues: { cancellations: [] },
+    });
+    const {
+        append,
+        fields: cancellationFields,
+        remove,
+    } = useFieldArray({
+        control: cancellationForm.control,
+        name: "cancellations",
+    });
 
     const updateSearch = (next: Partial<typeof myBookingsSearchDefaults>) => {
         navigate({
@@ -37,11 +61,6 @@ export const useMyBookingsPage = () => {
                 queryClient.invalidateQueries(bookingCalendarQueryOptions()),
                 queryClient.invalidateQueries(notificationsQueryOptions()),
             ]);
-
-            navigate({
-                search: (prev) => ({ ...prev, cancel: undefined }),
-                replace: true,
-            });
         },
     });
 
@@ -57,15 +76,55 @@ export const useMyBookingsPage = () => {
         },
     });
 
+    const getCancellationIndex = (bookingId: string) =>
+        cancellationForm.getValues("cancellations").findIndex((cancellation) => cancellation.bookingId === bookingId);
+
+    const clearCancellation = (bookingId: string) => {
+        const cancellationIndex = getCancellationIndex(bookingId);
+
+        if (cancellationIndex !== -1) {
+            remove(cancellationIndex);
+        }
+    };
+
+    const requestCancellation = (bookingId: string) => {
+        if (getCancellationIndex(bookingId) === -1) {
+            append({ bookingId, reason: "" });
+        }
+    };
+
+    const submitCancellation = (bookingId: string) => {
+        const cancellationIndex = getCancellationIndex(bookingId);
+
+        if (cancellationIndex === -1) return;
+
+        void cancellationForm.handleSubmit(() => {
+            cancelMutation.mutate(
+                {
+                    data: {
+                        bookingId,
+                        cancelReason: cancellationForm.getValues(`cancellations.${cancellationIndex}.reason`),
+                    },
+                },
+                {
+                    onSuccess: () => clearCancellation(bookingId),
+                },
+            );
+        })();
+    };
+
     return {
         bookings: data.history,
-        cancelId: cancel,
+        cancellationFields,
+        cancellationForm,
         cancelMutation,
-        clearCancellation: () => updateSearch({ cancel: undefined }),
+        clearCancellation,
         currentUserId: data.currentUserId,
-        requestCancellation: (bookingId: string) => updateSearch({ cancel: bookingId }),
+        currentUserRole: data.currentUserRole,
+        requestCancellation,
         rsvpMutation,
         sectionMeta: myBookingSectionMeta[group],
+        submitCancellation,
         updateSearch,
     };
 };
