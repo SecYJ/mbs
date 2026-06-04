@@ -1,14 +1,5 @@
-import {
-    createFileRoute,
-    Link,
-    linkOptions,
-    Outlet,
-    stripSearchParams,
-    useRouter,
-    useRouterState,
-} from "@tanstack/react-router";
+import { createFileRoute, Link, linkOptions, Outlet, stripSearchParams } from "@tanstack/react-router";
 import { Shield } from "lucide-react";
-import { useEffect, useState } from "react";
 import { z } from "zod";
 
 import { AppPending } from "@/components/app-pending";
@@ -17,8 +8,6 @@ import { NotificationNavigationMenu } from "@/features/notifications/components/
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 import { requireAuthenticatedUser } from "@/lib/session";
 import { isAdminRole } from "@/lib/roles";
-
-const PENDING_OVERLAY_MIN_MS = 700;
 
 const BOOKING_SEARCH_DEFAULTS = {
     attendeeSearch: "",
@@ -39,12 +28,13 @@ export const Route = createFileRoute("/_bookings")({
         middlewares: [stripSearchParams(BOOKING_SEARCH_DEFAULTS)],
     },
     beforeLoad: async () => ({ session: await requireAuthenticatedUser() }),
-    loader: ({ context }) => {
-        context.queryClient.ensureQueryData(notificationsQueryOptions());
+    loader: async ({ context }) => {
+        await context.queryClient.ensureQueryData(notificationsQueryOptions());
 
         return context.session;
     },
     component: AppLayout,
+    pendingComponent: AppPending,
 });
 
 const navItems = linkOptions([
@@ -52,48 +42,12 @@ const navItems = linkOptions([
     { to: "/my-bookings", label: "My Bookings" },
 ]);
 
-const BookingRoutePendingOverlay = () => {
-    const router = useRouter();
-    const isRouterPending = useRouterState({
-        select: (state) => state.status === "pending" || state.matches.some((match) => match.status === "pending"),
-    });
-    const [isNavigationVisible, setIsNavigationVisible] = useState(false);
-
-    useEffect(() => {
-        let hideTimer: number | undefined;
-
-        const showNavigationPending = () => {
-            if (hideTimer) window.clearTimeout(hideTimer);
-            setIsNavigationVisible(true);
-        };
-
-        const hideNavigationPending = () => {
-            if (hideTimer) window.clearTimeout(hideTimer);
-            hideTimer = window.setTimeout(() => setIsNavigationVisible(false), PENDING_OVERLAY_MIN_MS);
-        };
-
-        const unsubscribeBeforeNavigate = router.subscribe("onBeforeNavigate", showNavigationPending);
-        const unsubscribeResolved = router.subscribe("onResolved", hideNavigationPending);
-
-        return () => {
-            unsubscribeBeforeNavigate();
-            unsubscribeResolved();
-            if (hideTimer) window.clearTimeout(hideTimer);
-        };
-    }, [router]);
-
-    if (!isRouterPending && !isNavigationVisible) return null;
-
-    return <AppPending />;
-};
-
 function AppLayout() {
     const { user } = Route.useLoaderData();
     const year = new Date().getFullYear();
 
     return (
         <div className="relative min-h-dvh bg-[#050505] text-(--bone)">
-            <BookingRoutePendingOverlay />
             {/* Film grain overlay */}
             <svg aria-hidden className="pointer-events-none fixed inset-0 z-50 size-full opacity-[0.016]">
                 <filter id="grain-app">

@@ -1,23 +1,21 @@
 import { isRedirect, redirect } from "@tanstack/react-router";
 import { createServerFn, createServerOnlyFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { count, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { user as userTable } from "@/db/schema";
-import { isAdminRole } from "@/lib/roles";
+import { auth } from "@/lib/auth";
+import { isAdminRole, isSuperAdminRole } from "@/lib/roles";
 
-const getServerSession = createServerOnlyFn(async () => {
-    const [{ getRequest }, { auth }] = await Promise.all([
-        import("@tanstack/react-start/server"),
-        import("@/lib/auth"),
-    ]);
-
+const getServerSession = createServerOnlyFn(() => {
     const request = getRequest();
+
     return auth.api.getSession({ headers: request.headers });
 });
 
 const ensureSoleUserSuperAdmin = async <Session extends { user: { id: string; role: string } }>(session: Session) => {
-    if (isAdminRole(session.user.role)) {
+    if (isSuperAdminRole(session.user.role)) {
         return session;
     }
 

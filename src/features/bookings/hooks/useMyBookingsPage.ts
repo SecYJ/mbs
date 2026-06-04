@@ -9,6 +9,7 @@ import { myBookingSectionMeta, myBookingsSearchDefaults } from "@/features/booki
 import { cancelBookingFn, rsvpBookingInviteFn } from "@/features/bookings/services/fns";
 import {
     bookingCalendarQueryOptions,
+    myBookingsQueryKey,
     myBookingsQueryOptions,
     myBookingsStatsQueryOptions,
 } from "@/features/bookings/services/queries";
@@ -56,7 +57,7 @@ export const useMyBookingsPage = () => {
         mutationFn: cancelBooking,
         onSuccess: async () => {
             await Promise.all([
-                queryClient.invalidateQueries(myBookingsQueryOptions({ group, q })),
+                queryClient.invalidateQueries({ queryKey: myBookingsQueryKey }),
                 queryClient.invalidateQueries(myBookingsStatsQueryOptions()),
                 queryClient.invalidateQueries(bookingCalendarQueryOptions()),
                 queryClient.invalidateQueries(notificationsQueryOptions()),
@@ -68,7 +69,7 @@ export const useMyBookingsPage = () => {
         mutationFn: rsvpBookingInvite,
         onSuccess: async () => {
             await Promise.all([
-                queryClient.invalidateQueries(myBookingsQueryOptions({ group, q })),
+                queryClient.invalidateQueries({ queryKey: myBookingsQueryKey }),
                 queryClient.invalidateQueries(myBookingsStatsQueryOptions()),
                 queryClient.invalidateQueries(bookingCalendarQueryOptions()),
                 queryClient.invalidateQueries(notificationsQueryOptions()),

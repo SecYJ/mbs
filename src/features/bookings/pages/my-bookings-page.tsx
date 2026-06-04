@@ -12,7 +12,7 @@ import {
     myBookingStatusMeta,
     myBookingsSearchDefaults,
 } from "@/features/bookings/my-bookings.constants";
-import { myBookingsQueryOptions } from "@/features/bookings/services/queries";
+import { myBookingsQueryOptions, myBookingsStatsQueryOptions } from "@/features/bookings/services/queries";
 import { isSuperAdminRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +36,8 @@ const MyBookingsPageHost = () => {
     const { group, q } = myBookingsRoute.useSearch();
     const navigate = myBookingsRoute.useNavigate();
     const { data } = useSuspenseQuery(myBookingsQueryOptions({ group, q }));
+    const { data: stats } = useSuspenseQuery(myBookingsStatsQueryOptions());
+    const hasBookings = data.history.length > 0 || stats.ownedCount + stats.attendingCount > 0;
 
     const updateSearch = (next: Partial<typeof myBookingsSearchDefaults>) => {
         navigate({
@@ -53,7 +55,7 @@ const MyBookingsPageHost = () => {
                 onSearchClear={() => updateSearch({ q: "" })}
             />
 
-            {data.history.length > 0 ? <MyBookingsFilteredPage /> : <EmptyBookings hasQuery={q.trim().length > 0} />}
+            {hasBookings ? <MyBookingsFilteredPage /> : <EmptyBookings hasQuery={q.trim().length > 0} />}
         </>
     );
 };

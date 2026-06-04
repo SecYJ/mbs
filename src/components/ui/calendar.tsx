@@ -1,4 +1,3 @@
-import * as React from "react";
 import {
     addMonths,
     eachDayOfInterval,
@@ -14,6 +13,7 @@ import {
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 type CalendarProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
     disabled?: (date: Date) => boolean;
@@ -40,20 +40,16 @@ const getCalendarWeeks = (month: Date) => {
 };
 
 export const Calendar = ({ className, disabled, onSelect, selected, ...props }: CalendarProps) => {
-    const [displayMonth, setDisplayMonth] = React.useState(() => selected ?? new Date());
+    const [displayMonth, setDisplayMonth] = useState(() => selected ?? new Date());
     const weeks = getCalendarWeeks(displayMonth);
 
-    React.useEffect(() => {
-        if (selected) {
-            setDisplayMonth(selected);
-        }
-    }, [selected]);
+    const handleDaySelect = (day: Date) => {
+        setDisplayMonth(day);
+        onSelect?.(day);
+    };
 
     return (
-        <div
-            className={cn("w-[17.5rem] rounded-none border border-(--hairline) bg-(--surface-02) p-3", className)}
-            {...props}
-        >
+        <div className={cn("w-70 rounded-none border border-(--hairline) bg-(--surface-02) p-3", className)} {...props}>
             <div className="mb-3 flex items-center justify-between">
                 <button
                     type="button"
@@ -91,7 +87,7 @@ export const Calendar = ({ className, disabled, onSelect, selected, ...props }: 
                         <button
                             key={day.toISOString()}
                             type="button"
-                            onClick={() => onSelect?.(day)}
+                            onClick={() => handleDaySelect(day)}
                             disabled={dayIsDisabled}
                             className={cn(
                                 "flex size-8 cursor-pointer items-center justify-center border border-transparent text-[0.76rem] tabular-nums transition-colors disabled:cursor-not-allowed disabled:text-(--bone-faint)",

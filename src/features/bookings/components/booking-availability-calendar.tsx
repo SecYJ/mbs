@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ComponentProps } from "react";
+import type { ComponentProps } from "react";
 import { Link } from "@tanstack/react-router";
 import FullCalendar from "@fullcalendar/react";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
@@ -7,7 +7,6 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import multiMonthPlugin from "@fullcalendar/multimonth";
 import interactionPlugin from "@fullcalendar/interaction";
 import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
-import { addMinutes, startOfDay } from "date-fns";
 
 import { useBookingAvailabilityCalendar } from "@/features/bookings/hooks/useBookingAvailabilityCalendar";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
@@ -17,12 +16,6 @@ type SlotClickArg = {
     date: Date;
     resourceId?: string;
 };
-
-const slotMinMinutes = 7 * 60;
-const slotMaxMinutes = 24 * 60;
-const slotDurationMinutes = 30;
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 export const BookingAvailabilityCalendar = ({
     onEventClick,
@@ -34,9 +27,7 @@ export const BookingAvailabilityCalendar = ({
     onSelect: (arg: DateSelectArg) => void;
 }) => {
     const { events, resources, view } = useBookingAvailabilityCalendar();
-    const visibleRange = useBookingCalendarStore((state) => state.visibleRange);
     const { setCalendar, setVisibleRange } = useBookingCalendarStore((state) => state.actions);
-    const calendarRootRef = useRef<HTMLDivElement>(null);
 
     const handleDateClick: NonNullable<ComponentProps<typeof FullCalendar>["dateClick"]> = (info) => {
         onDateClick({
@@ -45,51 +36,8 @@ export const BookingAvailabilityCalendar = ({
         });
     };
 
-    useEffect(() => {
-        const root = calendarRootRef.current;
-        if (!root) return;
-
-        const handleGridClick = (event: MouseEvent) => {
-            if (view !== "day" || !visibleRange || resources.length === 0) return;
-
-            const target = event.target;
-            if (!(target instanceof HTMLElement) || target.closest(".fc-event")) return;
-
-            const slotsElement = root.querySelector<HTMLElement>(".fc-timegrid-slots");
-            const columnElements = Array.from(root.querySelectorAll<HTMLElement>(".fc-timegrid-col")).slice(
-                -resources.length,
-            );
-
-            if (!slotsElement || columnElements.length === 0) return;
-
-            const columnIndex = columnElements.findIndex((column) => {
-                const rect = column.getBoundingClientRect();
-                return event.clientX >= rect.left && event.clientX <= rect.right;
-            });
-
-            if (columnIndex === -1) return;
-
-            const slotsRect = slotsElement.getBoundingClientRect();
-            if (event.clientY < slotsRect.top || event.clientY > slotsRect.bottom) return;
-
-            const minutesRange = slotMaxMinutes - slotMinMinutes;
-            const clickRatio = clamp((event.clientY - slotsRect.top) / slotsRect.height, 0, 1);
-            const clickedMinutes = Math.floor((clickRatio * minutesRange) / slotDurationMinutes) * slotDurationMinutes;
-
-            onDateClick({
-                date: addMinutes(startOfDay(visibleRange.activeStart), slotMinMinutes + clickedMinutes),
-                resourceId: resources[columnIndex]?.id,
-            });
-        };
-
-        root.addEventListener("click", handleGridClick);
-
-        return () => root.removeEventListener("click", handleGridClick);
-    }, [onDateClick, resources, view, visibleRange]);
-
     return (
         <div
-            ref={calendarRootRef}
             className="fc-dark-theme border-y border-(--hairline) py-2"
             style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
         >

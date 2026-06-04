@@ -22,9 +22,11 @@ export const bookingCalendarQueryOptions = () =>
         queryFn: getBookingCalendarDataFn,
     });
 
+export const myBookingsQueryKey = ["bookings", "my-bookings"] as const;
+
 export const myBookingsQueryOptions = (filters: MyBookingsFilters) =>
     queryOptions({
-        queryKey: ["bookings", "my-bookings", filters],
+        queryKey: [...myBookingsQueryKey, filters],
         queryFn: () => getMyBookingsDataFn({ data: filters }),
         select: (data) => ({
             ...data,
@@ -39,7 +41,7 @@ export const myBookingsQueryOptions = (filters: MyBookingsFilters) =>
 export const myBookingsStatsQueryOptions = () =>
     queryOptions({
         queryKey: ["bookings", "my-bookings", "stats"],
-        queryFn: getMyBookingsStatsFn,
+        queryFn: () => getMyBookingsStatsFn(),
     });
 
 export const bookingDetailsQueryOptions = (bookingId: string) =>
