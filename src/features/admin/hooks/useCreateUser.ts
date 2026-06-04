@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 
 import { createUserSchema } from "@/features/admin/schema/user.schema";
 import { createUserFn } from "@/features/admin/services/users/fns";
-import { usersQueryOptions } from "@/features/admin/services/users/queries";
+import { usersQueryKey } from "@/features/admin/services/users/queries";
 
 type Options = {
     onSuccess?: () => void;
@@ -29,7 +29,7 @@ export const useCreateUser = ({ onSuccess }: Options = {}) => {
     const { mutate: submitCreateUser, isPending } = useMutation({
         mutationFn: createUser,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: usersQueryOptions().queryKey });
+            queryClient.invalidateQueries({ queryKey: usersQueryKey });
             form.reset();
             onSuccess?.();
         },

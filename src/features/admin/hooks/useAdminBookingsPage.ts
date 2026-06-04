@@ -3,13 +3,13 @@ import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useFieldArray, useForm } from "react-hook-form";
 
-import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { cancelAdminBookingFn } from "@/features/admin/services/bookings/fns";
 import {
     adminBookingStatsQueryOptions,
     adminBookingsQueryOptions,
     type AdminBookingFilters,
 } from "@/features/admin/services/bookings/queries";
+import { adminToast } from "@/features/admin/utils/admin-toast";
 
 type AdminBookingSearchUpdate = Partial<AdminBookingFilters>;
 
@@ -21,7 +21,6 @@ type AdminBookingCancellationFormValues = {
 };
 
 export const useAdminBookingsPage = () => {
-    const { toast } = useAdminToast();
     const filters = useSearch({ from: "/admin/bookings" });
     const navigate = useNavigate({ from: "/admin/bookings" });
     const queryClient = useQueryClient();
@@ -61,7 +60,7 @@ export const useAdminBookingsPage = () => {
     } = useMutation({
         mutationFn: cancelAdminBooking,
         onError: (error) => {
-            toast(error instanceof Error ? error.message : "Failed to cancel booking", "danger");
+            adminToast(error instanceof Error ? error.message : "Failed to cancel booking", "danger");
         },
     });
 
@@ -96,7 +95,7 @@ export const useAdminBookingsPage = () => {
                         queryClient.invalidateQueries(bookingsQueryOptions),
                         queryClient.invalidateQueries(bookingStatsQueryOptions),
                     ]);
-                    toast(`"${booking.title}" cancelled`, "danger");
+                    adminToast(`"${booking.title}" cancelled`, "danger");
                     removeCancellation(booking.id);
                 },
             },
