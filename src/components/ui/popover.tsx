@@ -46,22 +46,4 @@ function PopoverContent({
     );
 }
 
-function PopoverHeader({ className, ...props }: React.ComponentProps<"div">) {
-    return <div data-slot="popover-header" className={cn("flex flex-col gap-1 text-sm", className)} {...props} />;
-}
-
-function PopoverTitle({ className, ...props }: React.ComponentProps<typeof PopoverPrimitive.Title>) {
-    return <PopoverPrimitive.Title data-slot="popover-title" className={cn("font-medium", className)} {...props} />;
-}
-
-function PopoverDescription({ className, ...props }: React.ComponentProps<typeof PopoverPrimitive.Description>) {
-    return (
-        <PopoverPrimitive.Description
-            data-slot="popover-description"
-            className={cn("text-muted-foreground", className)}
-            {...props}
-        />
-    );
-}
-
-export { Popover, PopoverTrigger, PopoverContent, PopoverHeader, PopoverTitle, PopoverDescription };
+export { Popover, PopoverTrigger, PopoverContent };

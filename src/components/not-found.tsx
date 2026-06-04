@@ -34,7 +34,7 @@ export const NotFound = () => {
                     style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
                 >
                     <span className="font-['Fraunces'] text-[22px] leading-none text-(--gold)">&#9492;</span>
-                    <span className="eyebrow eyebrow-gold mt-1">Errata &middot; Unbound Folio</span>
+                    <span className="eyebrow text-(--gold) mt-1">Errata &middot; Unbound Folio</span>
                 </div>
 
                 {/* Top-right: oversized appendix call-number */}
@@ -51,7 +51,7 @@ export const NotFound = () => {
                 {/* Editorial statement — anchored bottom */}
                 <div className="relative z-10 mt-auto flex w-full flex-col px-20 pb-20">
                     <p
-                        className="eyebrow eyebrow-gold mb-14"
+                        className="eyebrow text-(--gold) mb-14"
                         style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 300ms both" }}
                     >
                         Meridian &middot; Folio Not Found
@@ -128,7 +128,7 @@ export const NotFound = () => {
                     style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
                 >
                     <span className="font-['Fraunces'] text-[18px] leading-none text-(--gold)">&#9492;</span>
-                    <span className="eyebrow eyebrow-gold">Errata &middot; 404</span>
+                    <span className="eyebrow text-(--gold)">Errata &middot; 404</span>
                 </div>
 
                 {/* Mobile: show the tabular 404 when the canvas is hidden */}
@@ -161,7 +161,7 @@ export const NotFound = () => {
 
                     {/* Heading */}
                     <div style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 250ms both" }}>
-                        <p className="eyebrow eyebrow-gold">Error &middot; 404</p>
+                        <p className="eyebrow text-(--gold)">Error &middot; 404</p>
                         <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
                             Page not found.
                         </h1>

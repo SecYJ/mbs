@@ -122,7 +122,7 @@ const MyBookingsFilteredPage = () => {
         <section className="border-y border-(--hairline) py-5">
             <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <p className="eyebrow eyebrow-gold">{model.sectionMeta.title}</p>
+                    <p className="eyebrow text-(--gold)">{model.sectionMeta.title}</p>
                     <h2 className="display-italic mt-1 text-2xl leading-none font-normal text-(--bone)">
                         {model.sectionMeta.title}
                     </h2>

@@ -32,7 +32,7 @@ export const BookingDetailsPage = () => {
             <header className="grid gap-6 border-b border-(--hairline) pb-7 lg:grid-cols-[1fr_auto] lg:items-end">
                 <div>
                     <div className="flex flex-wrap items-center gap-3">
-                        <p className="eyebrow eyebrow-gold">{pageLabel}</p>
+                        <p className="eyebrow text-(--gold)">{pageLabel}</p>
                         <span
                             className={cn(
                                 "inline-flex items-center border px-2.5 py-1 text-[0.62rem] font-semibold tracking-[0.18em] uppercase",
@@ -109,7 +109,7 @@ export const BookingDetailsPage = () => {
                     <section className="border-y border-(--hairline) py-5">
                         <div className="flex items-center justify-between gap-3">
                             <div>
-                                <p className="eyebrow eyebrow-gold">Responses</p>
+                                <p className="eyebrow text-(--gold)">Responses</p>
                                 <h2 className="mt-1 text-lg font-semibold text-(--bone)">Attendees</h2>
                             </div>
                             <div className="flex items-center gap-2 text-xs text-(--bone-dim)">
@@ -161,7 +161,7 @@ export const BookingDetailsPage = () => {
                     </section>
 
                     <section className="border-y border-(--hairline) py-5">
-                        <p className="eyebrow eyebrow-gold">Organizer</p>
+                        <p className="eyebrow text-(--gold)">Organizer</p>
                         <div className="mt-4 flex gap-3">
                             <div className="flex size-10 shrink-0 items-center justify-center border border-(--hairline) text-(--gold)">
                                 <UserRound className="size-4" strokeWidth={1.4} />

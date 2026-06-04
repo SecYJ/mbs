@@ -53,7 +53,7 @@ export const BookingReservationForm = ({
     return (
         <FormProvider {...reservationForm.form}>
             <div>
-                <p className="eyebrow eyebrow-gold">{isEditing ? "Edit Reservation" : "New Reservation"}</p>
+                <p className="eyebrow text-(--gold)">{isEditing ? "Edit Reservation" : "New Reservation"}</p>
                 <h2 className="display-italic mt-2 text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
                     {isEditing ? "Update the booking." : "Reserve a room."}
                 </h2>

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { USER_ROLES } from "@/lib/roles";
 
-export const userRoleSchema = z.enum(USER_ROLES);
+const userRoleSchema = z.enum(USER_ROLES);
 
 const userBaseSchema = z.object({
     name: z.string().trim().min(1, "Full name is required"),

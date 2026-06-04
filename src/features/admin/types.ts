@@ -1,6 +1,6 @@
 import type { UserRole } from "@/lib/roles";
 
-export type RoomEquipmentLine = {
+type RoomEquipmentLine = {
     id: string;
     name: string;
     brand: string;

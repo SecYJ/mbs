@@ -1,6 +1,7 @@
+import { scan } from "react-scan";
 import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 
-import type { ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 
 import appCss from "@/styles.css?url";
@@ -12,6 +13,12 @@ type MyRouterContext = {
 };
 
 const RootDocument = ({ children }: { children: ReactNode }) => {
+    useEffect(() => {
+        scan({
+            trackUnnecessaryRenders: true,
+        });
+    }, []);
+
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
             <head>

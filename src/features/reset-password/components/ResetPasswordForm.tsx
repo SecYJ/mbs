@@ -28,7 +28,7 @@ const ValidResetForm = ({ token }: { token: string }) => {
                 className="mt-14 text-center"
                 style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 320ms both" }}
             >
-                <p className="eyebrow eyebrow-gold">Issue a new passphrase</p>
+                <p className="eyebrow text-(--gold)">Issue a new passphrase</p>
                 <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
                     Set the cipher.
                 </h1>
@@ -110,7 +110,7 @@ const InvalidLinkState = ({ reason }: { reason: string | undefined }) => {
             style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 320ms both" }}
         >
             <div className="text-center">
-                <p className="eyebrow eyebrow-gold">Recovery link</p>
+                <p className="eyebrow text-(--gold)">Recovery link</p>
                 <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
                     {isExpired ? "The link has lapsed." : "The link is missing."}
                 </h1>

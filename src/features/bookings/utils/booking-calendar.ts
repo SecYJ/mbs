@@ -1,5 +1,5 @@
 import type { EventInput } from "@fullcalendar/core";
-import { addDays, compareAsc, format, isBefore, isSameMonth, isSameYear, parseISO } from "date-fns";
+import { compareAsc, isBefore, parseISO } from "date-fns";
 import { z } from "zod";
 
 import type { BookingCalendarData } from "@/features/bookings/services/queries";
@@ -94,26 +94,6 @@ export const getLiveBookingCount = (events: BookingCalendarEvent[], now: Date) =
     }
     return count;
 };
-
-export const getBookingCalendarTitle = (view: BookingCalendarView, date: Date) => {
-    if (view === "day") {
-        return format(date, "EEEE, MMMM d, yyyy");
-    }
-    if (view === "week") {
-        const start = date;
-        const end = addDays(start, 6);
-        const startFormat = isSameYear(start, end) ? "MMM d" : "MMM d, yyyy";
-        const endFormat = isSameMonth(start, end) ? "d, yyyy" : "MMM d, yyyy";
-
-        return `${format(start, startFormat)} - ${format(end, endFormat)}`;
-    }
-    if (view === "year") {
-        return format(date, "yyyy");
-    }
-    return format(date, "MMMM yyyy");
-};
-
-export const formatTodayButtonDate = (date: Date) => format(date, "EEEE, MMMM d, yyyy");
 
 const eventEndDateSchema = z
     .preprocess((value) => (value ? value : undefined), z.coerce.date().optional())

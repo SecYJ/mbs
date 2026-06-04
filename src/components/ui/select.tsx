@@ -10,10 +10,6 @@ function Select<Value, Multiple extends boolean | undefined = false>(
     return <SelectPrimitive.Root {...props} />;
 }
 
-function SelectGroup({ ...props }: React.ComponentProps<typeof SelectPrimitive.Group>) {
-    return <SelectPrimitive.Group data-slot="select-group" {...props} />;
-}
-
 function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
     return <SelectPrimitive.Value data-slot="select-value" {...props} />;
 }
@@ -79,16 +75,6 @@ function SelectContent({
     );
 }
 
-function SelectLabel({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.GroupLabel>) {
-    return (
-        <SelectPrimitive.GroupLabel
-            data-slot="select-label"
-            className={cn("px-2 py-1.5 text-xs text-muted-foreground", className)}
-            {...props}
-        />
-    );
-}
-
 function SelectItem({ className, children, ...props }: React.ComponentProps<typeof SelectPrimitive.Item>) {
     return (
         <SelectPrimitive.Item
@@ -136,14 +122,4 @@ function SelectScrollDownButton({ className, ...props }: React.ComponentProps<ty
     );
 }
 
-export {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectScrollDownButton,
-    SelectScrollUpButton,
-    SelectTrigger,
-    SelectValue,
-};
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue };

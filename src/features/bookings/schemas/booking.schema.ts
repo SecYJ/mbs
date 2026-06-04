@@ -32,17 +32,11 @@ export const createBookingSchema = z
         }
     });
 
-export type CreateBookingInput = z.infer<typeof createBookingSchema>;
-
 export const updateBookingSchema = createBookingSchema.extend({
     bookingId: z.string().uuid("Select a valid booking"),
 });
-
-export type UpdateBookingInput = z.infer<typeof updateBookingSchema>;
 
 export const cancelBookingSchema = z.object({
     bookingId: z.string().uuid("Select a valid booking"),
     cancelReason: z.string().trim().max(500, "Cancellation reason is too long").optional(),
 });
-
-export type CancelBookingInput = z.infer<typeof cancelBookingSchema>;

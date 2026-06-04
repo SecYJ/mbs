@@ -30,7 +30,7 @@ export const LoginShell = ({ children }: Props) => {
                     style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
                 >
                     <span className="font-['Fraunces'] text-[22px] leading-none text-(--gold)">&#9484;</span>
-                    <span className="eyebrow eyebrow-gold mt-1">Suite · Meridian</span>
+                    <span className="eyebrow text-(--gold) mt-1">Suite · Meridian</span>
                 </div>
 
                 <div
@@ -43,7 +43,7 @@ export const LoginShell = ({ children }: Props) => {
 
                 <div className="relative z-10 mt-auto flex w-full flex-col px-20 pb-20">
                     <p
-                        className="eyebrow eyebrow-gold mb-14"
+                        className="eyebrow text-(--gold) mb-14"
                         style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 300ms both" }}
                     >
                         Meridian &middot; Meeting Concierge
@@ -98,7 +98,7 @@ export const LoginShell = ({ children }: Props) => {
                     style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
                 >
                     <span className="font-['Fraunces'] text-[18px] leading-none text-(--gold)">&#9484;</span>
-                    <span className="eyebrow eyebrow-gold">Suite · Meridian</span>
+                    <span className="eyebrow text-(--gold)">Suite · Meridian</span>
                 </div>
 
                 <div className="relative mx-auto w-full max-w-100 py-20">
@@ -118,7 +118,7 @@ export const LoginShell = ({ children }: Props) => {
                     </div>
 
                     <div style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 250ms both" }}>
-                        <p className="eyebrow eyebrow-gold">Sign in to your suite</p>
+                        <p className="eyebrow text-(--gold)">Sign in to your suite</p>
                         <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
                             Welcome back.
                         </h1>
