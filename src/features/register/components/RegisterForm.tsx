@@ -1,7 +1,5 @@
-"use client";
-
 import { Link } from "@tanstack/react-router";
-import { Controller } from "react-hook-form";
+import { Controller, FormStateSubscribe } from "react-hook-form";
 
 import { PasswordInput } from "@/components/password-input";
 import { Input } from "@/components/ui/input";
@@ -10,7 +8,7 @@ import { RegisterSubmitAction } from "@/features/register/components/RegisterSub
 import { useRegister } from "@/features/register/hooks/useRegister";
 
 export const RegisterForm = () => {
-    const { form, onSubmit } = useRegister();
+    const { form, onSubmit, isPending } = useRegister();
 
     return (
         <form
@@ -109,7 +107,18 @@ export const RegisterForm = () => {
                 .
             </p>
 
-            <RegisterSubmitAction control={form.control} label="Open Ledger" />
+            <FormStateSubscribe
+                control={form.control}
+                render={({ errors }) =>
+                    errors.root ? (
+                        <p role="alert" className="text-[0.72rem] text-red-400/80">
+                            {errors.root.message}
+                        </p>
+                    ) : null
+                }
+            />
+
+            <RegisterSubmitAction control={form.control} isPending={isPending} label="Open Ledger" />
         </form>
     );
 };

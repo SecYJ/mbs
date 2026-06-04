@@ -1,5 +1,3 @@
-"use client";
-
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
 import { CalendarDays, Check } from "lucide-react";
@@ -76,7 +74,8 @@ const AdminBookingsDataTable = () => {
                             const cancellationIndex = cancellationFields.findIndex(
                                 (cancellation) => cancellation.bookingId === booking.id,
                             );
-                            const cannotCancel = booking.status === "cancelled" || booking.status === "completed";
+                            const cannotCancel =
+                                !booking.canCancel || booking.status === "cancelled" || booking.status === "completed";
                             const isCancellingBooking = cancellationIndex !== -1 && !cannotCancel;
                             const isSubmittingCancellation = cancellingBookingId === booking.id;
 

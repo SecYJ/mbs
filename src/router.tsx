@@ -3,6 +3,7 @@ import { routeTree } from "./routeTree.gen";
 
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { getContext } from "./integrations/tanstack-query/root-provider";
+import { AppPending } from "./components/app-pending";
 
 export function getRouter() {
     const context = getContext();
@@ -13,6 +14,9 @@ export function getRouter() {
         scrollRestoration: true,
         defaultPreload: "intent",
         defaultPreloadStaleTime: 0,
+        defaultPendingComponent: AppPending,
+        defaultPendingMs: 0,
+        defaultPendingMinMs: 700,
         parseSearch: parseSearchWith((value) => {
             const trimmed = value.trim();
             const looksLikeJson = trimmed.startsWith("{") || trimmed.startsWith("[") || trimmed.startsWith('"');

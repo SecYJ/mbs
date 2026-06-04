@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowRight, Mail } from "lucide-react";
 import { Controller, FormStateSubscribe } from "react-hook-form";
 

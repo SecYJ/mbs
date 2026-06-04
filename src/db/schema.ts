@@ -17,7 +17,9 @@ import {
     uuid,
 } from "drizzle-orm/pg-core";
 
-export const userRoleEnum = pgEnum("user_role", ["user", "admin"]);
+import { USER_ROLES } from "@/lib/roles";
+
+export const userRoleEnum = pgEnum("user_role", USER_ROLES);
 export const bookingStatusEnum = pgEnum("booking_status", ["active", "cancelled"]);
 export const attendeeStatusEnum = pgEnum("attendee_status", ["pending", "accepted", "declined"]);
 

@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { attendees, bookings, notifications, rooms, user } from "@/db/schema";
 import { cancelBookingSchema } from "@/features/bookings/schemas/booking.schema";
 import { getBookingCancellationNotificationValues } from "@/features/bookings/services/booking-notifications";
+import { isSuperAdminRole } from "@/lib/roles";
 import { requireAdminUser } from "@/lib/session";
 
 const adminBookingsFilterSchema = z.object({
@@ -30,7 +31,7 @@ const getStatusCondition = (status: z.infer<typeof adminBookingsFilterSchema>["s
 export const getAdminBookingsFn = createServerFn({ method: "GET" })
     .inputValidator(adminBookingsFilterSchema)
     .handler(async ({ data }) => {
-        await requireAdminUser();
+        const session = await requireAdminUser();
 
         const now = new Date();
         const search = data.q;
@@ -56,6 +57,7 @@ export const getAdminBookingsFn = createServerFn({ method: "GET" })
                 status: bookings.status,
                 room: rooms.name,
                 bookedBy: user.name,
+                userId: bookings.userId,
                 attendees: sql<number>`count(${attendees.userId})::int`,
             })
             .from(bookings)
@@ -71,12 +73,15 @@ export const getAdminBookingsFn = createServerFn({ method: "GET" })
                 bookings.status,
                 rooms.name,
                 user.name,
+                bookings.userId,
             )
             .orderBy(desc(bookings.startTime));
 
         const roomRows = await db.select({ name: rooms.name }).from(rooms).orderBy(rooms.name);
 
         return {
+            currentUserId: session.user.id,
+            currentUserRole: session.user.role,
             bookings: rows.map((row) => ({
                 ...row,
                 startTime: toIso(row.startTime),
@@ -149,6 +154,12 @@ export const cancelAdminBookingFn = createServerFn({ method: "POST" })
             throw new Error("Booking no longer exists");
         }
 
+        const isSuperAdmin = isSuperAdminRole(session.user.role);
+
+        if (booking.userId !== session.user.id && !isSuperAdmin) {
+            throw new Error("Only a super admin or the booking creator can cancel this booking");
+        }
+
         if (booking.status === "cancelled") {
             throw new Error("Booking is already cancelled");
         }
@@ -175,7 +186,15 @@ export const cancelAdminBookingFn = createServerFn({ method: "POST" })
                     cancelReason: data.cancelReason || null,
                     updatedAt: cancelledAt,
                 })
-                .where(and(eq(bookings.bookingId, data.bookingId), eq(bookings.status, "active")))
+                .where(
+                    isSuperAdmin
+                        ? and(eq(bookings.bookingId, data.bookingId), eq(bookings.status, "active"))
+                        : and(
+                              eq(bookings.bookingId, data.bookingId),
+                              eq(bookings.userId, session.user.id),
+                              eq(bookings.status, "active"),
+                          ),
+                )
                 .returning({ id: bookings.bookingId });
 
             if (updated.length === 0) {

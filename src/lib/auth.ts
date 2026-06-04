@@ -1,9 +1,11 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
+import { sql } from "drizzle-orm";
 import { Resend } from "resend";
 
 import { db } from "@/db";
+import { user as userTable } from "@/db/schema";
 import {
     RESET_PASSWORD_TOKEN_EXPIRES_IN_MINUTES,
     RESET_PASSWORD_TOKEN_EXPIRES_IN_SECONDS,
@@ -11,6 +13,56 @@ import {
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Meridian <onboarding@resend.dev>";
+
+const reconcileRegisteredUserRoles = async () => {
+    await db.transaction(async (tx) => {
+        await tx.execute(sql`select pg_advisory_xact_lock(hashtext('meridian:user-role-reconciliation'))`);
+
+        await tx.execute(sql`
+            with existing_super_admin as (
+                select "id"
+                from ${userTable}
+                where "role" = 'super_admin'
+                order by "created_at" asc, "id" asc
+                limit 1
+            ),
+            first_user as (
+                select "id"
+                from ${userTable}
+                order by "created_at" asc, "id" asc
+                limit 1
+            ),
+            selected_user as (
+                select "id"
+                from existing_super_admin
+                union all
+                select "id"
+                from first_user
+                where not exists (select 1 from existing_super_admin)
+                limit 1
+            )
+            update ${userTable}
+            set
+                "role" = case
+                    when "id" = (select "id" from selected_user) then 'super_admin'::user_role
+                    else 'user'::user_role
+                end,
+                "updated_at" = now()
+            where
+                exists (select 1 from selected_user)
+                and (
+                    "role" = 'super_admin'
+                    or "id" = (select "id" from selected_user)
+                )
+                and "role" is distinct from (
+                    case
+                        when "id" = (select "id" from selected_user) then 'super_admin'::user_role
+                        else 'user'::user_role
+                    end
+                )
+        `);
+    });
+};
 
 const buildResetEmail = (resetUrl: string) => {
     const text = [
@@ -96,6 +148,21 @@ export const auth = betterAuth({
                 required: true,
                 defaultValue: "user",
                 input: false,
+            },
+        },
+    },
+    databaseHooks: {
+        user: {
+            create: {
+                before: async (newUser) => ({
+                    data: {
+                        ...newUser,
+                        role: "user",
+                    },
+                }),
+                after: async () => {
+                    await reconcileRegisteredUserRoles();
+                },
             },
         },
     },

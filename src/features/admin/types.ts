@@ -1,21 +1,23 @@
-export interface RoomEquipmentLine {
+import type { UserRole } from "@/lib/roles";
+
+export type RoomEquipmentLine = {
     id: string;
     name: string;
     brand: string;
     model: string;
     quantity: number;
-}
+};
 
-export interface Room {
+export type Room = {
     id: string;
     name: string;
     location: string;
     capacity: number;
     active: boolean;
     equipment: RoomEquipmentLine[];
-}
+};
 
-export interface Equipment {
+export type Equipment = {
     id: string;
     name: string;
     brand: string;
@@ -24,15 +26,15 @@ export interface Equipment {
     quantity: number;
     purchaseDate: string;
     warrantyExpiry: string | null;
-}
+};
 
-export interface AdminUser {
+export type AdminUser = {
     id: string;
     name: string;
     email: string;
-    role: "admin" | "user";
+    role: UserRole;
     lastLogin: string;
     lastLoginAt: string | null;
     image: string | null;
     avatarColor: string;
-}
+};

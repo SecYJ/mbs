@@ -147,6 +147,23 @@ afterEach(() => {
 });
 
 describe("BookingReservationEditor attendee picker", () => {
+    it("hides the start time field when the booking starts from a calendar slot", () => {
+        renderOpenEditor();
+
+        expect(screen.queryByText("Start Time")).toBeNull();
+        expect(screen.getByText("End Time")).toBeTruthy();
+        expect(screen.getByRole("combobox", { name: "End Time time" }).textContent).toContain("10:00");
+        expect(document.querySelector('input[type="time"]')).toBeNull();
+    });
+
+    it("shows the start time field when opening a blank new booking", () => {
+        renderOpenEditor({});
+
+        expect(screen.getByText("Start Time")).toBeTruthy();
+        expect(screen.getByText("End Time")).toBeTruthy();
+        expect(screen.getAllByRole("combobox", { name: /time/i })).toHaveLength(2);
+    });
+
     it("shows users before searching, filters them, pins selected users, and discards cancel", () => {
         renderOpenEditor();
 

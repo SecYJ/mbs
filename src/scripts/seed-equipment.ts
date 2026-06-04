@@ -204,8 +204,38 @@ for (const key of toSeed) {
             }
             console.log(`[${key}] reset deleted ${deleted} rows`);
         }
-        const inserted = await tx.insert(equipment).values(rows).returning();
-        console.log(`[${key}] inserted ${inserted.length} rows`);
+
+        let inserted = 0;
+        let updated = 0;
+
+        for (const row of rows) {
+            const existingRows = await tx
+                .select({ id: equipment.equipmentId })
+                .from(equipment)
+                .where(and(eq(equipment.brand, row.brand), eq(equipment.model, row.model)));
+
+            if (existingRows.length > 1) {
+                throw new Error(`Equipment lookup is ambiguous: ${row.brand} ${row.model}`);
+            }
+
+            if (existingRows.length === 1) {
+                await tx
+                    .update(equipment)
+                    .set({
+                        ...row,
+                        quantity: row.quantity ?? 1,
+                        updatedAt: new Date(),
+                    })
+                    .where(eq(equipment.equipmentId, existingRows[0].id));
+                updated += 1;
+                continue;
+            }
+
+            await tx.insert(equipment).values(row);
+            inserted += 1;
+        }
+
+        console.log(`[${key}] inserted ${inserted} row(s), updated ${updated} row(s)`);
     });
 }
 

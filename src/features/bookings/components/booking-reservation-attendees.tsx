@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { Users, X } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";

@@ -2,6 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { format } from "date-fns";
 
 import { getAdminBookingStatsFn, getAdminBookingsFn } from "@/features/admin/services/bookings/fns";
+import { isSuperAdminRole } from "@/lib/roles";
 
 export type AdminBookingStatus = "upcoming" | "in-progress" | "completed" | "cancelled";
 
@@ -16,6 +17,8 @@ type AdminBooking = {
     title: string;
     room: string;
     bookedBy: string;
+    userId: string;
+    canCancel: boolean;
     attendees: number;
     date: string;
     time: string;
@@ -53,6 +56,8 @@ export const adminBookingsQueryOptions = (filters: AdminBookingFilters) =>
                 title: row.title,
                 room: row.room,
                 bookedBy: row.bookedBy,
+                userId: row.userId,
+                canCancel: row.userId === data.currentUserId || isSuperAdminRole(data.currentUserRole),
                 attendees: row.attendees,
                 date: format(new Date(row.startTime), "yyyy-MM-dd"),
                 time: formatBookingTime(row.startTime, row.endTime),

@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 import { Link } from "@tanstack/react-router";
 import FullCalendar from "@fullcalendar/react";
 import resourceTimeGridPlugin from "@fullcalendar/resource-timegrid";
@@ -11,15 +12,29 @@ import { useBookingAvailabilityCalendar } from "@/features/bookings/hooks/useBoo
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
 import { bookingCalendarViewMap, isPastCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 
+type SlotClickArg = {
+    date: Date;
+    resourceId?: string;
+};
+
 export const BookingAvailabilityCalendar = ({
     onEventClick,
+    onDateClick,
     onSelect,
 }: {
+    onDateClick: (arg: SlotClickArg) => void;
     onEventClick: (arg: EventClickArg) => void;
     onSelect: (arg: DateSelectArg) => void;
 }) => {
     const { events, resources, view } = useBookingAvailabilityCalendar();
     const { setCalendar, setVisibleRange } = useBookingCalendarStore((state) => state.actions);
+
+    const handleDateClick: NonNullable<ComponentProps<typeof FullCalendar>["dateClick"]> = (info) => {
+        onDateClick({
+            date: info.date,
+            resourceId: info.resource?.id,
+        });
+    };
 
     return (
         <div
@@ -95,6 +110,7 @@ export const BookingAvailabilityCalendar = ({
                     }
                 }}
                 datesSet={setVisibleRange}
+                dateClick={handleDateClick}
                 select={onSelect}
                 eventClick={onEventClick}
             />

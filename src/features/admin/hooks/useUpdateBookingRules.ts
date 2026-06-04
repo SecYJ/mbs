@@ -1,5 +1,3 @@
-"use client";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -10,9 +8,9 @@ import { updateBookingRulesSchema } from "@/features/admin/schema/booking-rules.
 import { updateBookingRulesFn } from "@/features/admin/services/booking-rules/fns";
 import { bookingRulesQueryOptions } from "@/features/admin/services/booking-rules/queries";
 
-interface Defaults {
+type Defaults = {
     maxBookingDurationHours: number;
-}
+};
 
 export const useUpdateBookingRules = (defaults: Defaults) => {
     const { toast } = useAdminToast();

@@ -7,6 +7,7 @@ import { db } from "@/db";
 import { account, session, user } from "@/db/schema";
 import { createUserServerSchema } from "@/features/admin/schema/user.schema";
 import { requireAdminUser } from "@/lib/session";
+import { isSuperAdminRole } from "@/lib/roles";
 
 const toIso = (value: Date | string | null) => (value ? new Date(value).toISOString() : null);
 
@@ -46,7 +47,11 @@ export const getUsersFn = createServerFn({ method: "GET" }).handler(async () => 
 export const createUserFn = createServerFn({ method: "POST" })
     .inputValidator(createUserServerSchema)
     .handler(async ({ data }) => {
-        await requireAdminUser();
+        const currentSession = await requireAdminUser();
+
+        if (data.role === "super_admin" && !isSuperAdminRole(currentSession.user.role)) {
+            throw new Error("Only super admins can create super admins");
+        }
 
         const email = data.email.toLowerCase();
         const password = await hashPassword(data.password);

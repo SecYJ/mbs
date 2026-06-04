@@ -48,8 +48,10 @@ Before substantial work:
 
 Resolution priority for library/framework docs:
 
-1. **TanStack libraries** → use the TanStack intent skill first (`vpx @tanstack/intent@latest list` / `load`). If the issue persists after consulting the loaded `SKILL.md`, fall back to `context7` MCP.
-2. **Other libraries** (React, Prisma, Tailwind, etc.) → use `context7` MCP directly.
-3. **Still stuck** → use web search (`exa` MCP for general web; generic web search as last resort).
+1. **First** -> use the installed `find-docs` skill for any up-to-date library/framework/API documentation. Follow its `SKILL.md`, which uses the Context7 CLI lookup flow.
+2. **If `find-docs` is unavailable** -> use the Context7 CLI directly (`ctx7`, or `npx ctx7@latest`): resolve the library ID first, then query docs with that ID.
+3. **If the Context7 CLI is unavailable or cannot be used** -> fall back to Context7 MCP.
+4. **TanStack-specific follow-up** -> if the issue still needs TanStack-specific local guidance, use the TanStack intent skill (`vpx @tanstack/intent@latest list` / `vpx @tanstack/intent@latest load <package>#<skill>`) after the docs lookup path above.
+5. **Still stuck** -> use web search (`exa` MCP for general web; generic web search as last resort).
 
 Prefer these over relying on training knowledge — even for well-known libraries — since versions and APIs drift. For general web lookups (news, blog posts, articles, non-library questions), use the `exa` MCP server instead of generic web search.

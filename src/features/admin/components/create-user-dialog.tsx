@@ -1,5 +1,3 @@
-"use client";
-
 import { Controller, FormStateSubscribe } from "react-hook-form";
 import { KeyRound, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
@@ -8,13 +6,15 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses, adminSelectClasses } from "@/features/admin/admin-classes";
 import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { useCreateUser } from "@/features/admin/hooks/useCreateUser";
+import { cn } from "@/lib/utils";
 
 type CreateUserDialogProps = {
+    canCreateSuperAdmin: boolean;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 };
 
-export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) => {
+export const CreateUserDialog = ({ canCreateSuperAdmin, open, onOpenChange }: CreateUserDialogProps) => {
     const { toast } = useAdminToast();
 
     const { form, onSubmit, isPending } = useCreateUser({
@@ -66,7 +66,7 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                         {...field}
                                         id="create-user-name"
                                         autoComplete="off"
-                                        className={`${adminInputClasses} w-full`}
+                                        className={cn(adminInputClasses, "w-full")}
                                         placeholder="Jane Doe"
                                     />
                                 </Field>
@@ -88,7 +88,7 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                         id="create-user-email"
                                         type="email"
                                         autoComplete="off"
-                                        className={`${adminInputClasses} w-full`}
+                                        className={cn(adminInputClasses, "w-full")}
                                         placeholder="jane@company.com"
                                     />
                                 </Field>
@@ -105,9 +105,14 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                     inputId="create-user-role"
                                     icon={<ShieldCheck className="size-3" strokeWidth={1.6} />}
                                 >
-                                    <select {...field} id="create-user-role" className={`${adminSelectClasses} w-full`}>
+                                    <select
+                                        {...field}
+                                        id="create-user-role"
+                                        className={cn(adminSelectClasses, "w-full")}
+                                    >
                                         <option value="user">User</option>
                                         <option value="admin">Admin</option>
+                                        {canCreateSuperAdmin ? <option value="super_admin">Super Admin</option> : null}
                                     </select>
                                 </Field>
                             )}
@@ -128,7 +133,7 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                             {...field}
                                             id="create-user-password"
                                             type="password"
-                                            className={`${adminInputClasses} w-full`}
+                                            className={cn(adminInputClasses, "w-full")}
                                             autoComplete="new-password"
                                         />
                                     </Field>
@@ -143,7 +148,7 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                             {...field}
                                             id="create-user-confirm"
                                             type="password"
-                                            className={`${adminInputClasses} w-full`}
+                                            className={cn(adminInputClasses, "w-full")}
                                             autoComplete="new-password"
                                         />
                                     </Field>

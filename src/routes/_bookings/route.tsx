@@ -2,10 +2,12 @@ import { createFileRoute, Link, linkOptions, Outlet, stripSearchParams } from "@
 import { Shield } from "lucide-react";
 import { z } from "zod";
 
+import { AppPending } from "@/components/app-pending";
 import { AuthenticatedAccountMenu } from "@/features/account/components/authenticated-account-menu";
 import { NotificationNavigationMenu } from "@/features/notifications/components/notification-navigation-menu";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 import { requireAuthenticatedUser } from "@/lib/session";
+import { isAdminRole } from "@/lib/roles";
 
 const BOOKING_SEARCH_DEFAULTS = {
     attendeeSearch: "",
@@ -26,12 +28,13 @@ export const Route = createFileRoute("/_bookings")({
         middlewares: [stripSearchParams(BOOKING_SEARCH_DEFAULTS)],
     },
     beforeLoad: async () => ({ session: await requireAuthenticatedUser() }),
-    loader: ({ context }) => {
-        context.queryClient.ensureQueryData(notificationsQueryOptions());
+    loader: async ({ context }) => {
+        await context.queryClient.ensureQueryData(notificationsQueryOptions());
 
         return context.session;
     },
     component: AppLayout,
+    pendingComponent: AppPending,
 });
 
 const navItems = linkOptions([
@@ -86,7 +89,7 @@ function AppLayout() {
 
                     {/* Right: Admin shortcut + Notifications + Avatar */}
                     <div className="flex items-center gap-2">
-                        {user.role === "admin" ? (
+                        {isAdminRole(user.role) ? (
                             <Link
                                 to="/admin/rooms"
                                 aria-label="Admin dashboard"

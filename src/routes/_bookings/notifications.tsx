@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, stripSearchParams } from "@tanstack/react-router";
 import { Bell, CalendarDays, CheckCheck, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 
@@ -16,7 +16,6 @@ import {
 } from "@/features/notifications/notification-format";
 import { useNotificationReadActions } from "@/features/notifications/hooks/use-notification-read-actions";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
-import { stripDefaultSearchParams } from "@/lib/router-search";
 import { cn } from "@/lib/utils";
 
 const statusLabel = {
@@ -72,28 +71,30 @@ export const NotificationsPage = () => {
                 </div>
             </header>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex border border-(--hairline) p-1">
-                    {NOTIFICATION_FILTER_OPTIONS.map((option) => (
-                        <Link
-                            key={option.value}
-                            to="/notifications"
-                            search={{ filter: option.value }}
-                            className={cn(
-                                "border px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] uppercase no-underline",
-                                filter === option.value
-                                    ? "border-(--hairline-strong) bg-(--surface-02) text-(--bone)"
-                                    : "border-transparent text-(--bone-dim) transition-colors hover:border-(--hairline) hover:text-(--bone)",
-                            )}
-                        >
-                            {option.label}
-                        </Link>
-                    ))}
+            {notifications.length > 0 ? (
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex border border-(--hairline) p-1">
+                        {NOTIFICATION_FILTER_OPTIONS.map((option) => (
+                            <Link
+                                key={option.value}
+                                to="/notifications"
+                                search={{ filter: option.value }}
+                                className={cn(
+                                    "border px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] uppercase no-underline",
+                                    filter === option.value
+                                        ? "border-(--hairline-strong) bg-(--surface-02) text-(--bone)"
+                                        : "border-transparent text-(--bone-dim) transition-colors hover:border-(--hairline) hover:text-(--bone)",
+                                )}
+                            >
+                                {option.label}
+                            </Link>
+                        ))}
+                    </div>
+                    <p className="text-xs text-(--bone-dim)">
+                        Showing {filteredNotifications.length} of {notifications.length}
+                    </p>
                 </div>
-                <p className="text-xs text-(--bone-dim)">
-                    Showing {filteredNotifications.length} of {notifications.length}
-                </p>
-            </div>
+            ) : null}
 
             {filteredNotifications.length === 0 ? (
                 <section className="flex min-h-80 flex-col items-center justify-center border border-dashed border-(--hairline) px-6 text-center">
@@ -187,7 +188,7 @@ export const NotificationsPage = () => {
 export const Route = createFileRoute("/_bookings/notifications")({
     validateSearch: notificationSearchSchema,
     search: {
-        middlewares: [stripDefaultSearchParams(NOTIFICATION_FILTER_DEFAULTS)],
+        middlewares: [stripSearchParams(NOTIFICATION_FILTER_DEFAULTS)],
     },
     loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(notificationsQueryOptions()),
     component: NotificationsPage,

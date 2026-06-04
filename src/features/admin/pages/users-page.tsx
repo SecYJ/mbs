@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { getRouteApi, useNavigate, useSearch } from "@tanstack/react-router";
 import { Users, Plus } from "lucide-react";
 import { useState } from "react";
 
@@ -8,12 +8,39 @@ import { CreateUserDialog } from "@/features/admin/components/create-user-dialog
 import { AdminHeader } from "@/features/admin/components/admin-header";
 import { EmptyState } from "@/features/admin/components/empty-state";
 import { usersQueryOptions } from "@/features/admin/services/users/queries";
+import { isSuperAdminRole, USER_ROLE_LABELS, type UserRole } from "@/lib/roles";
 import type { AdminUser } from "@/features/admin/types";
 
 export type { AdminUser };
 
+const adminRoute = getRouteApi("/admin");
+
 type SortField = "name" | "email" | "role" | "lastLogin";
 type SortDirection = "asc" | "desc";
+
+const getUserRoleBadgeStyle = (role: UserRole) => {
+    if (role === "super_admin") {
+        return {
+            background: "color-mix(in srgb, var(--a-accent) 22%, transparent)",
+            color: "var(--a-accent)",
+            border: "1px solid var(--a-accent-border)",
+        };
+    }
+
+    if (role === "admin") {
+        return {
+            background: "var(--a-accent-subtle)",
+            color: "var(--a-accent)",
+            border: "1px solid var(--a-accent-border)",
+        };
+    }
+
+    return {
+        background: "var(--a-surface-2)",
+        color: "var(--a-text-secondary)",
+        border: "1px solid var(--a-border)",
+    };
+};
 
 const UsersSortHeader = ({
     field,
@@ -52,6 +79,7 @@ const UsersSortHeader = ({
 
 export const UsersPage = () => {
     const { data: users } = useSuspenseQuery(usersQueryOptions());
+    const { user: currentUser } = adminRoute.useLoaderData();
     const { q = "", sort, dir } = useSearch({ from: "/admin/users" });
     const navigate = useNavigate({ from: "/admin/users" });
     const [createOpen, setCreateOpen] = useState(false);
@@ -98,7 +126,11 @@ export const UsersPage = () => {
 
     return (
         <div>
-            <CreateUserDialog open={createOpen} onOpenChange={setCreateOpen} />
+            <CreateUserDialog
+                canCreateSuperAdmin={isSuperAdminRole(currentUser.role)}
+                open={createOpen}
+                onOpenChange={setCreateOpen}
+            />
             <AdminHeader title="Users" searchPlaceholder="Search users..." searchValue={q} onSearchChange={setSearch}>
                 <button
                     type="button"
@@ -201,21 +233,9 @@ export const UsersPage = () => {
                                         <td>
                                             <span
                                                 className={adminBadgeClasses}
-                                                style={
-                                                    user.role === "admin"
-                                                        ? {
-                                                              background: "var(--a-accent-subtle)",
-                                                              color: "var(--a-accent)",
-                                                              border: "1px solid var(--a-accent-border)",
-                                                          }
-                                                        : {
-                                                              background: "var(--a-surface-2)",
-                                                              color: "var(--a-text-secondary)",
-                                                              border: "1px solid var(--a-border)",
-                                                          }
-                                                }
+                                                style={getUserRoleBadgeStyle(user.role)}
                                             >
-                                                {user.role === "admin" ? "Admin" : "User"}
+                                                {USER_ROLE_LABELS[user.role]}
                                             </span>
                                         </td>
                                         <td className="tabular-nums" style={{ color: "var(--a-text-muted)" }}>

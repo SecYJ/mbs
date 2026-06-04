@@ -1,5 +1,3 @@
-"use client";
-
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { BookingReservationDetails } from "@/features/bookings/components/booking-reservation-details";
 import { BookingReservationForm } from "@/features/bookings/components/booking-reservation-form";

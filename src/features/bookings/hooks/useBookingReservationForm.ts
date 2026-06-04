@@ -1,8 +1,8 @@
-import type { FormEvent } from "react";
 import type { EventInput } from "@fullcalendar/core";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { addMinutes, format, startOfMinute } from "date-fns";
+import type { SubmitEvent } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { z } from "zod";
 
@@ -193,6 +193,7 @@ export const useBookingReservationForm = ({
     const selectedRoomId = roomId || initialDetails.roomId;
     const selectedRoom = data.rooms.find((room) => room.id === selectedRoomId);
     const roomIsLockedToInitialDetails = !isEditing && !!initialDetails.roomId && !!selectedRoom;
+    const showStartTimeField = isEditing || !initialDetails.start;
     const minimumStartTime = formatDateTimeLocal(addMinutes(startOfMinute(new Date(now)), 1));
     const minimumEndTime = startTime && startTime > minimumStartTime ? startTime : minimumStartTime;
     const selectedStartDate = startTime ? new Date(startTime) : null;
@@ -208,7 +209,7 @@ export const useBookingReservationForm = ({
     const getFormError = (errors: FieldErrors<BookingReservationFormValues>) =>
         timeValidationError ?? getReservationFormError(errors, error);
 
-    const submitReservation = (e: FormEvent<HTMLFormElement>) => {
+    const submitReservation = (e: SubmitEvent) => {
         e.preventDefault();
         if (isSubmitting) return;
 
@@ -242,6 +243,7 @@ export const useBookingReservationForm = ({
         rooms: data.rooms,
         roomIsLockedToInitialDetails,
         selectedRoom,
+        showStartTimeField,
         submitDisabled: !!timeValidationError,
         submitLabel,
         submitReservation,

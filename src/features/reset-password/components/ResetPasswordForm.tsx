@@ -1,5 +1,3 @@
-"use client";
-
 import { ArrowRight, KeyRound } from "lucide-react";
 import { FormStateSubscribe } from "react-hook-form";
 

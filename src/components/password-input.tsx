@@ -1,5 +1,3 @@
-"use client";
-
 import { Eye, EyeOff } from "lucide-react";
 import { useId, useReducer, type ReactNode } from "react";
 import { useController, type Control, type FieldPath, type FieldValues } from "react-hook-form";
