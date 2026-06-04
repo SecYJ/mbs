@@ -36,5 +36,4 @@ export type AdminUser = {
     lastLogin: string;
     lastLoginAt: string | null;
     image: string | null;
-    avatarColor: string;
 };

@@ -1,15 +1,18 @@
 import { hashPassword } from "better-auth/crypto";
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq, sql } from "drizzle-orm";
+import { asc, desc, eq, ilike, or, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { db } from "@/db";
 import { account, session, user } from "@/db/schema";
 import { createUserServerSchema } from "@/features/admin/schema/user.schema";
+import { usersSearchSchema, type UsersSearch } from "@/features/admin/schema/users-search.schema";
 import { requireAdminUser } from "@/lib/session";
 import { isSuperAdminRole } from "@/lib/roles";
 
 const toIso = (value: Date | string | null) => (value ? new Date(value).toISOString() : null);
+const lastLoginAtQuery = sql<Date | string | null>`max(${session.createdAt})`;
+const lastLoginSortQuery = sql<Date | string>`coalesce(max(${session.createdAt}), '1970-01-01T00:00:00Z'::timestamptz)`;
 
 const PG_UNIQUE_VIOLATION = "23505";
 
@@ -19,30 +22,46 @@ const isUniqueViolation = (error: unknown) =>
     "code" in error &&
     (error as { code: unknown }).code === PG_UNIQUE_VIOLATION;
 
-export const getUsersFn = createServerFn({ method: "GET" }).handler(async () => {
-    await requireAdminUser();
+const getUsersOrderBy = ({ sort, dir }: Pick<UsersSearch, "sort" | "dir">) => {
+    if (!sort || !dir) return desc(user.createdAt);
 
-    const rows = await db
-        .select({
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            image: user.image,
-            role: user.role,
-            createdAt: user.createdAt,
-            lastLoginAt: sql<Date | string | null>`max(${session.createdAt})`,
-        })
-        .from(user)
-        .leftJoin(session, eq(session.userId, user.id))
-        .groupBy(user.id, user.name, user.email, user.image, user.role, user.createdAt)
-        .orderBy(desc(user.createdAt));
+    const direction = dir === "asc" ? asc : desc;
 
-    return rows.map((row) => ({
-        ...row,
-        createdAt: row.createdAt.toISOString(),
-        lastLoginAt: toIso(row.lastLoginAt),
-    }));
-});
+    if (sort === "lastLogin") return direction(lastLoginSortQuery);
+
+    return direction(user[sort]);
+};
+
+export const getUsersFn = createServerFn({ method: "GET" })
+    .inputValidator(usersSearchSchema)
+    .handler(async ({ data }) => {
+        await requireAdminUser();
+
+        const search = data.q;
+        const where = search ? or(ilike(user.name, `%${search}%`), ilike(user.email, `%${search}%`)) : undefined;
+
+        const rows = await db
+            .select({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                image: user.image,
+                role: user.role,
+                createdAt: user.createdAt,
+                lastLoginAt: lastLoginAtQuery,
+            })
+            .from(user)
+            .leftJoin(session, eq(session.userId, user.id))
+            .where(where)
+            .groupBy(user.id, user.name, user.email, user.image, user.role, user.createdAt)
+            .orderBy(getUsersOrderBy(data));
+
+        return rows.map((row) => ({
+            ...row,
+            createdAt: row.createdAt.toISOString(),
+            lastLoginAt: toIso(row.lastLoginAt),
+        }));
+    });
 
 export const createUserFn = createServerFn({ method: "POST" })
     .inputValidator(createUserServerSchema)

@@ -4,8 +4,8 @@
  * The admin surface is mostly Tailwind utilities. This file holds only what Tailwind v4 cannot
  * express inline: the design-token CSS variables scoped to .admin-shell, the ::-webkit-scrollbar
  * pseudo-elements, the .admin-table descendant cascade (kept to avoid duplicating utility chains
- * across every <th>/<td>/<tr>), and the @keyframes that power admin-toast / admin-confirm /
- * admin-expand utility animations defined in admin-classes.ts.
+ * across every <th>/<td>/<tr>), and the @keyframes that power admin-confirm / admin-expand
+ * utility animations defined in admin-classes.ts.
  */
 
 /* ── Admin shell — design tokens ── */
@@ -139,28 +139,6 @@
 }
 
 /* ── Keyframes referenced by Tailwind animate-[...] utilities in admin-classes.ts ── */
-
-@keyframes admin-toast-in {
-    from {
-        opacity: 0;
-        transform: translateY(16px) scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-@keyframes admin-toast-out {
-    from {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-    to {
-        opacity: 0;
-        transform: translateY(8px) scale(0.96);
-    }
-}
 
 @keyframes admin-confirm-in {
     from {

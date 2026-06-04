@@ -9,6 +9,9 @@ export const Route = createFileRoute("/admin/users")({
     search: {
         middlewares: [stripSearchParams(usersSearchDefaults)],
     },
-    loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(usersQueryOptions()),
+    loaderDeps: (loaderDeps) => loaderDeps.search,
+    loader: ({ context: { queryClient }, deps }) => {
+        queryClient.ensureQueryData(usersQueryOptions(deps));
+    },
     component: UsersPage,
 });

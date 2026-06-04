@@ -23,10 +23,6 @@ export const adminStatCardClasses =
 export const adminToggleClasses =
     "relative h-5 w-9 shrink-0 cursor-pointer rounded-full border-0 bg-(--a-surface-3) transition-colors duration-200 after:absolute after:top-0.5 after:left-0.5 after:size-4 after:rounded-full after:bg-white after:shadow-[0_1px_3px_rgba(0,0,0,0.3)] after:transition-[transform,box-shadow] after:duration-200 after:ease-[cubic-bezier(0.34,1.56,0.64,1)] after:content-[''] data-[state=on]:bg-(--a-success) data-[state=on]:after:translate-x-4";
 
-// Toast / confirm / expand-row keyframes still live in admin.css; reference them inline.
-export const adminToastClasses =
-    "animate-[admin-toast-in_280ms_cubic-bezier(0.16,1,0.3,1)_both] data-[leaving=true]:animate-[admin-toast-out_200ms_ease_both]";
-
 export const adminConfirmClasses = "animate-[admin-confirm-in_180ms_cubic-bezier(0.16,1,0.3,1)_both]";
 
 export const adminExpandRowClasses = "overflow-hidden animate-[admin-expand_250ms_ease_both]";

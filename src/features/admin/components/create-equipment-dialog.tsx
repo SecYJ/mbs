@@ -4,18 +4,17 @@ import type { ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses } from "@/features/admin/admin-classes";
-import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { useEquipmentCreateStore } from "@/features/admin/stores/equipment-create-store";
 import { useCreateEquipment } from "@/features/admin/hooks/useCreateEquipment";
+import { adminToast } from "@/features/admin/utils/admin-toast";
 
 export const CreateEquipmentDialog = () => {
-    const { toast } = useAdminToast();
     const open = useEquipmentCreateStore((s) => s.open);
     const { setOpen } = useEquipmentCreateStore((s) => s.actions);
 
     const { form, onSubmit, isPending } = useCreateEquipment({
         onSuccess: () => {
-            toast("Equipment created", "success");
+            adminToast("Equipment created");
             form.reset();
             setOpen(false);
         },

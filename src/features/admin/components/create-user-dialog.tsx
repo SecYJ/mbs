@@ -4,8 +4,8 @@ import type { ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses, adminSelectClasses } from "@/features/admin/admin-classes";
-import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { useCreateUser } from "@/features/admin/hooks/useCreateUser";
+import { adminToast } from "@/features/admin/utils/admin-toast";
 import { cn } from "@/lib/utils";
 
 type CreateUserDialogProps = {
@@ -15,11 +15,9 @@ type CreateUserDialogProps = {
 };
 
 export const CreateUserDialog = ({ canCreateSuperAdmin, open, onOpenChange }: CreateUserDialogProps) => {
-    const { toast } = useAdminToast();
-
     const { form, onSubmit, isPending } = useCreateUser({
         onSuccess: () => {
-            toast("User created", "success");
+            adminToast("User created");
             onOpenChange(false);
         },
     });

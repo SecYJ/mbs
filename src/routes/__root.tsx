@@ -1,4 +1,5 @@
 import { scan } from "react-scan";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 
 import { useEffect, type ReactNode } from "react";
@@ -27,6 +28,7 @@ const RootDocument = ({ children }: { children: ReactNode }) => {
             <body className="font-sans antialiased wrap-anywhere selection:bg-[rgba(79,184,178,0.24)]">
                 <PersistentClientStoreHydrator />
                 {children}
+                <ReactQueryDevtools buttonPosition="bottom-left" />
                 <Scripts />
             </body>
         </html>

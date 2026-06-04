@@ -5,18 +5,17 @@ import type { ReactNode } from "react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses } from "@/features/admin/admin-classes";
 import { StatusToggle } from "@/features/admin/components/status-toggle";
-import { useAdminToast } from "@/features/admin/components/admin-layout";
 import { useRoomsCreateStore } from "@/features/admin/stores/rooms-create-store";
 import { useCreateRoom } from "@/features/admin/hooks/useCreateRoom";
+import { adminToast } from "@/features/admin/utils/admin-toast";
 
 export const CreateRoomDialog = () => {
-    const { toast } = useAdminToast();
     const open = useRoomsCreateStore((s) => s.open);
     const { setOpen } = useRoomsCreateStore((s) => s.actions);
 
     const { form, onSubmit, isPending } = useCreateRoom({
         onSuccess: () => {
-            toast("Room created", "success");
+            adminToast("Room created");
             form.reset();
             setOpen(false);
         },
