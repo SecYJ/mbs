@@ -25,7 +25,7 @@ const selectAdminUsers = (rows: AdminUserRow[]) =>
         name: row.name,
         email: row.email,
         role: row.role,
-        lastLogin: row.lastLoginAt ? format(new Date(row.lastLoginAt), "yyyy-MM-dd HH:mm-ss") : "Never",
+        lastLogin: row.lastLoginAt ? format(new Date(row.lastLoginAt), "yyyy-MM-dd HH:mm:ss") : "Never",
         lastLoginAt: row.lastLoginAt,
         image: row.image,
     }));

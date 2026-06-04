@@ -1,6 +1,6 @@
 import { hashPassword } from "better-auth/crypto";
 import { createServerFn } from "@tanstack/react-start";
-import { asc, desc, eq, ilike, or, sql } from "drizzle-orm";
+import { asc, desc, eq, or, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
 import { db } from "@/db";
@@ -15,6 +15,8 @@ const lastLoginAtQuery = sql<Date | string | null>`max(${session.createdAt})`;
 const lastLoginSortQuery = sql<Date | string>`coalesce(max(${session.createdAt}), '1970-01-01T00:00:00Z'::timestamptz)`;
 
 const PG_UNIQUE_VIOLATION = "23505";
+
+const escapeILike = (value: string) => value.replace(/\\/g, "\\\\").replace(/%/g, "\\%").replace(/_/g, "\\_");
 
 const isUniqueViolation = (error: unknown) =>
     typeof error === "object" &&
@@ -38,7 +40,13 @@ export const getUsersFn = createServerFn({ method: "GET" })
         await requireAdminUser();
 
         const search = data.q;
-        const where = search ? or(ilike(user.name, `%${search}%`), ilike(user.email, `%${search}%`)) : undefined;
+        const searchPattern = search ? `%${escapeILike(search)}%` : undefined;
+        const where = searchPattern
+            ? or(
+                  sql`${user.name} ilike ${searchPattern} escape ${"\\"}`,
+                  sql`${user.email} ilike ${searchPattern} escape ${"\\"}`,
+              )
+            : undefined;
 
         const rows = await db
             .select({

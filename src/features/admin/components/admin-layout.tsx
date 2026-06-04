@@ -31,7 +31,8 @@ export const AdminLayout = () => {
     return (
         <div className="admin-shell flex h-dvh">
             <aside
-                className="group fixed inset-y-0 left-0 z-30 overflow-hidden border-r border-(--a-border-hover) bg-(--a-surface-0) transition-[width] duration-250 ease-in-out"
+                data-collapsed={collapsed ? "" : undefined}
+                className="group sticky top-0 bottom-0 z-30 grid flex-none grid-rows-[auto_1fr_auto] overflow-hidden border-r border-(--a-border-hover) bg-(--a-surface-0) transition-[width] duration-300 ease-in-out"
                 style={{ width: sidebarWidth }}
             >
                 <AdminSidebarBrand collapsed={collapsed} sidebarToggle={sidebarToggle} />
@@ -40,10 +41,7 @@ export const AdminLayout = () => {
                 <AdminAccountMenu collapsed={collapsed} />
             </aside>
 
-            <main
-                className="flex-1 overflow-y-auto bg-(--a-bg) transition-[margin-left] duration-250 ease-in-out"
-                style={{ marginLeft: sidebarWidth }}
-            >
+            <main className="min-w-0 flex-1 overflow-y-auto bg-(--a-bg)">
                 <Outlet />
             </main>
 
@@ -55,6 +53,7 @@ export const AdminLayout = () => {
 const AdminSidebarToggle = ({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) => (
     <button
         type="button"
+        aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         onClick={onToggle}
         className="admin-sidebar-collapse-btn flex size-7 shrink-0 items-center justify-center rounded-md text-(--a-text-muted) transition-colors hover:bg-(--a-surface-2) hover:text-(--a-text)"
     >
