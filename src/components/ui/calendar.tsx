@@ -11,9 +11,9 @@ import {
     subMonths,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
-import { useState } from "react";
 
 type CalendarProps = Omit<React.ComponentProps<"div">, "onSelect"> & {
     disabled?: (date: Date) => boolean;
@@ -40,11 +40,17 @@ const getCalendarWeeks = (month: Date) => {
 };
 
 export const Calendar = ({ className, disabled, onSelect, selected, ...props }: CalendarProps) => {
-    const [displayMonth, setDisplayMonth] = useState(() => selected ?? new Date());
+    const [displayMonth, setDisplayMonth] = useState(() => startOfMonth(selected ?? new Date()));
     const weeks = getCalendarWeeks(displayMonth);
 
+    useEffect(() => {
+        if (!selected) return;
+
+        setDisplayMonth(startOfMonth(selected));
+    }, [selected]);
+
     const handleDaySelect = (day: Date) => {
-        setDisplayMonth(day);
+        setDisplayMonth(startOfMonth(day));
         onSelect?.(day);
     };
 

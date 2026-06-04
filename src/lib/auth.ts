@@ -54,6 +54,12 @@ const reconcileRegisteredUserRoles = async () => {
                     "role" = 'super_admin'
                     or "id" = (select "id" from selected_user)
                 )
+                and "role" is distinct from (
+                    case
+                        when "id" = (select "id" from selected_user) then 'super_admin'::user_role
+                        else 'user'::user_role
+                    end
+                )
         `);
     });
 };
