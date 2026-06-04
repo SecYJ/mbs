@@ -14,7 +14,7 @@ export const BookingCalendarPage = () => (
             >
                 <div className="grid gap-5 xl:grid-cols-[minmax(240px,0.9fr)_minmax(460px,1.35fr)_auto] xl:items-center">
                     <div>
-                        <p className="eyebrow eyebrow-gold">Concierge &middot; Today</p>
+                        <p className="eyebrow text-(--gold)">Concierge &middot; Today</p>
                         <h1 className="mt-2 display-italic text-[clamp(2rem,3vw,2.8rem)] leading-none tracking-[-0.02em] text-(--bone)">
                             Room Bookings
                         </h1>

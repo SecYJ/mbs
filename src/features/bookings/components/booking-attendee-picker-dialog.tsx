@@ -71,7 +71,7 @@ const BookingAttendeePickerDialogContent = ({
                 )}
             >
                 <DialogHeader>
-                    <p className="eyebrow eyebrow-gold">Invite</p>
+                    <p className="eyebrow text-(--gold)">Invite</p>
                     <DialogTitle className="display-italic mt-2 text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
                         Select attendees.
                     </DialogTitle>

@@ -23,7 +23,7 @@ export const AppPending = () => {
             <section className="relative w-full max-w-5xl" aria-busy="true">
                 <div className="mb-8 flex items-end justify-between gap-6 border-b border-(--hairline) pb-5">
                     <div className="min-w-0">
-                        <p className="eyebrow eyebrow-gold">Meridian &middot; Hold</p>
+                        <p className="eyebrow text-(--gold)">Meridian &middot; Hold</p>
                         <h1 className="display-italic mt-3 text-5xl leading-[0.9] text-(--bone) sm:text-7xl lg:text-8xl">
                             Preparing rooms
                         </h1>

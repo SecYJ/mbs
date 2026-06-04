@@ -3,8 +3,6 @@ import { CalendarDays, ChevronDown, ChevronUp, DollarSign, Hash, Package, Shield
 import { adminBadgeClasses, adminExpandRowClasses, adminInputClasses } from "@/features/admin/admin-classes";
 import type { Equipment } from "@/features/admin/types";
 
-export type { Equipment };
-
 const priceFormatter = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 const formatPrice = (n: number) => priceFormatter.format(n);
 

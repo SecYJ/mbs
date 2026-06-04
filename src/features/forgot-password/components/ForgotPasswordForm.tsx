@@ -23,7 +23,7 @@ export const ForgotPasswordForm = () => {
                         <Mail className="size-4" strokeWidth={1.4} />
                     </div>
                     <div className="space-y-2">
-                        <p className="eyebrow eyebrow-gold">Dispatched</p>
+                        <p className="eyebrow text-(--gold)">Dispatched</p>
                         <p className="display-italic text-[1.6rem] leading-tight tracking-[-0.01em] text-(--bone)">
                             Check your inbox.
                         </p>

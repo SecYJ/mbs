@@ -1,9 +1,7 @@
 import { ChevronDown, ChevronUp, MapPin, Package, UsersRound } from "lucide-react";
 
 import { adminExpandRowClasses, adminInputClasses } from "@/features/admin/admin-classes";
-import type { Room, RoomEquipmentLine } from "@/features/admin/types";
-
-export type { Room, RoomEquipmentLine };
+import type { Room } from "@/features/admin/types";
 
 type Props = {
     room: Room;

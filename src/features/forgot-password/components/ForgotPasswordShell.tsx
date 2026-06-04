@@ -34,7 +34,7 @@ export const ForgotPasswordShell = ({ children }: Props) => {
                 style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
             >
                 <span className="font-['Fraunces'] text-[20px] leading-none text-(--gold)">&#9492;</span>
-                <span className="eyebrow eyebrow-gold">Recovery &middot; Meridian</span>
+                <span className="eyebrow text-(--gold)">Recovery &middot; Meridian</span>
             </div>
 
             <div
@@ -91,7 +91,7 @@ export const ForgotPasswordShell = ({ children }: Props) => {
                         className="mt-14 text-center"
                         style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 320ms both" }}
                     >
-                        <p className="eyebrow eyebrow-gold">Recover access to your suite</p>
+                        <p className="eyebrow text-(--gold)">Recover access to your suite</p>
                         <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
                             Re-key the suite.
                         </h1>

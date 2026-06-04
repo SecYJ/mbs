@@ -1,10 +1,8 @@
 import { fileURLToPath } from "node:url";
-
 import { defineConfig } from "vite-plus";
 
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
-import reactScan from "@react-scan/vite-plugin-react-scan";
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
@@ -69,7 +67,6 @@ const config = defineConfig({
     },
     plugins: [
         tailwindcss(),
-        reactScan(),
         tanstackStart({
             rsc: {
                 enabled: true,

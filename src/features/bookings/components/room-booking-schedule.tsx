@@ -31,7 +31,7 @@ export const RoomBookingSchedule = ({
         <div className="space-y-5">
             <div className="flex flex-wrap items-center justify-between gap-4 border-y border-(--hairline) py-4">
                 <div>
-                    <p className="eyebrow eyebrow-gold">Schedule</p>
+                    <p className="eyebrow text-(--gold)">Schedule</p>
                     <h2 className="mt-1 text-xl font-semibold text-(--bone)">
                         {format(selectedDate, "EEEE, MMMM d, yyyy")}
                     </h2>

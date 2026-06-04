@@ -3,22 +3,13 @@ import { XIcon } from "lucide-react";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 function Dialog({ ...props }: React.ComponentProps<typeof DialogPrimitive.Root>) {
     return <DialogPrimitive.Root {...props} />;
 }
 
-function DialogTrigger({ ...props }: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
-    return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
-}
-
 function DialogPortal({ ...props }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
     return <DialogPrimitive.Portal {...props} />;
-}
-
-function DialogClose({ ...props }: React.ComponentProps<typeof DialogPrimitive.Close>) {
-    return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
 }
 
 function DialogOverlay({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Backdrop>) {
@@ -78,26 +69,6 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
     );
 }
 
-function DialogFooter({
-    className,
-    showCloseButton = false,
-    children,
-    ...props
-}: React.ComponentProps<"div"> & {
-    showCloseButton?: boolean;
-}) {
-    return (
-        <div
-            data-slot="dialog-footer"
-            className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
-            {...props}
-        >
-            {children}
-            {showCloseButton && <DialogPrimitive.Close render={<Button variant="outline">Close</Button>} />}
-        </div>
-    );
-}
-
 function DialogTitle({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Title>) {
     return (
         <DialogPrimitive.Title
@@ -118,15 +89,4 @@ function DialogDescription({ className, ...props }: React.ComponentProps<typeof 
     );
 }
 
-export {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogOverlay,
-    DialogPortal,
-    DialogTitle,
-    DialogTrigger,
-};
+export { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle };

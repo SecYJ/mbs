@@ -29,7 +29,7 @@ const RoomBookingDayPageContent = () => {
                     <span>Calendar</span>
                 </Link>
                 <section className="border-y border-(--hairline) py-12">
-                    <p className="eyebrow eyebrow-gold">Room Details</p>
+                    <p className="eyebrow text-(--gold)">Room Details</p>
                     <h1 className="display-italic mt-3 text-4xl leading-none font-normal text-(--bone)">
                         Room not found
                     </h1>
@@ -80,7 +80,7 @@ const RoomBookingDayPageContent = () => {
                 <header className="grid gap-6 border-b border-(--hairline) pb-7 lg:grid-cols-[1fr_auto] lg:items-end">
                     <div>
                         <div className="flex flex-wrap items-center gap-3">
-                            <p className="eyebrow eyebrow-gold">Room Day Detail</p>
+                            <p className="eyebrow text-(--gold)">Room Day Detail</p>
                             <span
                                 className={cn(
                                     "inline-flex border px-2.5 py-1 text-[0.62rem] font-semibold tracking-[0.18em] uppercase",

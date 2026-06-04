@@ -9,9 +9,6 @@ import { AdminHeader } from "@/features/admin/components/admin-header";
 import { EmptyState } from "@/features/admin/components/empty-state";
 import { usersQueryOptions } from "@/features/admin/services/users/queries";
 import { isSuperAdminRole, USER_ROLE_LABELS, type UserRole } from "@/lib/roles";
-import type { AdminUser } from "@/features/admin/types";
-
-export type { AdminUser };
 
 const adminRoute = getRouteApi("/admin");
 

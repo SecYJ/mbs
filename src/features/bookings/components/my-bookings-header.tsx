@@ -9,7 +9,7 @@ export const MyBookingsHeader = () => {
     return (
         <header className="grid gap-6 border-b border-(--hairline) pb-7 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
-                <p className="eyebrow eyebrow-gold">BOOKINGS &middot; PERSONAL LEDGER</p>
+                <p className="eyebrow text-(--gold)">BOOKINGS &middot; PERSONAL LEDGER</p>
                 <h1 className="display-italic mt-3 text-4xl leading-none font-normal text-(--bone) md:text-5xl">
                     My Bookings
                 </h1>

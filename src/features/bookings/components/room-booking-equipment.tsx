@@ -14,7 +14,7 @@ export const RoomBookingEquipment = ({
 }) => (
     <aside className="space-y-7">
         <section className="border-y border-(--hairline) py-5">
-            <p className="eyebrow eyebrow-gold">Equipment</p>
+            <p className="eyebrow text-(--gold)">Equipment</p>
             {room.equipment.length === 0 ? (
                 <p className="mt-4 text-sm leading-6 text-(--bone-muted)">No equipment is assigned to this room yet.</p>
             ) : (
@@ -33,7 +33,7 @@ export const RoomBookingEquipment = ({
         </section>
 
         <section className="border-y border-(--hairline) py-5">
-            <p className="eyebrow eyebrow-gold">Next Opening</p>
+            <p className="eyebrow text-(--gold)">Next Opening</p>
             {bookableSlot ? (
                 <button
                     type="button"

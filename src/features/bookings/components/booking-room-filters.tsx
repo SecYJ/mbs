@@ -31,7 +31,7 @@ export const BookingRoomFilters = () => {
                 <Drawer.Popup className="fixed top-0 right-0 z-70 flex h-dvh w-full max-w-100 flex-col border-l border-(--hairline) bg-(--surface-01) outline-none transition-transform duration-350 ease-[cubic-bezier(0.16,1,0.3,1)] data-ending-style:translate-x-full data-starting-style:translate-x-full">
                     <div className="flex items-start justify-between border-b border-(--hairline) px-8 py-7">
                         <div>
-                            <p className="eyebrow eyebrow-gold">Refine</p>
+                            <p className="eyebrow text-(--gold)">Refine</p>
                             <Drawer.Title className="mt-2 display-italic text-[1.7rem] leading-none text-(--bone)">
                                 Filters
                             </Drawer.Title>

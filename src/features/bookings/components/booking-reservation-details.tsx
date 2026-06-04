@@ -62,7 +62,7 @@ export const BookingReservationDetails = ({
     return (
         <>
             <div className="space-y-2">
-                <p className="eyebrow eyebrow-gold">Reservation</p>
+                <p className="eyebrow text-(--gold)">Reservation</p>
                 <h2 className="display-italic text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
                     {event.title}
                 </h2>

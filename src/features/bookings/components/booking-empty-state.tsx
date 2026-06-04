@@ -20,7 +20,7 @@ export const BookingEmptyState = ({
                 <span aria-hidden className="absolute inset-3 border border-dashed border-(--hairline)" />
                 <Icon className="relative size-7 text-(--gold)" strokeWidth={1.35} />
             </div>
-            <p className="eyebrow eyebrow-gold">{eyebrow}</p>
+            <p className="eyebrow text-(--gold)">{eyebrow}</p>
             <h2 className="mt-3 display-italic text-[clamp(1.8rem,3vw,2.4rem)] leading-none text-(--bone)">{title}</h2>
             <p className="mt-4 max-w-md text-[0.86rem] leading-relaxed text-(--bone-muted)">{description}</p>
             {action && <div className="mt-7">{action}</div>}

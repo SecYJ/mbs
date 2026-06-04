@@ -42,7 +42,7 @@ export const NotificationsPage = () => {
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
             <header className="flex flex-col gap-5 border-b border-(--hairline) pb-7 md:flex-row md:items-end md:justify-between">
                 <div>
-                    <p className="eyebrow eyebrow-gold">NOTIFICATIONS</p>
+                    <p className="eyebrow text-(--gold)">NOTIFICATIONS</p>
                     <h1 className="display-serif mt-3 text-4xl leading-none text-(--bone) md:text-5xl">
                         Notification Center
                     </h1>

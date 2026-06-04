@@ -34,7 +34,7 @@ export const ResetPasswordShell = ({ children }: Props) => {
                 style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
             >
                 <span className="font-['Fraunces'] text-[20px] leading-none text-(--gold)">&#9496;</span>
-                <span className="eyebrow eyebrow-gold">Reissue &middot; Meridian</span>
+                <span className="eyebrow text-(--gold)">Reissue &middot; Meridian</span>
             </div>
 
             <div
