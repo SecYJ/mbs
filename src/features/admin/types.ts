@@ -13,6 +13,7 @@ export type Room = {
     name: string;
     location: string;
     capacity: number;
+    maxBookingDurationHours: number;
     active: boolean;
     equipment: RoomEquipmentLine[];
 };

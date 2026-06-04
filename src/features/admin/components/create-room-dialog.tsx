@@ -1,5 +1,5 @@
 import { Controller, FormStateSubscribe } from "react-hook-form";
-import { Building2, MapPin, UsersRound } from "lucide-react";
+import { Building2, Clock, MapPin, UsersRound } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -120,6 +120,39 @@ export const CreateRoomDialog = () => {
                                 )}
                             />
                         </div>
+
+                        <Controller
+                            control={form.control}
+                            name="maxBookingDurationHours"
+                            render={({ field, fieldState: { error } }) => (
+                                <Field
+                                    label="Max Booking Duration"
+                                    error={error?.message}
+                                    inputId="create-room-max-booking-duration"
+                                    icon={<Clock className="size-3" strokeWidth={1.6} />}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            {...field}
+                                            id="create-room-max-booking-duration"
+                                            type="number"
+                                            min={1}
+                                            max={24}
+                                            value={Number.isFinite(field.value) ? field.value : ""}
+                                            onChange={(e) =>
+                                                field.onChange(
+                                                    e.target.value === "" ? undefined : e.target.valueAsNumber,
+                                                )
+                                            }
+                                            className={`${adminInputClasses} w-24 text-center tabular-nums`}
+                                        />
+                                        <span className="text-[0.75rem] font-medium text-(--a-text-muted)">
+                                            hours per booking
+                                        </span>
+                                    </div>
+                                </Field>
+                            )}
+                        />
 
                         <Controller
                             control={form.control}

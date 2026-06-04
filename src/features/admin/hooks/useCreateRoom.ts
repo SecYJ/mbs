@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useForm } from "react-hook-form";
 
 import { createRoomFn } from "@/features/admin/services/rooms/fns";
-import { roomsQueryOptions } from "@/features/admin/services/rooms/queries";
+import { roomsQueryKey } from "@/features/admin/services/rooms/queries";
 import { createRoomSchema } from "@/features/admin/schema/room.schema";
 
 type Options = {
@@ -18,6 +18,7 @@ export const useCreateRoom = ({ onSuccess }: Options = {}) => {
             name: "",
             location: "",
             capacity: 1,
+            maxBookingDurationHours: 4,
             available: true,
         },
     });
@@ -28,7 +29,7 @@ export const useCreateRoom = ({ onSuccess }: Options = {}) => {
     const { mutate: submitCreateRoom, isPending } = useMutation({
         mutationFn: createRoom,
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: roomsQueryOptions().queryKey });
+            queryClient.invalidateQueries({ queryKey: roomsQueryKey });
             form.reset();
             onSuccess?.();
         },

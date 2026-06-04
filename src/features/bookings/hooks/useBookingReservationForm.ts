@@ -204,10 +204,22 @@ export const useBookingReservationForm = ({
             : selectedStartDate && selectedEndDate && selectedEndDate.getTime() <= selectedStartDate.getTime()
               ? "End time must be after start time"
               : null;
+    const selectedRoomMaxDurationMs = selectedRoom?.maxBookingDurationHours
+        ? selectedRoom.maxBookingDurationHours * 60 * 60 * 1000
+        : null;
+    const selectedDurationMs =
+        selectedStartDate && selectedEndDate ? selectedEndDate.getTime() - selectedStartDate.getTime() : null;
+    const durationValidationError =
+        selectedRoom &&
+        selectedRoomMaxDurationMs &&
+        selectedDurationMs &&
+        selectedDurationMs > selectedRoomMaxDurationMs
+            ? `Bookings cannot exceed ${selectedRoom.maxBookingDurationHours} hours for ${selectedRoom.title}`
+            : null;
     const submitLabel = isEditing ? (isSubmitting ? "Saving" : "Save") : isSubmitting ? "Reserving" : "Reserve";
 
     const getFormError = (errors: FieldErrors<BookingReservationFormValues>) =>
-        timeValidationError ?? getReservationFormError(errors, error);
+        timeValidationError ?? durationValidationError ?? getReservationFormError(errors, error);
 
     const submitReservation = (e: SubmitEvent) => {
         e.preventDefault();
@@ -230,6 +242,20 @@ export const useBookingReservationForm = ({
             return;
         }
 
+        const submittedRoom = data.rooms.find((room) => room.id === result.data.roomId);
+        const submittedStartMs = new Date(result.data.startTime).getTime();
+        const submittedEndMs = new Date(result.data.endTime).getTime();
+        const submittedDurationMs = submittedEndMs - submittedStartMs;
+
+        if (submittedRoom && submittedDurationMs > submittedRoom.maxBookingDurationHours * 60 * 60 * 1000) {
+            clearErrors();
+            setError("endTime", {
+                message: `Bookings cannot exceed ${submittedRoom.maxBookingDurationHours} hours for ${submittedRoom.title}`,
+                type: "manual",
+            });
+            return;
+        }
+
         clearErrors();
         onSubmit(toBookingFormData(result.data, data.currentUserId));
     };
@@ -244,7 +270,7 @@ export const useBookingReservationForm = ({
         roomIsLockedToInitialDetails,
         selectedRoom,
         showStartTimeField,
-        submitDisabled: !!timeValidationError,
+        submitDisabled: !!timeValidationError || !!durationValidationError,
         submitLabel,
         submitReservation,
     };

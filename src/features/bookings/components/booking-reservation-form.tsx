@@ -391,7 +391,7 @@ const BookingReservationRoomField = ({
             <>
                 <span className="font-medium">{room.title}</span>
                 <span className="tabular-num ml-2 text-(--bone-dim)">
-                    &middot; {room.location} &middot; {room.capacity}p
+                    &middot; {room.location} &middot; {room.capacity}p &middot; max {room.maxBookingDurationHours}h
                 </span>
             </>
         ),
@@ -405,7 +405,8 @@ const BookingReservationRoomField = ({
                     <div className="border border-(--hairline) bg-(--surface-02) px-3 py-2.5">
                         <span className="text-[0.9rem] font-medium text-(--bone)">{selectedRoom.title}</span>
                         <span className="tabular-num ml-2 text-[0.72rem] text-(--bone-dim)">
-                            &middot; {selectedRoom.location} &middot; {selectedRoom.capacity}p
+                            &middot; {selectedRoom.location} &middot; {selectedRoom.capacity}p &middot; max{" "}
+                            {selectedRoom.maxBookingDurationHours}h
                         </span>
                     </div>
                 </div>
@@ -430,12 +431,18 @@ const BookingReservationRoomField = ({
                                 >
                                     <span className="font-medium">{room.title}</span>
                                     <span className="tabular-num ml-2 text-(--bone-dim)">
-                                        &middot; {room.location} &middot; {room.capacity}p
+                                        &middot; {room.location} &middot; {room.capacity}p &middot; max{" "}
+                                        {room.maxBookingDurationHours}h
                                     </span>
                                 </SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
+                </div>
+            )}
+            {selectedRoom && (
+                <div className="border border-(--hairline) bg-(--surface-02) px-3 py-2 text-[0.72rem] text-(--bone-dim)">
+                    Max {selectedRoom.maxBookingDurationHours}h per booking for this room.
                 </div>
             )}
             {selectedRoom && selectedRoom.equipment.length > 0 && (

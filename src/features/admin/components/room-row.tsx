@@ -1,7 +1,11 @@
-import { ChevronDown, ChevronUp, MapPin, Package, UsersRound } from "lucide-react";
+import { Controller, FormStateSubscribe } from "react-hook-form";
+import { ChevronDown, ChevronUp, Clock, MapPin, Package, RotateCcw, Save, UsersRound } from "lucide-react";
 
 import { adminExpandRowClasses, adminInputClasses } from "@/features/admin/admin-classes";
+import { useUpdateRoomBookingRules } from "@/features/admin/hooks/useUpdateRoomBookingRules";
 import type { Room } from "@/features/admin/types";
+
+const MAX_BOOKING_DURATION_HOURS_LIMIT = 24;
 
 type Props = {
     room: Room;
@@ -42,8 +46,14 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
                     </span>
                 </td>
                 <td>
+                    <span className="tabular-nums flex items-center gap-1.5 text-(--a-text-secondary)">
+                        <Clock className="size-3" strokeWidth={1.6} />
+                        {room.maxBookingDurationHours}h
+                    </span>
+                </td>
+                <td>
                     <span
-                        className="inline-flex items-center gap-1.5 text-xs font-medium"
+                        className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-medium"
                         style={{
                             color: room.active ? "var(--a-success)" : "var(--a-text-muted)",
                         }}
@@ -61,7 +71,7 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
 
             {isExpanded && (
                 <tr>
-                    <td colSpan={4} className="border-b border-(--a-border) bg-(--a-surface-1) p-0">
+                    <td colSpan={5} className="border-b border-(--a-border) bg-(--a-surface-1) p-0">
                         <div className={`${adminExpandRowClasses} px-6 py-5`}>
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-4">
@@ -113,6 +123,7 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
                                             value={room.capacity}
                                         />
                                     </div>
+                                    <RoomBookingRulesEditor room={room} />
                                 </div>
                             </div>
 
@@ -166,5 +177,80 @@ export const RoomRow = ({ room, isExpanded, onToggleExpand }: Props) => {
                 </tr>
             )}
         </>
+    );
+};
+
+const RoomBookingRulesEditor = ({ room }: { room: Room }) => {
+    const { form, onSubmit, isPending } = useUpdateRoomBookingRules({
+        roomId: room.id,
+        maxBookingDurationHours: room.maxBookingDurationHours,
+    });
+
+    return (
+        <form onSubmit={onSubmit} className="space-y-2">
+            <Controller
+                control={form.control}
+                name="maxBookingDurationHours"
+                render={({ field, fieldState: { error } }) => (
+                    <div>
+                        <label
+                            htmlFor={`room-max-booking-duration-${room.id}`}
+                            className="mb-1.5 flex items-center gap-1.5 text-[0.6875rem] font-semibold uppercase tracking-wider text-(--a-text-muted)"
+                        >
+                            <Clock className="size-3" strokeWidth={1.6} />
+                            Max Booking Duration
+                        </label>
+                        <div className="flex flex-wrap items-center gap-2">
+                            <input
+                                id={`room-max-booking-duration-${room.id}`}
+                                aria-label="Maximum booking duration"
+                                type="number"
+                                min={1}
+                                max={MAX_BOOKING_DURATION_HOURS_LIMIT}
+                                value={Number.isFinite(field.value) ? field.value : ""}
+                                onChange={(e) =>
+                                    field.onChange(e.target.value === "" ? undefined : e.target.valueAsNumber)
+                                }
+                                onBlur={field.onBlur}
+                                className={`${adminInputClasses} w-24 text-center tabular-nums`}
+                            />
+                            <span className="text-[0.75rem] font-medium text-(--a-text-muted)">hours per booking</span>
+                        </div>
+                        {error ? <p className="mt-1.5 text-[0.6875rem] text-(--a-danger)">{error.message}</p> : null}
+                    </div>
+                )}
+            />
+            <FormStateSubscribe
+                control={form.control}
+                render={({ errors, isDirty }) => (
+                    <div className="space-y-2">
+                        {errors.root?.message ? (
+                            <p className="text-[0.6875rem] text-(--a-danger)">{errors.root.message}</p>
+                        ) : null}
+                        <div className="flex items-center gap-2">
+                            {isDirty ? (
+                                <button
+                                    type="button"
+                                    onClick={() => form.reset()}
+                                    disabled={isPending}
+                                    className="inline-flex items-center gap-1.5 rounded-lg bg-(--a-surface-2) px-3 py-1.5 text-xs font-medium text-(--a-text-secondary) transition-colors hover:text-(--a-text) disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    <RotateCcw className="size-3" strokeWidth={2} />
+                                    Reset
+                                </button>
+                            ) : null}
+                            <button
+                                type="submit"
+                                disabled={!isDirty || isPending}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-(--a-accent) px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-(--a-accent-hover) disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                                <Save className="size-3" strokeWidth={2} />
+                                {isPending ? "Saving" : "Save"}
+                            </button>
+                        </div>
+                    </div>
+                )}
+            />
+        </form>
     );
 };

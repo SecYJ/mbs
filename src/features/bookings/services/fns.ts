@@ -3,7 +3,7 @@ import { and, asc, desc, eq, gt, inArray, lt, lte, ne, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { attendees, bookings, bookingRules, equipment, notifications, roomEquipment, rooms, user } from "@/db/schema";
+import { attendees, bookings, equipment, notifications, roomEquipment, rooms, user } from "@/db/schema";
 import { PAST_BOOKING_START_MESSAGE } from "@/features/bookings/booking.constants";
 import { getBookingConflictMessage } from "@/features/bookings/services/booking-conflicts";
 import { getBookingHistoryItem } from "@/features/bookings/services/booking-history";
@@ -16,9 +16,6 @@ import {
 import { myBookingGroups, type MyBookingGroup } from "@/features/bookings/my-bookings.constants";
 import { isSuperAdminRole } from "@/lib/roles";
 import { authenticatedUserMiddleware } from "@/middleware/auth";
-
-const DEFAULT_MAX_BOOKING_DURATION_HOURS = 8;
-const BOOKING_RULES_ID = 1;
 
 type BookingUser = {
     id: string;
@@ -91,11 +88,6 @@ const matchesMyBookingQuery = (booking: ReturnType<typeof getBookingHistoryItem>
     return haystack.includes(normalized);
 };
 
-const getBookingRules = async () => {
-    const [rules] = await db.select().from(bookingRules).where(eq(bookingRules.id, BOOKING_RULES_ID)).limit(1);
-    return rules ?? { maxBookingDurationHours: DEFAULT_MAX_BOOKING_DURATION_HOURS };
-};
-
 const validateBookingDetails = async ({
     roomId,
     startTime,
@@ -115,21 +107,24 @@ const validateBookingDetails = async ({
         throw new Error(PAST_BOOKING_START_MESSAGE);
     }
 
-    const rules = await getBookingRules();
-    const maxDurationMs = rules.maxBookingDurationHours * 60 * 60 * 1000;
-
-    if (durationMs > maxDurationMs) {
-        throw new Error(`Bookings cannot exceed ${rules.maxBookingDurationHours} hours`);
-    }
-
     const [room] = await db
-        .select({ id: rooms.roomId, available: rooms.available })
+        .select({
+            id: rooms.roomId,
+            available: rooms.available,
+            maxBookingDurationHours: rooms.maxBookingDurationHours,
+        })
         .from(rooms)
         .where(eq(rooms.roomId, roomId))
         .limit(1);
 
     if (!room) {
         throw new Error("Selected room no longer exists");
+    }
+
+    const maxDurationMs = room.maxBookingDurationHours * 60 * 60 * 1000;
+
+    if (durationMs > maxDurationMs) {
+        throw new Error(`Bookings cannot exceed ${room.maxBookingDurationHours} hours for this room`);
     }
 
     if (!room.available) {
@@ -291,6 +286,7 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
                 title: room.name,
                 location: room.location,
                 capacity: room.capacity,
+                maxBookingDurationHours: room.maxBookingDurationHours,
                 available: room.available,
                 equipment: room.equipment,
             })),
@@ -473,6 +469,7 @@ export const getBookingDetailsFn = createServerFn({ method: "GET" })
                     name: rooms.name,
                     location: rooms.location,
                     capacity: rooms.capacity,
+                    maxBookingDurationHours: rooms.maxBookingDurationHours,
                     available: rooms.available,
                 },
                 organizer: {

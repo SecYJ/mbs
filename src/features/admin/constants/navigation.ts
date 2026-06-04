@@ -1,5 +1,5 @@
 import { linkOptions } from "@tanstack/react-router";
-import { Building2, CalendarDays, Settings, Users, Wrench } from "lucide-react";
+import { Building2, CalendarDays, Users, Wrench } from "lucide-react";
 
 import { ADMIN_BOOKING_SEARCH_DEFAULTS } from "@/features/admin/schema/bookings-search.schema";
 import { equipmentSearchDefaults } from "@/features/admin/schema/equipment-search.schema";
@@ -21,12 +21,6 @@ export const adminNavItems = linkOptions([
         icon: Users,
         to: "/admin/users",
         search: usersSearchDefaults,
-        activeOptions: adminNavActiveOptions,
-    },
-    {
-        label: "Rules",
-        icon: Settings,
-        to: "/admin/rules",
         activeOptions: adminNavActiveOptions,
     },
     {
