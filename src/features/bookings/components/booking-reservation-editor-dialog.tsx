@@ -10,22 +10,14 @@ import { useShallow } from "zustand/shallow";
 type BookingReservationEditorDialogProps = {
     dialogState?: BookingReservationDialogState | null;
     onOpenChange?: (open: boolean) => void;
-    useUrlBackedAttendeeSearch?: boolean;
 };
 
 export const BookingReservationEditorDialog = ({
     dialogState,
     onOpenChange,
-    useUrlBackedAttendeeSearch,
 }: BookingReservationEditorDialogProps = {}) => {
     if (dialogState !== undefined && onOpenChange) {
-        return (
-            <BookingReservationEditorDialogContent
-                dialogState={dialogState}
-                onOpenChange={onOpenChange}
-                useUrlBackedAttendeeSearch={useUrlBackedAttendeeSearch ?? false}
-            />
-        );
+        return <BookingReservationEditorDialogContent dialogState={dialogState} onOpenChange={onOpenChange} />;
     }
 
     return <StoreBackedBookingReservationEditorDialog />;
@@ -34,11 +26,9 @@ export const BookingReservationEditorDialog = ({
 const BookingReservationEditorDialogContent = ({
     dialogState: activeDialogState,
     onOpenChange,
-    useUrlBackedAttendeeSearch,
 }: {
     dialogState: BookingReservationDialogState | null;
     onOpenChange: (open: boolean) => void;
-    useUrlBackedAttendeeSearch: boolean;
 }) => {
     const {
         canManage,
@@ -66,7 +56,7 @@ const BookingReservationEditorDialogContent = ({
     if (isMissingReservation) {
         return (
             <Dialog key={resetKey} open onOpenChange={handleDialogOpenChange}>
-                <DialogContent className="rounded-none border border-(--hairline) bg-(--surface-01) text-(--bone) shadow-[0_40px_80px_rgba(0,0,0,0.6)] sm:max-w-md">
+                <DialogContent className="scrollbar-thin max-h-[calc(100dvh-4rem)] overflow-y-auto rounded-none border border-(--hairline) bg-(--surface-01) text-(--bone) shadow-[0_40px_80px_rgba(0,0,0,0.6)] sm:max-w-md">
                     <div className="space-y-2">
                         <p className="eyebrow text-(--gold)">Reservation</p>
                         <h2 className="display-italic text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
@@ -85,7 +75,7 @@ const BookingReservationEditorDialogContent = ({
         <Dialog key={resetKey} open onOpenChange={handleDialogOpenChange}>
             <DialogContent
                 className={cn(
-                    "rounded-none border border-(--hairline) bg-(--surface-01) text-(--bone) shadow-[0_40px_80px_rgba(0,0,0,0.6)]",
+                    "scrollbar-thin max-h-[calc(100dvh-4rem)] overflow-y-auto rounded-none border border-(--hairline) bg-(--surface-01) text-(--bone) shadow-[0_40px_80px_rgba(0,0,0,0.6)]",
                     widthClass,
                 )}
             >
@@ -108,7 +98,6 @@ const BookingReservationEditorDialogContent = ({
                         onCancel={onCancelForm}
                         onSubmit={onSubmit}
                         initialDetails={initialDetails}
-                        useUrlBackedAttendeeSearch={useUrlBackedAttendeeSearch}
                     />
                 )}
             </DialogContent>
@@ -125,11 +114,5 @@ const StoreBackedBookingReservationEditorDialog = () => {
         if (!open) closeReservationDialog();
     };
 
-    return (
-        <BookingReservationEditorDialogContent
-            dialogState={dialogState}
-            onOpenChange={handleOpenChange}
-            useUrlBackedAttendeeSearch
-        />
-    );
+    return <BookingReservationEditorDialogContent dialogState={dialogState} onOpenChange={handleOpenChange} />;
 };

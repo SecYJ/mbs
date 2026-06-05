@@ -5,6 +5,7 @@ import { useSearch } from "@tanstack/react-router";
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
 import {
     getBookingEventInput,
+    getBookableRooms,
     getFilteredRooms,
     getRoomFilterState,
     getVisibleEvents,
@@ -15,7 +16,8 @@ export const useBookingAvailabilityCalendar = () => {
     const { capacity, equipment, location, view } = useSearch({ from: "/_bookings/bookings" });
 
     const roomFilterState = getRoomFilterState({ capacity, equipment, location });
-    const filteredRooms = getFilteredRooms(data.rooms, roomFilterState);
+    const bookableRooms = getBookableRooms(data.rooms);
+    const filteredRooms = getFilteredRooms(bookableRooms, roomFilterState);
 
     const resources = filteredRooms.map((room) => ({
         id: room.id,
@@ -30,7 +32,7 @@ export const useBookingAvailabilityCalendar = () => {
     const events = data.events.map<EventInput>(getBookingEventInput);
 
     return {
-        events: getVisibleEvents(events, filteredRooms, view),
+        events: getVisibleEvents(events, filteredRooms),
         resources,
         view,
     };

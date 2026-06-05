@@ -15,7 +15,6 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminRoomsRouteImport } from './routes/admin/rooms'
-import { Route as AdminEquipmentRouteImport } from './routes/admin/equipment'
 import { Route as AdminBookingsRouteImport } from './routes/admin/bookings'
 import { Route as BookingsSettingsRouteImport } from './routes/_bookings/settings'
 import { Route as BookingsNotificationsRouteImport } from './routes/_bookings/notifications'
@@ -26,6 +25,7 @@ import { Route as AuthRegisterRouteImport } from './routes/_auth/register'
 import { Route as AuthLoginRouteImport } from './routes/_auth/login'
 import { Route as AuthForgotPasswordRouteImport } from './routes/_auth/forgot-password'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
+import { Route as AdminRoomsRoomIdRouteImport } from './routes/admin/rooms_.$roomId'
 import { Route as BookingsRoomsRoomIdRouteImport } from './routes/_bookings/rooms.$roomId'
 import { Route as BookingsBookingsBookingIdRouteImport } from './routes/_bookings/bookings_.$bookingId'
 
@@ -56,11 +56,6 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
 const AdminRoomsRoute = AdminRoomsRouteImport.update({
   id: '/rooms',
   path: '/rooms',
-  getParentRoute: () => AdminRouteRoute,
-} as any)
-const AdminEquipmentRoute = AdminEquipmentRouteImport.update({
-  id: '/equipment',
-  path: '/equipment',
   getParentRoute: () => AdminRouteRoute,
 } as any)
 const AdminBookingsRoute = AdminBookingsRouteImport.update({
@@ -113,6 +108,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoomsRoomIdRoute = AdminRoomsRoomIdRouteImport.update({
+  id: '/rooms_/$roomId',
+  path: '/rooms/$roomId',
+  getParentRoute: () => AdminRouteRoute,
+} as any)
 const BookingsRoomsRoomIdRoute = BookingsRoomsRoomIdRouteImport.update({
   id: '/rooms/$roomId',
   path: '/rooms/$roomId',
@@ -137,12 +137,12 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof BookingsNotificationsRoute
   '/settings': typeof BookingsSettingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
-  '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/bookings/$bookingId': typeof BookingsBookingsBookingIdRoute
   '/rooms/$roomId': typeof BookingsRoomsRoomIdRoute
+  '/admin/rooms/$roomId': typeof AdminRoomsRoomIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -156,12 +156,12 @@ export interface FileRoutesByTo {
   '/notifications': typeof BookingsNotificationsRoute
   '/settings': typeof BookingsSettingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
-  '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
   '/bookings/$bookingId': typeof BookingsBookingsBookingIdRoute
   '/rooms/$roomId': typeof BookingsRoomsRoomIdRoute
+  '/admin/rooms/$roomId': typeof AdminRoomsRoomIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -178,12 +178,12 @@ export interface FileRoutesById {
   '/_bookings/notifications': typeof BookingsNotificationsRoute
   '/_bookings/settings': typeof BookingsSettingsRoute
   '/admin/bookings': typeof AdminBookingsRoute
-  '/admin/equipment': typeof AdminEquipmentRoute
   '/admin/rooms': typeof AdminRoomsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/_bookings/bookings_/$bookingId': typeof BookingsBookingsBookingIdRoute
   '/_bookings/rooms/$roomId': typeof BookingsRoomsRoomIdRoute
+  '/admin/rooms_/$roomId': typeof AdminRoomsRoomIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -200,12 +200,12 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/settings'
     | '/admin/bookings'
-    | '/admin/equipment'
     | '/admin/rooms'
     | '/admin/users'
     | '/admin/'
     | '/bookings/$bookingId'
     | '/rooms/$roomId'
+    | '/admin/rooms/$roomId'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -219,12 +219,12 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/settings'
     | '/admin/bookings'
-    | '/admin/equipment'
     | '/admin/rooms'
     | '/admin/users'
     | '/admin'
     | '/bookings/$bookingId'
     | '/rooms/$roomId'
+    | '/admin/rooms/$roomId'
     | '/api/auth/$'
   id:
     | '__root__'
@@ -240,12 +240,12 @@ export interface FileRouteTypes {
     | '/_bookings/notifications'
     | '/_bookings/settings'
     | '/admin/bookings'
-    | '/admin/equipment'
     | '/admin/rooms'
     | '/admin/users'
     | '/admin/'
     | '/_bookings/bookings_/$bookingId'
     | '/_bookings/rooms/$roomId'
+    | '/admin/rooms_/$roomId'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -302,13 +302,6 @@ declare module '@tanstack/react-router' {
       path: '/rooms'
       fullPath: '/admin/rooms'
       preLoaderRoute: typeof AdminRoomsRouteImport
-      parentRoute: typeof AdminRouteRoute
-    }
-    '/admin/equipment': {
-      id: '/admin/equipment'
-      path: '/equipment'
-      fullPath: '/admin/equipment'
-      preLoaderRoute: typeof AdminEquipmentRouteImport
       parentRoute: typeof AdminRouteRoute
     }
     '/admin/bookings': {
@@ -381,6 +374,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/rooms_/$roomId': {
+      id: '/admin/rooms_/$roomId'
+      path: '/rooms/$roomId'
+      fullPath: '/admin/rooms/$roomId'
+      preLoaderRoute: typeof AdminRoomsRoomIdRouteImport
+      parentRoute: typeof AdminRouteRoute
+    }
     '/_bookings/rooms/$roomId': {
       id: '/_bookings/rooms/$roomId'
       path: '/rooms/$roomId'
@@ -422,18 +422,18 @@ const BookingsRouteRouteWithChildren = BookingsRouteRoute._addFileChildren(
 
 interface AdminRouteRouteChildren {
   AdminBookingsRoute: typeof AdminBookingsRoute
-  AdminEquipmentRoute: typeof AdminEquipmentRoute
   AdminRoomsRoute: typeof AdminRoomsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminRoomsRoomIdRoute: typeof AdminRoomsRoomIdRoute
 }
 
 const AdminRouteRouteChildren: AdminRouteRouteChildren = {
   AdminBookingsRoute: AdminBookingsRoute,
-  AdminEquipmentRoute: AdminEquipmentRoute,
   AdminRoomsRoute: AdminRoomsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminRoomsRoomIdRoute: AdminRoomsRoomIdRoute,
 }
 
 const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(

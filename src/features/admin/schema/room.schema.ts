@@ -15,11 +15,6 @@ export const createRoomSchema = z.object({
     available: z.boolean(),
 });
 
-export const updateRoomBookingRulesSchema = z.object({
+export const updateRoomSchema = createRoomSchema.extend({
     roomId: z.uuid("Select a valid room"),
-    maxBookingDurationHours: z
-        .number({ message: "Max duration must be a number" })
-        .int("Max duration must be a whole number")
-        .min(1, "Max duration must be at least 1 hour")
-        .max(24, "Max duration cannot exceed 24 hours"),
 });

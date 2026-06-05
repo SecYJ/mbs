@@ -10,15 +10,10 @@ import { requireAuthenticatedUser } from "@/lib/session";
 import { isAdminRole } from "@/lib/roles";
 
 const BOOKING_SEARCH_DEFAULTS = {
-    attendeeSearch: "",
     filter: "unread",
 } as const;
 
 const bookingsSearchSchema = z.object({
-    attendeeSearch: z
-        .string()
-        .catch(BOOKING_SEARCH_DEFAULTS.attendeeSearch)
-        .prefault(BOOKING_SEARCH_DEFAULTS.attendeeSearch),
     filter: z.enum(["unread", "all"]).catch(BOOKING_SEARCH_DEFAULTS.filter).prefault(BOOKING_SEARCH_DEFAULTS.filter),
 });
 

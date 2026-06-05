@@ -4,7 +4,12 @@ import { getRouteApi } from "@tanstack/react-router";
 
 import { bookingCalendarSearchDefaults } from "@/features/bookings/schemas/booking-calendar-search.schema";
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import { getFilteredRoomCount, getRoomFilterState, sortStrings } from "@/features/bookings/utils/booking-calendar";
+import {
+    getBookableRooms,
+    getFilteredRoomCount,
+    getRoomFilterState,
+    sortStrings,
+} from "@/features/bookings/utils/booking-calendar";
 
 const bookingsRoute = getRouteApi("/_bookings/bookings");
 
@@ -19,14 +24,15 @@ export const useBookingRoomFilters = () => {
 
     const activeFilterCount = (capacity > 0 ? 1 : 0) + (equipment.length > 0 ? 1 : 0) + (location.length > 0 ? 1 : 0);
     const hasActiveFilters = activeFilterCount > 0;
-    const allEquipment = sortStrings(Array.from(new Set(data.rooms.flatMap((room) => room.equipment))));
-    const allLocations = sortStrings(Array.from(new Set(data.rooms.map((room) => room.location))));
+    const bookableRooms = getBookableRooms(data.rooms);
+    const allEquipment = sortStrings(Array.from(new Set(bookableRooms.flatMap((room) => room.equipment))));
+    const allLocations = sortStrings(Array.from(new Set(bookableRooms.map((room) => room.location))));
     const draftRoomFilterState = getRoomFilterState({
         capacity: draftCapacity,
         equipment: draftEquipment,
         location: draftLocation,
     });
-    const draftRoomsShown = getFilteredRoomCount(data.rooms, draftRoomFilterState);
+    const draftRoomsShown = getFilteredRoomCount(bookableRooms, draftRoomFilterState);
     const hasDraftFilters = draftCapacity > 0 || draftEquipment.length > 0 || draftLocation.length > 0;
 
     const handleOpenChange = (nextOpen: boolean) => {
@@ -80,7 +86,7 @@ export const useBookingRoomFilters = () => {
         hasDraftFilters,
         open,
         setDraftCapacity,
-        totalRooms: data.rooms.length,
+        totalRooms: bookableRooms.length,
         toggleDraftEquipment,
         toggleDraftLocation,
     };

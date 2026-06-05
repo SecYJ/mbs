@@ -2,6 +2,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-q
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { cancelAdminBookingFn } from "@/features/admin/services/bookings/fns";
 import {
@@ -9,7 +10,6 @@ import {
     adminBookingsQueryOptions,
     type AdminBookingFilters,
 } from "@/features/admin/services/bookings/queries";
-import { adminToast } from "@/features/admin/utils/admin-toast";
 
 type AdminBookingSearchUpdate = Partial<AdminBookingFilters>;
 
@@ -60,7 +60,7 @@ export const useAdminBookingsPage = () => {
     } = useMutation({
         mutationFn: cancelAdminBooking,
         onError: (error) => {
-            adminToast(error instanceof Error ? error.message : "Failed to cancel booking", "danger");
+            toast.error(error instanceof Error ? error.message : "Failed to cancel booking");
         },
     });
 
@@ -95,7 +95,7 @@ export const useAdminBookingsPage = () => {
                         queryClient.invalidateQueries(bookingsQueryOptions),
                         queryClient.invalidateQueries(bookingStatsQueryOptions),
                     ]);
-                    adminToast(`"${booking.title}" cancelled`, "danger");
+                    toast.error(`"${booking.title}" cancelled`);
                     removeCancellation(booking.id);
                 },
             },

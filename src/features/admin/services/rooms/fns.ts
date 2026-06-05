@@ -4,7 +4,7 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { equipment, roomEquipment, rooms } from "@/db/schema";
-import { createRoomSchema, updateRoomBookingRulesSchema } from "@/features/admin/schema/room.schema";
+import { createRoomSchema, updateRoomSchema } from "@/features/admin/schema/room.schema";
 import { roomsSearchSchema, type RoomsSearch } from "@/features/admin/schema/rooms-search.schema";
 import { requireAdminUser } from "@/lib/session";
 
@@ -77,7 +77,7 @@ export const getRoomsFn = createServerFn({ method: "GET" })
     });
 
 export const getRoomFn = createServerFn({ method: "GET" })
-    .inputValidator(z.object({ roomId: z.string() }))
+    .inputValidator(z.object({ roomId: z.uuid() }))
     .handler(async ({ data }) => {
         await requireAdminUser();
 
@@ -123,15 +123,19 @@ export const createRoomFn = createServerFn({ method: "POST" })
         return { room };
     });
 
-export const updateRoomBookingRulesFn = createServerFn({ method: "POST" })
-    .inputValidator(updateRoomBookingRulesSchema)
+export const updateRoomFn = createServerFn({ method: "POST" })
+    .inputValidator(updateRoomSchema)
     .handler(async ({ data }) => {
         await requireAdminUser();
 
         const [room] = await db
             .update(rooms)
             .set({
+                name: data.name,
+                location: data.location,
+                capacity: data.capacity,
                 maxBookingDurationHours: data.maxBookingDurationHours,
+                available: data.available,
                 updatedAt: new Date(),
             })
             .where(eq(rooms.roomId, data.roomId))

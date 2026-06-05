@@ -91,7 +91,7 @@ const AdminSidebarNav = () => (
             <span className={sidebarLabelClasses}>Back to bookings</span>
         </Link>
         {adminNavItems.map((item) => (
-            <Link {...item} className={navItemClasses}>
+            <Link key={item.to} {...item} className={navItemClasses}>
                 <item.icon className="size-4 shrink-0" strokeWidth={1.6} />
                 <span className={sidebarLabelClasses}>{item.label}</span>
             </Link>

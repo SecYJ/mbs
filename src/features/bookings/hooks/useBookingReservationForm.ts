@@ -8,270 +8,374 @@ import { z } from "zod";
 
 import { PAST_BOOKING_START_MESSAGE } from "@/features/bookings/booking.constants";
 import type {
-    BookingFormData,
-    BookingReservationInitialDetails,
+	BookingFormData,
+	BookingReservationInitialDetails,
 } from "@/features/bookings/components/booking-reservation-editor.types";
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { getBookableRooms } from "@/features/bookings/utils/booking-calendar";
 
 type UseBookingReservationFormOptions = {
-    error: string | null;
-    event: EventInput | null;
-    isEditing: boolean;
-    isSubmitting: boolean;
-    initialDetails: BookingReservationInitialDetails;
-    onSubmit: (data: BookingFormData) => void;
+	error: string | null;
+	event: EventInput | null;
+	isEditing: boolean;
+	isSubmitting: boolean;
+	initialDetails: BookingReservationInitialDetails;
+	onSubmit: (data: BookingFormData) => void;
+};
+const bookingReservationSchema = z
+	.object({
+		title: z.string().trim().min(1, "Meeting title is required").max(160, "Meeting title is too long"),
+		roomId: z.string().min(1, "Select a room"),
+		startTime: z
+			.string()
+			.min(1, "Select a start time")
+			.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Select a valid valid start time"),
+		endTime: z
+			.string()
+			.min(1, "Select a end time")
+			.regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Select a valid valid end time"),
+		attendeeIds: z.string().array().catch([]),
+		draftAttendeeIds: z.string().array().catch([]),
+		description: z.string().trim().max(1000, "Description is too long").catch(""),
+	})
+	.superRefine((data, ctx) => {
+		const startTimeMs = new Date(data.startTime).getTime();
+		const endTimeMs = new Date(data.endTime).getTime();
+
+		if (Number.isNaN(startTimeMs)) {
+			ctx.addIssue({
+				code: "custom",
+				path: ["startTime"],
+				message: "Select a valid start time",
+			});
+			return;
+		}
+
+		if (Number.isNaN(endTimeMs)) {
+			ctx.addIssue({
+				code: "custom",
+				path: ["endTime"],
+				message: "Select a valid end time",
+			});
+			return;
+		}
+
+		if (startTimeMs <= Date.now()) {
+			ctx.addIssue({
+				code: "custom",
+				path: ["startTime"],
+				message: PAST_BOOKING_START_MESSAGE,
+			});
+		}
+
+		if (endTimeMs <= startTimeMs) {
+			ctx.addIssue({
+				code: "custom",
+				path: ["endTime"],
+				message: "End time must be after start time",
+			});
+		}
+	});
+
+export const useBookingReservationForm = ({
+	error,
+	event,
+	initialDetails,
+	isEditing,
+	isSubmitting,
+	onSubmit,
+}: UseBookingReservationFormOptions) => {
+	const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+	const now = Date.now();
+	// const formSchema = createBookingReservationFormSchema(now);
+
+	const bookableRooms = getBookableRooms(data.rooms);
+	const bookableRoomIds = new Set(bookableRooms.map((room) => room.id));
+	const defaultValues = getBookingReservationDefaultValues({
+		bookableRoomIds,
+		currentUserId: data.currentUserId,
+		event,
+		initialDetails,
+		isEditing,
+	});
+	const form = useForm({
+		// resolver: zodResolver(formSchema),
+		resolver: zodResolver(bookingReservationSchema),
+		// defaultValues,
+		defaultValues: {
+			attendeeIds: [],
+			description: "",
+			roomId: "",
+			draftAttendeeIds: [],
+			startTime: "",
+			endTime: "",
+			title: "",
+		},
+	});
+
+	const { clearErrors, getValues, setError, watch } = form;
+	const roomId = watch("roomId");
+	const startTime = watch("startTime");
+	const endTime = watch("endTime");
+	const inviteableUsers = data.currentUserId
+		? data.users.filter((user) => user.id !== data.currentUserId)
+		: data.users;
+	const selectedRoomId = roomId || undefined;
+	const selectedRoom = data.rooms.find((room) => room.id === selectedRoomId);
+	const selectableRooms =
+		isEditing && selectedRoom && !selectedRoom.available ? [selectedRoom, ...bookableRooms] : bookableRooms;
+	const roomIsLockedToInitialDetails = !isEditing && !!initialDetails.roomId && !!selectedRoom?.available;
+	const showStartTimeField = isEditing || !initialDetails.start;
+	const scheduleChanged =
+		isEditing &&
+		(roomId !== defaultValues.roomId || startTime !== defaultValues.startTime || endTime !== defaultValues.endTime);
+	const shouldValidateCurrentRoomPolicy = !isEditing || scheduleChanged;
+	const minimumStartTime = formatDateTimeLocal(addMinutes(startOfMinute(new Date(now)), 1));
+	const minimumEndTime = startTime && startTime > minimumStartTime ? startTime : minimumStartTime;
+	const selectedStartDate = startTime ? new Date(startTime) : null;
+	const selectedEndDate = endTime ? new Date(endTime) : null;
+	const timeValidationError =
+		selectedStartDate && selectedStartDate.getTime() <= now
+			? PAST_BOOKING_START_MESSAGE
+			: selectedStartDate && selectedEndDate && selectedEndDate.getTime() <= selectedStartDate.getTime()
+				? "End time must be after start time"
+				: null;
+	const selectedRoomMaxDurationMs = selectedRoom?.maxBookingDurationHours
+		? selectedRoom.maxBookingDurationHours * 60 * 60 * 1000
+		: null;
+	const selectedDurationMs =
+		selectedStartDate && selectedEndDate ? selectedEndDate.getTime() - selectedStartDate.getTime() : null;
+	const durationValidationError =
+		shouldValidateCurrentRoomPolicy &&
+		selectedRoom &&
+		selectedRoomMaxDurationMs &&
+		selectedDurationMs &&
+		selectedDurationMs > selectedRoomMaxDurationMs
+			? `Bookings cannot exceed ${selectedRoom.maxBookingDurationHours} hours for ${selectedRoom.title}`
+			: null;
+	const availabilityValidationError =
+		shouldValidateCurrentRoomPolicy && selectedRoom?.available === false
+			? "Selected room is not available for booking"
+			: null;
+	const submitLabel = isEditing ? (isSubmitting ? "Saving" : "Save") : isSubmitting ? "Reserving" : "Reserve";
+
+	const getFormError = (errors: FieldErrors<BookingReservationFormValues>) =>
+		timeValidationError ??
+		availabilityValidationError ??
+		durationValidationError ??
+		getReservationFormError(errors, error);
+
+	const submitReservation = (e: SubmitEvent) => {
+		e.preventDefault();
+		if (isSubmitting) return;
+
+		const result = createBookingReservationFormSchema(Date.now()).safeParse(getValues());
+
+		if (!result.success) {
+			clearErrors();
+			result.error.issues.forEach((issue) => {
+				const fieldName = issue.path[0];
+
+				if (isBookingReservationFieldName(fieldName)) {
+					setError(fieldName, { message: issue.message, type: "manual" });
+					return;
+				}
+
+				setError("root", { message: issue.message, type: "manual" });
+			});
+			return;
+		}
+
+		const submittedRoom = data.rooms.find((room) => room.id === result.data.roomId);
+		const submittedStartMs = new Date(result.data.startTime).getTime();
+		const submittedEndMs = new Date(result.data.endTime).getTime();
+		const submittedDurationMs = submittedEndMs - submittedStartMs;
+
+		const submittedScheduleChanged =
+			isEditing &&
+			(result.data.roomId !== defaultValues.roomId ||
+				result.data.startTime !== defaultValues.startTime ||
+				result.data.endTime !== defaultValues.endTime);
+		const shouldValidateSubmittedRoomPolicy = !isEditing || submittedScheduleChanged;
+
+		if (shouldValidateSubmittedRoomPolicy && submittedRoom?.available === false) {
+			clearErrors();
+			setError("roomId", {
+				message: "Selected room is not available for booking",
+				type: "manual",
+			});
+			return;
+		}
+
+		if (
+			shouldValidateSubmittedRoomPolicy &&
+			submittedRoom &&
+			submittedDurationMs > submittedRoom.maxBookingDurationHours * 60 * 60 * 1000
+		) {
+			clearErrors();
+			setError("endTime", {
+				message: `Bookings cannot exceed ${submittedRoom.maxBookingDurationHours} hours for ${submittedRoom.title}`,
+				type: "manual",
+			});
+			return;
+		}
+
+		clearErrors();
+		onSubmit(toBookingFormData(result.data, data.currentUserId));
+	};
+
+	return {
+		form,
+		getFormError,
+		inviteableUsers,
+		minimumEndTime,
+		minimumStartTime,
+		rooms: selectableRooms,
+		roomIsLockedToInitialDetails,
+		selectedRoom,
+		showStartTimeField,
+		submitDisabled: !!timeValidationError || !!availabilityValidationError || !!durationValidationError,
+		submitLabel,
+		submitReservation,
+	};
 };
 
 const getEventRoomId = (event: EventInput | null) =>
-    String(event?.resourceId ?? event?.extendedProps?.resourceId ?? "");
+	String(event?.resourceId ?? event?.extendedProps?.resourceId ?? "");
 
 const dateTimeLocalFormat = "yyyy-MM-dd'T'HH:mm";
-const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 
 const formatDateTimeLocal = (date: Date) => format(date, dateTimeLocalFormat);
 
 const getEventDateTime = (value: EventInput["start"]) => {
-    if (!value) return "";
-    return formatDateTimeLocal(new Date(String(value)));
+	if (!value) return "";
+	return formatDateTimeLocal(new Date(String(value)));
 };
 
-const createDateTimeLocalSchema = (label: string) =>
-    z.string().min(1, `Select a ${label}`).regex(dateTimeLocalPattern, `Select a valid ${label}`);
-
 const createBookingReservationFormSchema = (now: number) =>
-    z
-        .object({
-            title: z.string().trim().min(1, "Meeting title is required").max(160, "Meeting title is too long"),
-            roomId: z.string().min(1, "Select a room"),
-            startTime: createDateTimeLocalSchema("start time"),
-            endTime: createDateTimeLocalSchema("end time"),
-            attendeeIds: z.array(z.string()).default([]),
-            draftAttendeeIds: z.array(z.string()).default([]),
-            description: z.string().trim().max(1000, "Description is too long").default(""),
-        })
-        .superRefine((data, ctx) => {
-            const startTimeMs = new Date(data.startTime).getTime();
-            const endTimeMs = new Date(data.endTime).getTime();
+	z
+		.object({
+			title: z.string().trim().min(1, "Meeting title is required").max(160, "Meeting title is too long"),
+			roomId: z.string().min(1, "Select a room"),
+			startTime: createDateTimeLocalSchema("start time"),
+			endTime: createDateTimeLocalSchema("end time"),
+			attendeeIds: z.string().array().catch([]),
+			draftAttendeeIds: z.string().array().catch([]),
+			description: z.string().trim().max(1000, "Description is too long").catch(""),
+		})
+		.superRefine((data, ctx) => {
+			const startTimeMs = new Date(data.startTime).getTime();
+			const endTimeMs = new Date(data.endTime).getTime();
 
-            if (Number.isNaN(startTimeMs)) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["startTime"],
-                    message: "Select a valid start time",
-                });
-                return;
-            }
+			if (Number.isNaN(startTimeMs)) {
+				ctx.addIssue({
+					code: "custom",
+					path: ["startTime"],
+					message: "Select a valid start time",
+				});
+				return;
+			}
 
-            if (Number.isNaN(endTimeMs)) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["endTime"],
-                    message: "Select a valid end time",
-                });
-                return;
-            }
+			if (Number.isNaN(endTimeMs)) {
+				ctx.addIssue({
+					code: "custom",
+					path: ["endTime"],
+					message: "Select a valid end time",
+				});
+				return;
+			}
 
-            if (startTimeMs <= now) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["startTime"],
-                    message: PAST_BOOKING_START_MESSAGE,
-                });
-            }
+			if (startTimeMs <= now) {
+				ctx.addIssue({
+					code: "custom",
+					path: ["startTime"],
+					message: PAST_BOOKING_START_MESSAGE,
+				});
+			}
 
-            if (endTimeMs <= startTimeMs) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["endTime"],
-                    message: "End time must be after start time",
-                });
-            }
-        });
+			if (endTimeMs <= startTimeMs) {
+				ctx.addIssue({
+					code: "custom",
+					path: ["endTime"],
+					message: "End time must be after start time",
+				});
+			}
+		});
 
 export type BookingReservationFormValues = z.infer<ReturnType<typeof createBookingReservationFormSchema>>;
 type BookingReservationFieldName = keyof BookingReservationFormValues;
 
 const bookingReservationFieldNames: BookingReservationFieldName[] = [
-    "title",
-    "roomId",
-    "startTime",
-    "endTime",
-    "attendeeIds",
-    "draftAttendeeIds",
-    "description",
+	"title",
+	"roomId",
+	"startTime",
+	"endTime",
+	"attendeeIds",
+	"draftAttendeeIds",
+	"description",
 ];
 
 const isBookingReservationFieldName = (value: unknown): value is BookingReservationFieldName =>
-    typeof value === "string" && bookingReservationFieldNames.includes(value as BookingReservationFieldName);
+	typeof value === "string" && bookingReservationFieldNames.includes(value as BookingReservationFieldName);
 
 const getBookingReservationDefaultValues = ({
-    currentUserId,
-    event,
-    initialDetails,
-    isEditing,
+	bookableRoomIds,
+	currentUserId,
+	event,
+	initialDetails,
+	isEditing,
 }: {
-    currentUserId?: string;
-    event: EventInput | null;
-    initialDetails: BookingReservationInitialDetails;
-    isEditing: boolean;
+	bookableRoomIds: Set<string>;
+	currentUserId?: string;
+	event: EventInput | null;
+	initialDetails: BookingReservationInitialDetails;
+	isEditing: boolean;
 }): BookingReservationFormValues => {
-    const attendeeIds =
-        isEditing && event && Array.isArray(event.extendedProps?.attendeeIds)
-            ? event.extendedProps.attendeeIds.filter(
-                  (id): id is string => typeof id === "string" && id !== currentUserId,
-              )
-            : [];
+	const attendeeIds =
+		isEditing && event && Array.isArray(event.extendedProps?.attendeeIds)
+			? event.extendedProps.attendeeIds.filter(
+					(id): id is string => typeof id === "string" && id !== currentUserId,
+				)
+			: [];
+	const initialRoomId =
+		initialDetails.roomId && bookableRoomIds.has(initialDetails.roomId) ? initialDetails.roomId : "";
 
-    return {
-        title: isEditing ? (event?.title ?? "") : "",
-        roomId: isEditing ? getEventRoomId(event) : (initialDetails.roomId ?? ""),
-        startTime: isEditing
-            ? getEventDateTime(event?.start)
-            : initialDetails.start
-              ? formatDateTimeLocal(initialDetails.start)
-              : "",
-        endTime: isEditing
-            ? getEventDateTime(event?.end)
-            : initialDetails.end
-              ? formatDateTimeLocal(initialDetails.end)
-              : "",
-        attendeeIds,
-        draftAttendeeIds: attendeeIds,
-        description:
-            isEditing && typeof event?.extendedProps?.description === "string" ? event.extendedProps.description : "",
-    };
+	return {
+		title: isEditing ? (event?.title ?? "") : "",
+		roomId: isEditing ? getEventRoomId(event) : initialRoomId,
+		startTime: isEditing
+			? getEventDateTime(event?.start)
+			: initialDetails.start
+				? formatDateTimeLocal(initialDetails.start)
+				: "",
+		endTime: isEditing
+			? getEventDateTime(event?.end)
+			: initialDetails.end
+				? formatDateTimeLocal(initialDetails.end)
+				: "",
+		attendeeIds,
+		draftAttendeeIds: attendeeIds,
+		description:
+			isEditing && typeof event?.extendedProps?.description === "string" ? event.extendedProps.description : "",
+	};
 };
 
 const getReservationFormError = (errors: FieldErrors<BookingReservationFormValues>, externalError: string | null) =>
-    errors.title?.message ??
-    errors.roomId?.message ??
-    errors.startTime?.message ??
-    errors.endTime?.message ??
-    errors.description?.message ??
-    errors.attendeeIds?.message ??
-    errors.draftAttendeeIds?.message ??
-    errors.root?.message ??
-    externalError;
+	errors.title?.message ??
+	errors.roomId?.message ??
+	errors.startTime?.message ??
+	errors.endTime?.message ??
+	errors.description?.message ??
+	errors.attendeeIds?.message ??
+	errors.draftAttendeeIds?.message ??
+	errors.root?.message ??
+	externalError;
 
 const toBookingFormData = (values: BookingReservationFormValues, currentUserId?: string): BookingFormData => ({
-    title: values.title,
-    roomId: values.roomId,
-    start: new Date(values.startTime),
-    end: new Date(values.endTime),
-    attendeeIds: values.attendeeIds.filter((id) => id !== currentUserId),
-    description: values.description,
+	title: values.title,
+	roomId: values.roomId,
+	start: new Date(values.startTime),
+	end: new Date(values.endTime),
+	attendeeIds: values.attendeeIds.filter((id) => id !== currentUserId),
+	description: values.description,
 });
-
-export const useBookingReservationForm = ({
-    error,
-    event,
-    initialDetails,
-    isEditing,
-    isSubmitting,
-    onSubmit,
-}: UseBookingReservationFormOptions) => {
-    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
-    const now = Date.now();
-    const formSchema = createBookingReservationFormSchema(now);
-    const form = useForm({
-        resolver: zodResolver(formSchema, undefined, { mode: "sync" }),
-        defaultValues: getBookingReservationDefaultValues({
-            currentUserId: data.currentUserId,
-            event,
-            initialDetails,
-            isEditing,
-        }),
-    });
-
-    const { clearErrors, getValues, setError, watch } = form;
-    const roomId = watch("roomId");
-    const startTime = watch("startTime");
-    const endTime = watch("endTime");
-    const inviteableUsers = data.currentUserId
-        ? data.users.filter((user) => user.id !== data.currentUserId)
-        : data.users;
-    const selectedRoomId = roomId || initialDetails.roomId;
-    const selectedRoom = data.rooms.find((room) => room.id === selectedRoomId);
-    const roomIsLockedToInitialDetails = !isEditing && !!initialDetails.roomId && !!selectedRoom;
-    const showStartTimeField = isEditing || !initialDetails.start;
-    const minimumStartTime = formatDateTimeLocal(addMinutes(startOfMinute(new Date(now)), 1));
-    const minimumEndTime = startTime && startTime > minimumStartTime ? startTime : minimumStartTime;
-    const selectedStartDate = startTime ? new Date(startTime) : null;
-    const selectedEndDate = endTime ? new Date(endTime) : null;
-    const timeValidationError =
-        selectedStartDate && selectedStartDate.getTime() <= now
-            ? PAST_BOOKING_START_MESSAGE
-            : selectedStartDate && selectedEndDate && selectedEndDate.getTime() <= selectedStartDate.getTime()
-              ? "End time must be after start time"
-              : null;
-    const selectedRoomMaxDurationMs = selectedRoom?.maxBookingDurationHours
-        ? selectedRoom.maxBookingDurationHours * 60 * 60 * 1000
-        : null;
-    const selectedDurationMs =
-        selectedStartDate && selectedEndDate ? selectedEndDate.getTime() - selectedStartDate.getTime() : null;
-    const durationValidationError =
-        selectedRoom &&
-        selectedRoomMaxDurationMs &&
-        selectedDurationMs &&
-        selectedDurationMs > selectedRoomMaxDurationMs
-            ? `Bookings cannot exceed ${selectedRoom.maxBookingDurationHours} hours for ${selectedRoom.title}`
-            : null;
-    const submitLabel = isEditing ? (isSubmitting ? "Saving" : "Save") : isSubmitting ? "Reserving" : "Reserve";
-
-    const getFormError = (errors: FieldErrors<BookingReservationFormValues>) =>
-        timeValidationError ?? durationValidationError ?? getReservationFormError(errors, error);
-
-    const submitReservation = (e: SubmitEvent) => {
-        e.preventDefault();
-        if (isSubmitting) return;
-
-        const result = createBookingReservationFormSchema(Date.now()).safeParse(getValues());
-
-        if (!result.success) {
-            clearErrors();
-            result.error.issues.forEach((issue) => {
-                const fieldName = issue.path[0];
-
-                if (isBookingReservationFieldName(fieldName)) {
-                    setError(fieldName, { message: issue.message, type: "manual" });
-                    return;
-                }
-
-                setError("root", { message: issue.message, type: "manual" });
-            });
-            return;
-        }
-
-        const submittedRoom = data.rooms.find((room) => room.id === result.data.roomId);
-        const submittedStartMs = new Date(result.data.startTime).getTime();
-        const submittedEndMs = new Date(result.data.endTime).getTime();
-        const submittedDurationMs = submittedEndMs - submittedStartMs;
-
-        if (submittedRoom && submittedDurationMs > submittedRoom.maxBookingDurationHours * 60 * 60 * 1000) {
-            clearErrors();
-            setError("endTime", {
-                message: `Bookings cannot exceed ${submittedRoom.maxBookingDurationHours} hours for ${submittedRoom.title}`,
-                type: "manual",
-            });
-            return;
-        }
-
-        clearErrors();
-        onSubmit(toBookingFormData(result.data, data.currentUserId));
-    };
-
-    return {
-        form,
-        getFormError,
-        inviteableUsers,
-        minimumEndTime,
-        minimumStartTime,
-        rooms: data.rooms,
-        roomIsLockedToInitialDetails,
-        selectedRoom,
-        showStartTimeField,
-        submitDisabled: !!timeValidationError || !!durationValidationError,
-        submitLabel,
-        submitReservation,
-    };
-};

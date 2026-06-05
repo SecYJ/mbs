@@ -1,11 +1,11 @@
 import { Controller, FormStateSubscribe } from "react-hook-form";
 import { KeyRound, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses, adminSelectClasses } from "@/features/admin/admin-classes";
 import { useCreateUser } from "@/features/admin/hooks/useCreateUser";
-import { adminToast } from "@/features/admin/utils/admin-toast";
 import { cn } from "@/lib/utils";
 
 type CreateUserDialogProps = {
@@ -17,7 +17,7 @@ type CreateUserDialogProps = {
 export const CreateUserDialog = ({ canCreateSuperAdmin, open, onOpenChange }: CreateUserDialogProps) => {
     const { form, onSubmit, isPending } = useCreateUser({
         onSuccess: () => {
-            adminToast("User created");
+            toast.success("User created");
             onOpenChange(false);
         },
     });

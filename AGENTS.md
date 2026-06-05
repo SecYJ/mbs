@@ -33,6 +33,7 @@ Before substantial work:
 ## Feature Organization
 
 - Keep route files thin: route config, search validation, loaders, and the imported feature page only.
+- Route loaders should usually start data fetching without `async`/`await` so the page can render while server data streams in. Only make a loader `async` and await inside it when the route must block rendering before continuing.
 - Feature folders should own their `components/`, `hooks/`, `schemas/`, `services/` and `utils/` when those concerns exist.
 - Prefer `schemas/` over a singular `schema/` folder.
 - Move workflow and data-model logic into feature hooks so JSX components do not become bloated.

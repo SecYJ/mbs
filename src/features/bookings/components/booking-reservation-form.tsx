@@ -27,7 +27,6 @@ type BookingReservationFormProps = {
     isSubmitting: boolean;
     onCancel: () => void;
     onSubmit: (data: BookingFormData) => void;
-    useUrlBackedAttendeeSearch?: boolean;
 };
 
 export const BookingReservationForm = ({
@@ -38,7 +37,6 @@ export const BookingReservationForm = ({
     isSubmitting,
     onCancel,
     onSubmit,
-    useUrlBackedAttendeeSearch = true,
 }: BookingReservationFormProps) => {
     const reservationForm = useBookingReservationForm({
         error,
@@ -54,6 +52,7 @@ export const BookingReservationForm = ({
         <FormProvider {...reservationForm.form}>
             <div>
                 <p className="eyebrow text-(--gold)">{isEditing ? "Edit Reservation" : "New Reservation"}</p>
+                <p className="text-5xl">bodoh la</p>
                 <h2 className="display-italic mt-2 text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
                     {isEditing ? "Update the booking." : "Reserve a room."}
                 </h2>
@@ -135,10 +134,7 @@ export const BookingReservationForm = ({
                     />
                 </div>
 
-                <BookingReservationAttendees
-                    inviteableUsers={reservationForm.inviteableUsers}
-                    useUrlBackedSearch={useUrlBackedAttendeeSearch}
-                />
+                <BookingReservationAttendees inviteableUsers={reservationForm.inviteableUsers} />
 
                 <div className="space-y-2">
                     <Label className="eyebrow block">
@@ -419,10 +415,10 @@ const BookingReservationRoomField = ({
                         items={roomSelectItems}
                         required
                     >
-                        <SelectTrigger className="h-10 rounded-none border-0 border-b border-(--hairline) bg-transparent text-[0.9rem] text-(--bone) shadow-none ring-0 focus:border-(--gold) focus:ring-0 [&>svg]:text-(--bone-dim)">
+                        <SelectTrigger className="h-10 w-full rounded-none border-0 border-b border-(--hairline) bg-transparent text-[0.9rem] text-(--bone) shadow-none ring-0 focus:border-(--gold) focus:ring-0 [&>svg]:text-(--bone-dim)">
                             <SelectValue placeholder="Select a room" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-none border-(--hairline) bg-(--surface-02)">
+                        <SelectContent className="w-(--anchor-width) rounded-none border-(--hairline) bg-(--surface-02)">
                             {rooms.map((room) => (
                                 <SelectItem
                                     key={room.id}
@@ -438,26 +434,6 @@ const BookingReservationRoomField = ({
                             ))}
                         </SelectContent>
                     </Select>
-                </div>
-            )}
-            {selectedRoom && (
-                <div className="border border-(--hairline) bg-(--surface-02) px-3 py-2 text-[0.72rem] text-(--bone-dim)">
-                    Max {selectedRoom.maxBookingDurationHours}h per booking for this room.
-                </div>
-            )}
-            {selectedRoom && selectedRoom.equipment.length > 0 && (
-                <div className="space-y-2">
-                    <p className="eyebrow block">Equipment</p>
-                    <div className="flex flex-wrap gap-1.5">
-                        {selectedRoom.equipment.map((item) => (
-                            <span
-                                key={item}
-                                className="border border-(--hairline) px-2 py-0.5 text-[0.66rem] tracking-[0.08em] text-(--bone-dim) uppercase"
-                            >
-                                {item}
-                            </span>
-                        ))}
-                    </div>
                 </div>
             )}
         </div>

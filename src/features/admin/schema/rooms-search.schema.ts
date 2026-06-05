@@ -18,7 +18,6 @@ export const roomsSearchSchema = z.object({
         .optional()
         .catch("recent"),
     view: z.enum(["grid", "list"]).optional().catch("grid"),
-    selected: z.string().optional().catch(undefined),
 });
 
 export const roomsSearchDefaults: z.infer<typeof roomsSearchSchema> = {
@@ -26,7 +25,6 @@ export const roomsSearchDefaults: z.infer<typeof roomsSearchSchema> = {
     status: "all",
     sort: "recent",
     view: "grid",
-    selected: undefined,
 };
 
 export type RoomsSearch = z.infer<typeof roomsSearchSchema>;

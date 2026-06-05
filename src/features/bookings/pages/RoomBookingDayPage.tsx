@@ -5,15 +5,14 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { BookingReservationEditorDialog } from "@/features/bookings/components/booking-reservation-editor-dialog";
 import type { BookingReservationDialogState } from "@/features/bookings/components/booking-reservation-editor.types";
 import { RoomBookingEquipment } from "@/features/bookings/components/room-booking-equipment";
+import { RoomBookingNextOpening } from "@/features/bookings/components/room-booking-next-opening";
 import { RoomBookingSchedule } from "@/features/bookings/components/room-booking-schedule";
 import { RoomBookingSummary } from "@/features/bookings/components/room-booking-summary";
 import { useRoomBookingDayModel } from "@/features/bookings/hooks/useRoomBookingDayModel";
 import { getBookingEventInput, type BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 import { cn } from "@/lib/utils";
 
-export const RoomBookingDayPage = () => <RoomBookingDayPageContent />;
-
-const RoomBookingDayPageContent = () => {
+export const RoomBookingDayPage = () => {
     const [activeReservationDialog, setActiveReservationDialog] = useState<BookingReservationDialogState | null>(null);
 
     const { bookableSlot, goToDate, room, segments, selectedDate } = useRoomBookingDayModel();
@@ -115,19 +114,18 @@ const RoomBookingDayPageContent = () => {
                 <RoomBookingSummary />
 
                 <section className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_360px]">
-                    <RoomBookingSchedule
-                        onBook={openBookingReservationEditor}
-                        onDateChange={goToDate}
-                        onOpenBooking={openEventDialog}
-                        roomAvailable={room.available}
-                        segments={segments}
-                        selectedDate={selectedDate}
-                    />
-                    <RoomBookingEquipment
-                        bookableSlot={bookableSlot}
-                        onBook={openBookingReservationEditor}
-                        room={room}
-                    />
+                    <div className="space-y-7">
+                        <RoomBookingSchedule
+                            onBook={openBookingReservationEditor}
+                            onDateChange={goToDate}
+                            onOpenBooking={openEventDialog}
+                            roomAvailable={room.available}
+                            segments={segments}
+                            selectedDate={selectedDate}
+                        />
+                        <RoomBookingNextOpening bookableSlot={bookableSlot} />
+                    </div>
+                    <RoomBookingEquipment room={room} />
                 </section>
             </div>
 
@@ -135,7 +133,6 @@ const RoomBookingDayPageContent = () => {
                 <BookingReservationEditorDialog
                     dialogState={activeReservationDialog}
                     onOpenChange={handleReservationDialogOpenChange}
-                    useUrlBackedAttendeeSearch
                 />
             ) : null}
         </>

@@ -7,16 +7,10 @@ import { BookingAttendeePickerDialog } from "@/features/bookings/components/book
 import type { BookableUser } from "@/features/bookings/components/booking-reservation-editor.types";
 import type { BookingReservationFormValues } from "@/features/bookings/hooks/useBookingReservationForm";
 
-export const BookingReservationAttendees = ({
-    inviteableUsers,
-    useUrlBackedSearch = true,
-}: {
-    inviteableUsers: BookableUser[];
-    useUrlBackedSearch?: boolean;
-}) => {
+export const BookingReservationAttendees = ({ inviteableUsers }: { inviteableUsers: BookableUser[] }) => {
     const { control, setValue } = useFormContext<BookingReservationFormValues>();
     const [attendeePickerOpen, setAttendeePickerOpen] = useState(false);
-    const selectedIds = useWatch({ control, name: "attendeeIds" });
+    const selectedIds: string[] = useWatch({ control, name: "attendeeIds" }) ?? [];
     const selectedAttendees = inviteableUsers.filter((user) => selectedIds.includes(user.id));
 
     const openAttendeePicker = () => {
@@ -72,7 +66,6 @@ export const BookingReservationAttendees = ({
                     inviteableUsers={inviteableUsers}
                     open={attendeePickerOpen}
                     onOpenChange={setAttendeePickerOpen}
-                    useUrlBackedSearch={useUrlBackedSearch}
                 />
             ) : null}
         </div>

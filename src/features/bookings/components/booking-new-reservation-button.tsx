@@ -3,12 +3,13 @@ import { Plus } from "lucide-react";
 
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { getBookableRooms } from "@/features/bookings/utils/booking-calendar";
 import { cn } from "@/lib/utils";
 
 export const BookingNewReservationButton = () => {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
     const { openNewReservation } = useBookingCalendarStore((state) => state.actions);
-    const hasBookableRooms = data.rooms.length > 0;
+    const hasBookableRooms = getBookableRooms(data.rooms).length > 0;
 
     return (
         <button

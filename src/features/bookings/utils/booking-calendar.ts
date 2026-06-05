@@ -9,6 +9,7 @@ export const bookingCalendarViews = ["day", "week", "month", "year"] as const;
 export type BookingCalendarView = (typeof bookingCalendarViews)[number];
 
 export type FilterableRoom = {
+    available?: boolean;
     capacity: number;
     equipment: string[];
     location: string;
@@ -70,6 +71,9 @@ const roomMatchesFilterState = (room: FilterableRoom, filterState: RoomFilterSta
 export const getFilteredRooms = <TRoom extends FilterableRoom>(rooms: TRoom[], filterState: RoomFilterState) =>
     rooms.filter((room) => roomMatchesFilterState(room, filterState));
 
+export const getBookableRooms = <TRoom extends FilterableRoom>(rooms: TRoom[]) =>
+    rooms.filter((room) => room.available !== false);
+
 export const getFilteredRoomCount = (rooms: FilterableRoom[], filterState: RoomFilterState) => {
     let count = 0;
     for (const room of rooms) {
@@ -78,9 +82,7 @@ export const getFilteredRoomCount = (rooms: FilterableRoom[], filterState: RoomF
     return count;
 };
 
-export const getVisibleEvents = (events: EventInput[], filteredRooms: { id: string }[], view: BookingCalendarView) => {
-    if (view === "day") return events;
-
+export const getVisibleEvents = (events: EventInput[], filteredRooms: { id: string }[]) => {
     const filteredRoomIds = new Set(filteredRooms.map((room) => room.id));
     return events.filter((event) => typeof event.resourceId === "string" && filteredRoomIds.has(event.resourceId));
 };

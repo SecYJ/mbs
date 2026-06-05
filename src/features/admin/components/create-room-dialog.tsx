@@ -1,13 +1,13 @@
 import { Controller, FormStateSubscribe } from "react-hook-form";
 import { Building2, Clock, MapPin, UsersRound } from "lucide-react";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses } from "@/features/admin/admin-classes";
 import { StatusToggle } from "@/features/admin/components/status-toggle";
 import { useRoomsCreateStore } from "@/features/admin/stores/rooms-create-store";
 import { useCreateRoom } from "@/features/admin/hooks/useCreateRoom";
-import { adminToast } from "@/features/admin/utils/admin-toast";
 
 export const CreateRoomDialog = () => {
     const open = useRoomsCreateStore((s) => s.open);
@@ -15,7 +15,7 @@ export const CreateRoomDialog = () => {
 
     const { form, onSubmit, isPending } = useCreateRoom({
         onSuccess: () => {
-            adminToast("Room created");
+            toast.success("Room created");
             form.reset();
             setOpen(false);
         },
