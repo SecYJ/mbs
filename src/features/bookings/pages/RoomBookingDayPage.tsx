@@ -1,19 +1,27 @@
-import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Plus } from "lucide-react";
 
 import { BookingReservationEditorDialog } from "@/features/bookings/components/booking-reservation-editor-dialog";
-import type { BookingReservationDialogState } from "@/features/bookings/components/booking-reservation-editor.types";
 import { RoomBookingEquipment } from "@/features/bookings/components/room-booking-equipment";
 import { RoomBookingNextOpening } from "@/features/bookings/components/room-booking-next-opening";
 import { RoomBookingSchedule } from "@/features/bookings/components/room-booking-schedule";
 import { RoomBookingSummary } from "@/features/bookings/components/room-booking-summary";
 import { useRoomBookingDayModel } from "@/features/bookings/hooks/useRoomBookingDayModel";
+import {
+    BookingCalendarStoreProvider,
+    useBookingCalendarStore,
+} from "@/features/bookings/stores/booking-calendar-store";
 import { getBookingEventInput, type BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 import { cn } from "@/lib/utils";
 
-export const RoomBookingDayPage = () => {
-    const [activeReservationDialog, setActiveReservationDialog] = useState<BookingReservationDialogState | null>(null);
+export const RoomBookingDayPage = () => (
+    <BookingCalendarStoreProvider>
+        <RoomBookingDayPageContent />
+    </BookingCalendarStoreProvider>
+);
+
+const RoomBookingDayPageContent = () => {
+    const { openNewReservation, openExistingReservation } = useBookingCalendarStore((state) => state.actions);
 
     const { bookableSlot, goToDate, room, segments, selectedDate } = useRoomBookingDayModel();
 
@@ -41,20 +49,11 @@ export const RoomBookingDayPage = () => {
     }
 
     const openBookingReservationEditor = (slot: { start: Date; end: Date }) => {
-        setActiveReservationDialog({
-            mode: "create",
-            initialDetails: { roomId: room.id, start: slot.start, end: slot.end },
-        });
+        openNewReservation({ roomId: room.id, start: slot.start, end: slot.end });
     };
 
     const openEventDialog = (event: BookingCalendarEvent) => {
-        setActiveReservationDialog({ mode: "view", event: getBookingEventInput(event) });
-    };
-
-    const handleReservationDialogOpenChange = (open: boolean) => {
-        if (!open) {
-            setActiveReservationDialog(null);
-        }
+        openExistingReservation(getBookingEventInput(event));
     };
 
     return (
@@ -129,12 +128,7 @@ export const RoomBookingDayPage = () => {
                 </section>
             </div>
 
-            {activeReservationDialog ? (
-                <BookingReservationEditorDialog
-                    dialogState={activeReservationDialog}
-                    onOpenChange={handleReservationDialogOpenChange}
-                />
-            ) : null}
+            <BookingReservationEditorDialog />
         </>
     );
 };

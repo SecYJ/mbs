@@ -1,42 +1,26 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { BookingReservationDetails } from "@/features/bookings/components/booking-reservation-details";
 import { BookingReservationForm } from "@/features/bookings/components/booking-reservation-form";
-import type { BookingReservationDialogState } from "@/features/bookings/components/booking-reservation-editor.types";
 import { useBookingReservationEditor } from "@/features/bookings/hooks/useBookingReservationEditor";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
 import { cn } from "@/lib/utils";
 import { useShallow } from "zustand/shallow";
 
-type BookingReservationEditorDialogProps = {
-    dialogState?: BookingReservationDialogState | null;
-    onOpenChange?: (open: boolean) => void;
-};
+export const BookingReservationEditorDialog = () => {
+    const [dialogState, { closeReservationDialog }] = useBookingCalendarStore(
+        useShallow((state) => [state.activeReservationDialog, state.actions]),
+    );
 
-export const BookingReservationEditorDialog = ({
-    dialogState,
-    onOpenChange,
-}: BookingReservationEditorDialogProps = {}) => {
-    if (dialogState !== undefined && onOpenChange) {
-        return <BookingReservationEditorDialogContent dialogState={dialogState} onOpenChange={onOpenChange} />;
-    }
+    const onOpenChange = (open: boolean) => {
+        if (!open) closeReservationDialog();
+    };
 
-    return <StoreBackedBookingReservationEditorDialog />;
-};
-
-const BookingReservationEditorDialogContent = ({
-    dialogState: activeDialogState,
-    onOpenChange,
-}: {
-    dialogState: BookingReservationDialogState | null;
-    onOpenChange: (open: boolean) => void;
-}) => {
     const {
         canManage,
+        cancelError,
         cancelReservation,
-        dialogState,
         event,
         formError,
-        mutationFlow,
         isDetailsMode,
         isEditMode,
         isFormSubmitting,
@@ -49,7 +33,7 @@ const BookingReservationEditorDialogContent = ({
         resetKey,
         selectedRoom,
         widthClass,
-    } = useBookingReservationEditor({ dialogState: activeDialogState, onOpenChange });
+    } = useBookingReservationEditor({ dialogState, onOpenChange });
 
     if (!dialogState) return null;
 
@@ -82,9 +66,8 @@ const BookingReservationEditorDialogContent = ({
                 {isDetailsMode && event ? (
                     <BookingReservationDetails
                         canManage={canManage}
-                        cancelError={mutationFlow.cancelError}
+                        cancelError={cancelError}
                         event={event}
-                        isCancelling={mutationFlow.isCancelling}
                         onCancelBooking={cancelReservation}
                         onEdit={onStartEditing}
                         selectedRoom={selectedRoom}
@@ -103,16 +86,4 @@ const BookingReservationEditorDialogContent = ({
             </DialogContent>
         </Dialog>
     );
-};
-
-const StoreBackedBookingReservationEditorDialog = () => {
-    const [dialogState, { closeReservationDialog }] = useBookingCalendarStore(
-        useShallow((state) => [state.activeReservationDialog, state.actions]),
-    );
-
-    const handleOpenChange = (open: boolean) => {
-        if (!open) closeReservationDialog();
-    };
-
-    return <BookingReservationEditorDialogContent dialogState={dialogState} onOpenChange={handleOpenChange} />;
 };

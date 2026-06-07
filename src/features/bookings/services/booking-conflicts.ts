@@ -1,4 +1,7 @@
-export type BookingConflictDetails = {
+import { format } from "date-fns";
+import { z } from "zod";
+
+type BookingConflictDetails = {
     title: string | null;
     roomName: string;
     startTime: Date | string;
@@ -6,20 +9,64 @@ export type BookingConflictDetails = {
     canViewDetails?: boolean;
 };
 
-const dateFormatter = new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    timeZone: "UTC",
-});
+type BookingConflictEvent = {
+    id: string;
+    roomId: string;
+    title: string | null;
+    start: Date | string;
+    end: Date | string;
+};
 
-const timeFormatter = new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    timeZone: "UTC",
-});
+type GetOverlappingBookingConflictOptions = {
+    endTime: Date | string;
+    events: BookingConflictEvent[];
+    excludedBookingId?: string;
+    roomId: string;
+    roomName: string;
+    startTime: Date | string;
+};
 
-const toDate = (value: Date | string) => (value instanceof Date ? value : new Date(value));
+const toDate = (value: Date | string) => {
+    const result = z.coerce.date().safeParse(value);
+
+    return result.success ? result.data : null;
+};
+
+export const getOverlappingBookingConflict = ({
+    endTime,
+    events,
+    excludedBookingId,
+    roomId,
+    roomName,
+    startTime,
+}: GetOverlappingBookingConflictOptions): BookingConflictDetails | null => {
+    const start = toDate(startTime);
+    const end = toDate(endTime);
+
+    if (!start || !end || end.getTime() <= start.getTime()) {
+        return null;
+    }
+
+    const conflict = events.find((event) => {
+        const eventStart = toDate(event.start);
+        const eventEnd = toDate(event.end);
+
+        if (!eventStart || !eventEnd) return false;
+        if (event.roomId !== roomId) return false;
+        if (excludedBookingId && event.id === excludedBookingId) return false;
+
+        return eventStart.getTime() < end.getTime() && eventEnd.getTime() > start.getTime();
+    });
+
+    if (!conflict) return null;
+
+    return {
+        title: conflict.title,
+        roomName,
+        startTime: conflict.start,
+        endTime: conflict.end,
+    };
+};
 
 export const getBookingConflictMessage = ({
     title,
@@ -30,9 +77,12 @@ export const getBookingConflictMessage = ({
 }: BookingConflictDetails) => {
     const start = toDate(startTime);
     const end = toDate(endTime);
-    const occupiedSlot = `${dateFormatter.format(start)} from ${timeFormatter.format(start)} to ${timeFormatter.format(end)}`;
+    const occupiedSlot =
+        start && end
+            ? ` on ${format(start, "MMM d, yyyy")} from ${format(start, "h:mm a")} to ${format(end, "h:mm a")}`
+            : "";
     const visibleTitle = canViewDetails ? title?.trim() : "";
     const titleContext = visibleTitle ? ` for "${visibleTitle}"` : "";
 
-    return `${roomName} is occupied on ${occupiedSlot}${titleContext}. Choose a different time or room.`;
+    return `${roomName} is occupied${occupiedSlot}${titleContext}. Choose a different time or room.`;
 };

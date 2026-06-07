@@ -1,4 +1,5 @@
 import { useState, type ReactNode } from "react";
+import { useMutationState } from "@tanstack/react-query";
 import type { EventInput } from "@fullcalendar/core";
 import { format } from "date-fns";
 import { Ban, Clock, MapPin, Pencil, Users } from "lucide-react";
@@ -7,15 +8,21 @@ import { z } from "zod";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { BookingReservationRoom } from "@/features/bookings/components/booking-reservation-editor.types";
+import { BOOKING_MUTATION_KEYS } from "@/features/bookings/services/mutationOpts";
 
 type BookingReservationDetailsProps = {
     canManage: boolean;
     cancelError: string | null;
     event: EventInput;
-    isCancelling: boolean;
     onCancelBooking: (cancelReason: string) => void;
     onEdit: () => void;
     selectedRoom?: BookingReservationRoom;
+};
+
+type BookingMutationVariablesWithId = {
+    data: {
+        bookingId: string;
+    };
 };
 
 const bookingReservationExtendedPropsSchema = z.object({
@@ -28,13 +35,17 @@ export const BookingReservationDetails = ({
     canManage,
     cancelError,
     event,
-    isCancelling,
     onCancelBooking,
     onEdit,
     selectedRoom,
 }: BookingReservationDetailsProps) => {
     const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
+    const pendingCancelBookings = useMutationState<BookingMutationVariablesWithId>({
+        filters: { mutationKey: BOOKING_MUTATION_KEYS.cancel, status: "pending" },
+        select: (mutation) => mutation.state.variables as BookingMutationVariablesWithId,
+    });
+    const isCancelling = pendingCancelBookings.some(({ data }) => data.bookingId === (event.id ?? ""));
 
     const {
         attendees,

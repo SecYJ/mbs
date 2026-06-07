@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 
-import type { BookingFormData } from "@/features/bookings/components/booking-reservation-editor.types";
 import { cancelBookingFn, createBookingFn, updateBookingFn } from "@/features/bookings/services/fns";
+import { BOOKING_MUTATION_KEYS } from "@/features/bookings/services/mutationOpts";
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 
@@ -21,71 +21,26 @@ export const useBookingMutationFlow = ({ onCompleted }: { onCompleted: () => voi
     };
 
     const createBookingMutation = useMutation({
+        mutationKey: BOOKING_MUTATION_KEYS.create,
         mutationFn: createBooking,
         onSuccess: handleSuccess,
     });
 
     const updateBookingMutation = useMutation({
+        mutationKey: BOOKING_MUTATION_KEYS.update,
         mutationFn: updateBooking,
         onSuccess: handleSuccess,
     });
 
     const cancelBookingMutation = useMutation({
+        mutationKey: BOOKING_MUTATION_KEYS.cancel,
         mutationFn: cancelBooking,
         onSuccess: handleSuccess,
     });
 
-    const reset = () => {
-        createBookingMutation.reset();
-        updateBookingMutation.reset();
-        cancelBookingMutation.reset();
-    };
-
-    const submitBooking = (formData: BookingFormData) => {
-        createBookingMutation.mutate({
-            data: {
-                title: formData.title,
-                roomId: formData.roomId,
-                startTime: formData.start.toISOString(),
-                endTime: formData.end.toISOString(),
-                attendeeIds: formData.attendeeIds,
-                description: formData.description,
-            },
-        });
-    };
-
-    const updateBookingReservation = (bookingId: string, formData: BookingFormData) => {
-        updateBookingMutation.mutate({
-            data: {
-                bookingId,
-                title: formData.title,
-                roomId: formData.roomId,
-                startTime: formData.start.toISOString(),
-                endTime: formData.end.toISOString(),
-                attendeeIds: formData.attendeeIds,
-                description: formData.description,
-            },
-        });
-    };
-
-    const cancelBookingReservation = (bookingId: string, cancelReason: string) => {
-        cancelBookingMutation.mutate({ data: { bookingId, cancelReason } });
-    };
-
-    const createError = createBookingMutation.error instanceof Error ? createBookingMutation.error.message : null;
-    const updateError = updateBookingMutation.error instanceof Error ? updateBookingMutation.error.message : null;
-    const cancelError = cancelBookingMutation.error instanceof Error ? cancelBookingMutation.error.message : null;
-
     return {
-        cancelBookingReservation,
-        cancelError,
-        createError,
-        isCancelling: cancelBookingMutation.isPending,
-        isSubmitting: createBookingMutation.isPending,
-        isUpdating: updateBookingMutation.isPending,
-        reset,
-        submitBooking,
-        updateBookingReservation,
-        updateError,
+        cancelBookingMutation,
+        createBookingMutation,
+        updateBookingMutation,
     };
 };
