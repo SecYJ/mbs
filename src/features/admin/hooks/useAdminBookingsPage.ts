@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import { useAdminBookingFilters } from "@/features/admin/hooks/useAdminBookingFilters";
 import { cancelAdminBookingFn } from "@/features/admin/services/bookings/fns";
 import {
     adminBookingStatsQueryOptions,
@@ -21,11 +22,11 @@ type AdminBookingCancellationFormValues = {
 };
 
 export const useAdminBookingsPage = () => {
-    const filters = useSearch({ from: "/admin/bookings" });
+    const { filters, deferredFilters } = useAdminBookingFilters();
     const navigate = useNavigate({ from: "/admin/bookings" });
     const queryClient = useQueryClient();
     const cancelAdminBooking = useServerFn(cancelAdminBookingFn);
-    const bookingsQueryOptions = adminBookingsQueryOptions(filters);
+    const bookingsQueryOptions = adminBookingsQueryOptions(deferredFilters);
     const bookingStatsQueryOptions = adminBookingStatsQueryOptions();
     const {
         data: { bookings, rooms },

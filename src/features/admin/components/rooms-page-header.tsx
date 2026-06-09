@@ -1,27 +1,13 @@
 import { Plus } from "lucide-react";
-import { useNavigate, useSearch } from "@tanstack/react-router";
 
 import { AdminHeader } from "@/features/admin/components/admin-header";
 import { useRoomsCreateStore } from "@/features/admin/stores/rooms-create-store";
 
 export const RoomsPageHeader = () => {
-    const q = useSearch({
-        from: "/admin/rooms",
-        select: (s) => s.q ?? "",
-    });
-    const navigate = useNavigate({ from: "/admin/rooms" });
     const { setOpen } = useRoomsCreateStore((s) => s.actions);
 
-    const setSearch = (value: string) => {
-        const trimmed = value.trim();
-        navigate({
-            search: (prev) => ({ ...prev, q: trimmed || undefined }),
-            replace: true,
-        });
-    };
-
     return (
-        <AdminHeader title="Rooms" searchPlaceholder="Search rooms..." searchValue={q} onSearchChange={setSearch}>
+        <AdminHeader title="Rooms">
             <button
                 type="button"
                 onClick={() => setOpen(true)}

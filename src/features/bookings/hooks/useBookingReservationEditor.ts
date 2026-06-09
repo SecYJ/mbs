@@ -1,53 +1,21 @@
 import { useState } from "react";
 import { useMutationState, useSuspenseQuery } from "@tanstack/react-query";
-import type { EventInput } from "@fullcalendar/core";
 
 import type {
     BookingFormData,
     BookingReservationDialogState,
     BookingReservationInitialDetails,
 } from "@/features/bookings/components/booking-reservation-editor.types";
-import { resolveEditorView } from "@/features/bookings/hooks/booking-reservation-editor-view";
 import { useBookingMutationFlow } from "@/features/bookings/hooks/useBookingMutationFlow";
 import { BOOKING_MUTATION_KEYS } from "@/features/bookings/services/mutationOpts";
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import { getBookingEventInput, type BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
+import { getBookingEventInput } from "@/features/bookings/utils/booking-calendar";
 
 const emptyInitialDetails: BookingReservationInitialDetails = {};
 
-const getEditorResetKey = ({
-    currentUserId,
-    dialogState,
-}: {
-    currentUserId?: string;
-    dialogState: BookingReservationDialogState;
-}) => {
-    if (dialogState.mode === "view") {
-        return ["view", dialogState.event.id ? String(dialogState.event.id) : "new", currentUserId ?? ""].join("|");
-    }
-
-    const initialDetails = dialogState.initialDetails ?? emptyInitialDetails;
-
-    return [
-        "create",
-        initialDetails.roomId ?? "",
-        initialDetails.start?.toISOString() ?? "",
-        initialDetails.end?.toISOString() ?? "",
-        currentUserId ?? "",
-    ].join("|");
-};
-
-const getSelectedBooking = (event: EventInput | null, events: BookingCalendarEvent[]) => {
-    if (!event?.id) return null;
-    return events.find((booking) => booking.id === String(event.id)) ?? null;
-};
-
-const getEventRoomId = (event: EventInput | null) =>
-    String(event?.resourceId ?? event?.extendedProps?.resourceId ?? "");
-
 type UseBookingReservationEditorOptions = {
     dialogState: BookingReservationDialogState | null;
-    onOpenChange: (open: boolean) => void;
+    onClose: () => void;
 };
 
 type BookingMutationVariablesWithId = {
@@ -56,21 +24,7 @@ type BookingMutationVariablesWithId = {
     };
 };
 
-const useIsBookingSubmitting = ({ isEditMode, bookingId }: { isEditMode: boolean; bookingId: string }) => {
-    const pendingCreateBookings = useMutationState({
-        filters: { mutationKey: BOOKING_MUTATION_KEYS.create, status: "pending" },
-    });
-    const pendingUpdateBookings = useMutationState<BookingMutationVariablesWithId>({
-        filters: { mutationKey: BOOKING_MUTATION_KEYS.update, status: "pending" },
-        select: (mutation) => mutation.state.variables as BookingMutationVariablesWithId,
-    });
-
-    return isEditMode
-        ? pendingUpdateBookings.some((variables) => variables.data.bookingId === bookingId)
-        : pendingCreateBookings.length > 0;
-};
-
-export const useBookingReservationEditor = ({ dialogState, onOpenChange }: UseBookingReservationEditorOptions) => {
+export const useBookingReservationEditor = ({ dialogState, onClose }: UseBookingReservationEditorOptions) => {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
     const [isEditing, setIsEditing] = useState(false);
     const isExistingReservation = dialogState?.mode === "view";
@@ -80,38 +34,44 @@ export const useBookingReservationEditor = ({ dialogState, onOpenChange }: UseBo
 
     const closeEditor = () => {
         setIsEditing(false);
-        onOpenChange(false);
+        onClose();
     };
 
     const mutationFlow = useBookingMutationFlow({ onCompleted: closeEditor });
 
-    const handleOpenChange = (nextOpen: boolean) => {
-        if (nextOpen) {
-            onOpenChange(true);
-            return;
-        }
-
-        closeEditor();
-    };
-
-    const selectedBooking = getSelectedBooking(sourceEvent, data.events);
+    const selectedBooking = sourceEvent?.id
+        ? (data.events.find((booking) => booking.id === String(sourceEvent.id)) ?? null)
+        : null;
     const event = selectedBooking ? getBookingEventInput(selectedBooking) : sourceEvent;
 
-    const view = resolveEditorView({
-        isOpen: !!dialogState,
-        isExistingReservation,
-        hasEvent: !!event,
-        isEditing,
-    });
-
-    const isDetailsMode = view === "details";
+    // Each guard is ordered from most to least specific so every line reads as
+    // a single rule: no context -> closed, new booking -> create, existing but
+    // not in the calendar data -> missing, then edit/details by user intent.
+    const view = !dialogState
+        ? "closed"
+        : !isExistingReservation
+          ? "create"
+          : !event
+            ? "missing"
+            : isEditing
+              ? "edit"
+              : "details";
     const isEditMode = view === "edit";
-    const isMissingReservation = view === "missing";
 
-    const selectedRoomId = isDetailsMode ? getEventRoomId(event) : undefined;
-    const selectedRoom = selectedRoomId ? data.rooms.find((room) => room.id === selectedRoomId) : undefined;
+    const roomId = String(event?.resourceId ?? event?.extendedProps?.resourceId ?? "");
+    const selectedRoom = view === "details" ? data.rooms.find((room) => room.id === roomId) : undefined;
     const canManage = isExistingReservation && (selectedBooking?.canManage ?? event?.extendedProps?.canManage) === true;
-    const isFormSubmitting = useIsBookingSubmitting({ isEditMode, bookingId: String(event?.id ?? "") });
+
+    const pendingCreateBookings = useMutationState({
+        filters: { mutationKey: BOOKING_MUTATION_KEYS.create, status: "pending" },
+    });
+    const pendingUpdateBookings = useMutationState<BookingMutationVariablesWithId>({
+        filters: { mutationKey: BOOKING_MUTATION_KEYS.update, status: "pending" },
+        select: (mutation) => mutation.state.variables as BookingMutationVariablesWithId,
+    });
+    const isFormSubmitting = isEditMode
+        ? pendingUpdateBookings.some((variables) => variables.data.bookingId === String(event?.id ?? ""))
+        : pendingCreateBookings.length > 0;
 
     const submitReservation = (formData: BookingFormData) => {
         const bookingFields = {
@@ -152,6 +112,18 @@ export const useBookingReservationEditor = ({ dialogState, onOpenChange }: UseBo
     const formMutation = isEditMode ? mutationFlow.updateBookingMutation : mutationFlow.createBookingMutation;
     const formError = formMutation.error instanceof Error ? formMutation.error.message : null;
 
+    const resetKey = !dialogState
+        ? "closed"
+        : dialogState.mode === "view"
+          ? ["view", dialogState.event.id ? String(dialogState.event.id) : "new", data.currentUserId ?? ""].join("|")
+          : [
+                "create",
+                initialDetails.roomId ?? "",
+                initialDetails.start?.toISOString() ?? "",
+                initialDetails.end?.toISOString() ?? "",
+                data.currentUserId ?? "",
+            ].join("|");
+
     return {
         canManage,
         cancelError,
@@ -159,16 +131,15 @@ export const useBookingReservationEditor = ({ dialogState, onOpenChange }: UseBo
         event,
         formError,
         initialDetails,
-        isDetailsMode,
-        isEditMode,
         isFormSubmitting,
-        isMissingReservation,
         onCancelForm: cancelForm,
-        onOpenChange: handleOpenChange,
+        onOpenChange: (open: boolean) => {
+            if (!open) closeEditor();
+        },
         onStartEditing: () => setIsEditing(true),
         onSubmit: submitReservation,
-        resetKey: dialogState ? getEditorResetKey({ currentUserId: data.currentUserId, dialogState }) : "closed",
+        resetKey,
         selectedRoom,
-        widthClass: isDetailsMode ? "sm:max-w-md" : "sm:max-w-lg",
+        view,
     };
 };

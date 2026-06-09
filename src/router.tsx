@@ -3,9 +3,9 @@ import { routeTree } from "./routeTree.gen";
 
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 import { getContext } from "./integrations/tanstack-query/root-provider";
-import { AppPending } from "./components/app-pending";
+import { AppPending } from "./components/AppPending";
 
-export function getRouter() {
+export const getRouter = () => {
     const context = getContext();
 
     const router = createTanStackRouter({
@@ -33,7 +33,7 @@ export function getRouter() {
     setupRouterSsrQueryIntegration({ router, queryClient: context.queryClient });
 
     return router;
-}
+};
 
 declare module "@tanstack/react-router" {
     interface Register {

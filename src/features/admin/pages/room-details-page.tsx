@@ -4,7 +4,7 @@ import { ArrowLeft, MapPin, Package, RotateCcw, Save, UsersRound } from "lucide-
 import { Controller, FormStateSubscribe } from "react-hook-form";
 
 import { adminInputClasses } from "@/features/admin/admin-classes";
-import { EmptyState } from "@/features/admin/components/empty-state";
+import { EmptyState } from "@/features/admin/components/EmptyState";
 import { StatusToggle } from "@/features/admin/components/status-toggle";
 import { useUpdateRoom } from "@/features/admin/hooks/useUpdateRoom";
 import { roomsSearchDefaults } from "@/features/admin/schema/rooms-search.schema";
@@ -30,8 +30,10 @@ export const RoomDetailsPage = () => {
                     icon={Package}
                     title="Room not found"
                     description="This room may have been removed or the link may be outdated."
-                    action={<BackToRoomsLink label="Back to rooms" />}
                 />
+                <div className="mt-5 flex justify-center">
+                    <BackToRoomsLink label="Back to rooms" />
+                </div>
             </div>
         );
     }

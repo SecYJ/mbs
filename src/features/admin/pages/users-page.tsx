@@ -6,8 +6,9 @@ import { useDeferredValue, useState } from "react";
 
 import { adminBadgeClasses } from "@/features/admin/admin-classes";
 import { AdminHeader } from "@/features/admin/components/admin-header";
+import { AdminSearchInput } from "@/features/admin/components/admin-search-input";
 import { CreateUserDialog } from "@/features/admin/components/create-user-dialog";
-import { EmptyState } from "@/features/admin/components/empty-state";
+import { EmptyState } from "@/features/admin/components/EmptyState";
 import { usersSearchDefaults } from "@/features/admin/schema/users-search.schema";
 import { usersQueryOptions } from "@/features/admin/services/users/queries";
 import type { AdminUser } from "@/features/admin/types";
@@ -70,7 +71,7 @@ export const UsersPage = () => {
                 open={createOpen}
                 onOpenChange={setCreateOpen}
             />
-            <AdminHeader title="Users" searchPlaceholder="Search users..." searchValue={q} onSearchChange={setSearch}>
+            <AdminHeader title="Users">
                 <button
                     type="button"
                     onClick={() => setCreateOpen(true)}
@@ -82,12 +83,16 @@ export const UsersPage = () => {
             </AdminHeader>
 
             <div className="p-6">
+                {!(users.length === 0 && !normalizedQ) && (
+                    <div className="mb-4 flex items-center gap-3">
+                        <AdminSearchInput value={q} onChange={setSearch} placeholder="Search users..." />
+                    </div>
+                )}
                 {users.length === 0 && !normalizedQ ? (
                     <EmptyState
                         icon={Users}
                         title="No users found"
                         description="Users who register for the booking system will appear here."
-                        action={<EmptyStateCreateUserButton onClick={() => setCreateOpen(true)} />}
                     />
                 ) : users.length === 0 ? (
                     <p className="py-12 text-center text-sm" style={{ color: "var(--a-text-muted)" }}>
@@ -242,15 +247,4 @@ const UsersSortHeader = ({
             ) : null}
         </button>
     </th>
-);
-
-const EmptyStateCreateUserButton = ({ onClick }: { onClick: () => void }) => (
-    <button
-        type="button"
-        onClick={onClick}
-        className="inline-flex items-center gap-1.5 rounded-lg bg-(--a-accent) px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-(--a-accent-hover)"
-    >
-        <Plus className="size-4" strokeWidth={2} />
-        Create User
-    </button>
 );

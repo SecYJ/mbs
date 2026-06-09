@@ -1,10 +1,10 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useSearch } from "@tanstack/react-router";
 import { CalendarDays, Check } from "lucide-react";
 import { FormProvider } from "react-hook-form";
 
 import { adminBadgeClasses, adminConfirmClasses, adminInputClasses } from "@/features/admin/admin-classes";
-import { EmptyState } from "@/features/admin/components/empty-state";
+import { EmptyState } from "@/features/admin/components/EmptyState";
+import { useAdminBookingFilters } from "@/features/admin/hooks/useAdminBookingFilters";
 import { useAdminBookingsPage } from "@/features/admin/hooks/useAdminBookingsPage";
 import { adminBookingsQueryOptions, type AdminBookingStatus } from "@/features/admin/services/bookings/queries";
 import { cn } from "@/lib/utils";
@@ -17,10 +17,10 @@ const STATUS_STYLES: Record<AdminBookingStatus, { bg: string; color: string; lab
 };
 
 export const AdminBookingsTable = () => {
-    const filters = useSearch({ from: "/admin/bookings" });
+    const { deferredFilters } = useAdminBookingFilters();
     const {
         data: { bookings },
-    } = useSuspenseQuery(adminBookingsQueryOptions(filters));
+    } = useSuspenseQuery(adminBookingsQueryOptions(deferredFilters));
 
     if (bookings.length === 0) {
         return (

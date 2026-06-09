@@ -2,7 +2,7 @@ import { createFileRoute, Link, linkOptions, Outlet, stripSearchParams } from "@
 import { Shield } from "lucide-react";
 import { z } from "zod";
 
-import { AppPending } from "@/components/app-pending";
+import { AppPending } from "@/components/AppPending";
 import { AuthenticatedAccountMenu } from "@/features/account/components/authenticated-account-menu";
 import { NotificationNavigationMenu } from "@/features/notifications/components/notification-navigation-menu";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";

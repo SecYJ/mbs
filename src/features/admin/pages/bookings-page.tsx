@@ -1,23 +1,25 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import { Filter } from "lucide-react";
 
 import { adminSelectClasses } from "@/features/admin/admin-classes";
 import { AdminBookingStats } from "@/features/admin/components/admin-booking-stats";
 import { AdminBookingsTable } from "@/features/admin/components/admin-bookings-table";
 import { AdminHeader } from "@/features/admin/components/admin-header";
+import { AdminSearchInput } from "@/features/admin/components/admin-search-input";
+import { useAdminBookingFilters } from "@/features/admin/hooks/useAdminBookingFilters";
 import { adminBookingsQueryOptions, type AdminBookingFilters } from "@/features/admin/services/bookings/queries";
 
-type AdminBookingSearchUpdate = Partial<AdminBookingFilters>;
+const Route = getRouteApi("/admin/bookings");
 
 export const BookingsPage = () => {
-    const filters = useSearch({ from: "/admin/bookings" });
-    const navigate = useNavigate({ from: "/admin/bookings" });
+    const { filters, deferredFilters, isFiltering } = useAdminBookingFilters();
+    const navigate = Route.useNavigate();
     const {
         data: { rooms },
-    } = useSuspenseQuery(adminBookingsQueryOptions(filters));
+    } = useSuspenseQuery(adminBookingsQueryOptions(deferredFilters));
 
-    const updateSearch = (next: AdminBookingSearchUpdate) => {
+    const updateSearch = (next: Partial<AdminBookingFilters>) => {
         navigate({
             search: (prev) => ({ ...prev, ...next }),
             replace: true,
@@ -26,12 +28,7 @@ export const BookingsPage = () => {
 
     return (
         <div>
-            <AdminHeader
-                title="All Bookings"
-                searchPlaceholder="Search bookings..."
-                searchValue={filters.q}
-                onSearchChange={(value) => updateSearch({ q: value })}
-            />
+            <AdminHeader title="All Bookings" />
 
             <div className="p-6">
                 <AdminBookingStats />
@@ -43,6 +40,11 @@ export const BookingsPage = () => {
                         border: "1px solid var(--a-border)",
                     }}
                 >
+                    <AdminSearchInput
+                        value={filters.q}
+                        onChange={(value) => updateSearch({ q: value })}
+                        placeholder="Search bookings..."
+                    />
                     <Filter className="size-3.5" style={{ color: "var(--a-text-muted)" }} strokeWidth={1.6} />
                     <select
                         className={adminSelectClasses}
@@ -81,7 +83,9 @@ export const BookingsPage = () => {
                     )}
                 </div>
 
-                <AdminBookingsTable />
+                <div className={isFiltering ? "opacity-60 transition-opacity" : "transition-opacity"}>
+                    <AdminBookingsTable />
+                </div>
             </div>
         </div>
     );

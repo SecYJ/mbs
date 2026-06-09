@@ -24,7 +24,7 @@ export const getRoomsFn = createServerFn({ method: "GET" })
     .handler(async ({ data }) => {
         await requireAdminUser();
 
-        const search = data.q.trim();
+        const search = data.q?.trim();
         const whereConditions: SQL[] = [];
 
         if (search) {

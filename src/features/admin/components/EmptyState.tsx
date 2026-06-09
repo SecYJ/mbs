@@ -1,17 +1,14 @@
 import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
 
-interface EmptyStateProps {
+type EmptyStateProps = {
     icon: LucideIcon;
     title: string;
     description: string;
-    action?: ReactNode;
-}
+};
 
-export function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
+export const EmptyState = ({ icon: Icon, title, description }: EmptyStateProps) => {
     return (
         <div className="flex flex-col items-center justify-center py-20">
-            {/* Geometric frame */}
             <div className="relative mb-6 size-28">
                 <svg viewBox="0 0 120 120" className="size-full" style={{ color: "var(--a-text-muted)" }} aria-hidden>
                     <rect
@@ -48,16 +45,11 @@ export function EmptyState({ icon: Icon, title, description, action }: EmptyStat
                 </div>
             </div>
 
-            <h3 className="text-base font-semibold" style={{ color: "var(--a-text)" }}>
-                {title}
-            </h3>
-            <p
-                className="mt-1.5 max-w-xs text-center text-sm leading-relaxed"
-                style={{ color: "var(--a-text-secondary)" }}
-            >
+            <h3 className="text-base font-semibold text-(--a-text)">{title}</h3>
+
+            <p className="mt-1.5 max-w-xs text-center text-sm leading-relaxed text-(--a-text-secondary)">
                 {description}
             </p>
-            {action && <div className="mt-5">{action}</div>}
         </div>
     );
-}
+};

@@ -183,9 +183,7 @@ export const CreateRoomDialog = () => {
                                     <p className="rounded-md border border-[rgba(212,84,74,0.25)] bg-(--a-danger-subtle) px-3 py-2 text-[0.75rem] text-(--a-danger)">
                                         {errors.root.message}
                                     </p>
-                                ) : (
-                                    <></>
-                                )
+                                ) : null
                             }
                         />
                     </div>

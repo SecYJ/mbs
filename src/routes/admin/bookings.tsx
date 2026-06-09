@@ -1,5 +1,6 @@
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 
+import { AdminPending } from "@/features/admin/components/AdminPending";
 import { BookingsPage } from "@/features/admin/pages/bookings-page";
 import { adminBookingStatsQueryOptions, adminBookingsQueryOptions } from "@/features/admin/services/bookings/queries";
 import {
@@ -18,4 +19,5 @@ export const Route = createFileRoute("/admin/bookings")({
         queryClient.ensureQueryData(adminBookingStatsQueryOptions());
     },
     component: BookingsPage,
+    pendingComponent: AdminPending,
 });
