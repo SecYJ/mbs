@@ -11,7 +11,7 @@ type BookingConflictDetails = {
 
 type BookingConflictEvent = {
     id: string;
-    roomId: string;
+    resourceId: string;
     title: string | null;
     start: Date | string;
     end: Date | string;
@@ -52,7 +52,7 @@ export const getOverlappingBookingConflict = ({
         const eventEnd = toDate(event.end);
 
         if (!eventStart || !eventEnd) return false;
-        if (event.roomId !== roomId) return false;
+        if (event.resourceId !== roomId) return false;
         if (excludedBookingId && event.id === excludedBookingId) return false;
 
         return eventStart.getTime() < end.getTime() && eventEnd.getTime() > start.getTime();

@@ -2,7 +2,7 @@ import { addDays, format, formatDuration, intervalToDuration, isPast as isPastDa
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
 import type { RoomBookingDaySegment } from "@/features/bookings/hooks/useRoomBookingDayModel";
-import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
+import type { BookingCalendarEvent } from "@/features/bookings/services/queries";
 import { cn } from "@/lib/utils";
 
 const formatSlotDuration = (start: Date, end: Date) =>
@@ -108,7 +108,9 @@ const BookedRoomSlot = ({
             </div>
             <div className="min-w-0">
                 <p className="truncate text-sm font-semibold text-(--bone)">{segment.event.title}</p>
-                <p className="mt-1 truncate text-xs text-(--bone-muted)">Organized by {segment.event.organizer.name}</p>
+                <p className="mt-1 truncate text-xs text-(--bone-muted)">
+                    Organized by {segment.event.extendedProps.organizer}
+                </p>
             </div>
             <span className="justify-self-start border border-(--gold)/40 bg-(--gold-wash) px-2.5 py-1 text-[0.6rem] font-semibold tracking-[0.18em] text-(--gold) uppercase sm:justify-self-end">
                 Booked

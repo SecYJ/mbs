@@ -1,29 +1,23 @@
 import { useState, type ReactNode } from "react";
-import { useMutationState } from "@tanstack/react-query";
-import type { EventInput } from "@fullcalendar/core";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
 import { Ban, Clock, MapPin, Pencil, Users } from "lucide-react";
+import { useShallow } from "zustand/shallow";
 import { z } from "zod";
 
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import type { BookingReservationRoom } from "@/features/bookings/components/booking-reservation-editor.types";
-import { BOOKING_MUTATION_KEYS } from "@/features/bookings/services/mutationOpts";
-
-type BookingReservationDetailsProps = {
-    canManage: boolean;
-    cancelError: string | null;
-    event: EventInput;
-    onCancelBooking: (cancelReason: string) => void;
-    onEdit: () => void;
-    selectedRoom?: BookingReservationRoom;
-};
-
-type BookingMutationVariablesWithId = {
-    data: {
-        bookingId: string;
-    };
-};
+import { BookingReservationForm } from "@/features/bookings/components/BookingReservationForm";
+import type {
+    BookingReservationEditing,
+    BookingReservationPayload,
+} from "@/features/bookings/components/booking-reservation-editor.types";
+import { useBookingCalendarEvents } from "@/features/bookings/hooks/useBookingCalendarEvents";
+import { cancelBookingFn, updateBookingFn } from "@/features/bookings/services/fns";
+import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 
 const bookingReservationExtendedPropsSchema = z.object({
     attendees: z.string().array().catch([]),
@@ -31,21 +25,90 @@ const bookingReservationExtendedPropsSchema = z.object({
     organizer: z.string().catch(""),
 });
 
-export const BookingReservationDetails = ({
-    canManage,
-    cancelError,
-    event,
-    onCancelBooking,
-    onEdit,
-    selectedRoom,
-}: BookingReservationDetailsProps) => {
+// View mode of the reservation dialog. Reads the dialog state from the store
+// directly, so the component needs no props.
+const useBookingReservationView = () => {
+    const [dialogState, { closeReservationDialog, setReservationEditing }] = useBookingCalendarStore(
+        useShallow((state) => [state.activeReservationDialog, state.actions]),
+    );
+    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+    const calendarEvents = useBookingCalendarEvents();
+
+    const queryClient = useQueryClient();
+    const updateBooking = useServerFn(updateBookingFn);
+    const cancelBooking = useServerFn(cancelBookingFn);
+
+    const handleMutationSuccess = async () => {
+        await Promise.all([
+            queryClient.invalidateQueries(bookingCalendarQueryOptions()),
+            queryClient.invalidateQueries(notificationsQueryOptions()),
+        ]);
+
+        closeReservationDialog();
+    };
+
+    const updateBookingMutation = useMutation({ mutationFn: updateBooking, onSuccess: handleMutationSuccess });
+    const cancelBookingMutation = useMutation({ mutationFn: cancelBooking, onSuccess: handleMutationSuccess });
+
+    if (dialogState?.mode !== "view") {
+        throw new Error("BookingReservationDetails must only render while the reservation dialog is in view mode");
+    }
+
+    // dialogState.event is the FullCalendar event captured when the dialog
+    // opened. Prefer the same booking re-read from the latest query data; fall
+    // back to the snapshot while the query catches up.
+    const snapshotEvent = dialogState.event;
+    const eventId = snapshotEvent.id ? String(snapshotEvent.id) : null;
+    const event = (eventId ? calendarEvents.find((booking) => booking.id === eventId) : null) ?? snapshotEvent;
+
+    const roomId = String(event.resourceId ?? event.extendedProps?.resourceId ?? "");
+    const selectedRoom = data.rooms.find((room) => room.id === roomId);
+    const canManage = event.extendedProps?.canManage === true;
+
+    // Passed straight to BookingReservationForm when the user enters edit mode.
+    const editing: BookingReservationEditing = {
+        error: updateBookingMutation.error instanceof Error ? updateBookingMutation.error.message : null,
+        event,
+        isSubmitting: updateBookingMutation.isPending,
+        onCancel: () => setReservationEditing(false),
+        onSubmit: (payload: BookingReservationPayload) => {
+            if (!eventId) return;
+            updateBookingMutation.mutate({ data: { bookingId: eventId, ...payload } });
+        },
+    };
+
+    return {
+        canManage,
+        cancelError: cancelBookingMutation.error instanceof Error ? cancelBookingMutation.error.message : null,
+        editing,
+        event,
+        isCancelling: cancelBookingMutation.isPending,
+        isEditing: dialogState.isEditing,
+        onCancelBooking: (cancelReason: string) => {
+            if (!eventId) return;
+            cancelBookingMutation.mutate({ data: { bookingId: eventId, cancelReason } });
+        },
+        onStartEditing: () => setReservationEditing(true),
+        selectedRoom,
+    };
+};
+
+export const BookingReservationDetails = () => {
+    const {
+        canManage,
+        cancelError,
+        editing,
+        event,
+        isCancelling,
+        isEditing,
+        onCancelBooking,
+        onStartEditing,
+        selectedRoom,
+    } = useBookingReservationView();
     const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
     const [cancelReason, setCancelReason] = useState("");
-    const pendingCancelBookings = useMutationState<BookingMutationVariablesWithId>({
-        filters: { mutationKey: BOOKING_MUTATION_KEYS.cancel, status: "pending" },
-        select: (mutation) => mutation.state.variables as BookingMutationVariablesWithId,
-    });
-    const isCancelling = pendingCancelBookings.some(({ data }) => data.bookingId === (event.id ?? ""));
+
+    if (isEditing) return <BookingReservationForm editing={editing} />;
 
     const {
         attendees,
@@ -137,7 +200,7 @@ export const BookingReservationDetails = ({
                         <BookingReservationActionButtons
                             isCancelling={isCancelling}
                             onCancel={requestCancelBooking}
-                            onEdit={onEdit}
+                            onEdit={onStartEditing}
                         />
                     )}
                     {canManage && cancelConfirmOpen && (

@@ -1,4 +1,3 @@
-import type { EventInput } from "@fullcalendar/core";
 import { format, isBefore, isSameDay, startOfDay } from "date-fns";
 import { ArrowRight, CalendarDays, Clock, Save } from "lucide-react";
 import { Controller, FormProvider, FormStateSubscribe } from "react-hook-form";
@@ -12,47 +11,34 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { BookingReservationAttendees } from "@/features/bookings/components/booking-reservation-attendees";
 import type {
-    BookingFormData,
+    BookingReservationEditing,
     BookingReservationInitialDetails,
     BookingReservationRoom,
 } from "@/features/bookings/components/booking-reservation-editor.types";
 import { useBookingReservationForm } from "@/features/bookings/hooks/useBookingReservationForm";
 import { cn } from "@/lib/utils";
 
+const emptyInitialDetails: BookingReservationInitialDetails = {};
+
 type BookingReservationFormProps = {
-    error: string | null;
-    event: EventInput | null;
-    initialDetails: BookingReservationInitialDetails;
-    isEditing: boolean;
-    isSubmitting: boolean;
-    onCancel: () => void;
-    onSubmit: (data: BookingFormData) => void;
+    editing?: BookingReservationEditing;
+    initialDetails?: BookingReservationInitialDetails;
 };
 
 export const BookingReservationForm = ({
-    error,
-    event,
-    initialDetails,
-    isEditing,
-    isSubmitting,
-    onCancel,
-    onSubmit,
+    editing,
+    initialDetails = emptyInitialDetails,
 }: BookingReservationFormProps) => {
-    const reservationForm = useBookingReservationForm({
-        error,
-        event,
-        initialDetails,
-        isEditing,
-        isSubmitting,
-        onSubmit,
-    });
+    const reservationForm = useBookingReservationForm({ editing, initialDetails });
     const { control } = reservationForm.form;
+    const { isSubmitting, onCancel } = reservationForm;
+
+    const isEditing = Boolean(editing);
 
     return (
         <FormProvider {...reservationForm.form}>
             <div>
                 <p className="eyebrow text-(--gold)">{isEditing ? "Edit Reservation" : "New Reservation"}</p>
-                <p className="text-5xl">bodoh la</p>
                 <h2 className="display-italic mt-2 text-[1.75rem] leading-[1.05] font-normal text-(--bone)">
                     {isEditing ? "Update the booking." : "Reserve a room."}
                 </h2>
@@ -88,9 +74,7 @@ export const BookingReservationForm = ({
                     render={({ field }) => (
                         <BookingReservationRoomField
                             roomId={field.value}
-                            roomIsLockedToInitialDetails={reservationForm.roomIsLockedToInitialDetails}
                             rooms={reservationForm.rooms}
-                            selectedRoom={reservationForm.selectedRoom}
                             onRoomChange={field.onChange}
                         />
                     )}
@@ -159,12 +143,14 @@ export const BookingReservationForm = ({
                     render={({ errors }) => {
                         const formError = reservationForm.getFormError(errors);
 
-                        return formError ? (
+                        if (!formError) {
+                            return null;
+                        }
+
+                        return (
                             <p className="border border-red-400/30 bg-red-500/10 px-3 py-2 text-[0.75rem] text-red-200">
                                 {formError}
                             </p>
-                        ) : (
-                            <></>
                         );
                     }}
                 />
@@ -370,15 +356,11 @@ const BookingReservationFormActions = ({
 
 const BookingReservationRoomField = ({
     roomId,
-    roomIsLockedToInitialDetails,
     rooms,
-    selectedRoom,
     onRoomChange,
 }: {
     roomId: string;
-    roomIsLockedToInitialDetails: boolean;
     rooms: BookingReservationRoom[];
-    selectedRoom?: BookingReservationRoom;
     onRoomChange: (roomId: string) => void;
 }) => {
     const roomSelectItems = rooms.map((room) => ({
@@ -394,48 +376,33 @@ const BookingReservationRoomField = ({
     }));
 
     return (
-        <div className="space-y-3">
-            {roomIsLockedToInitialDetails && selectedRoom ? (
-                <div className="space-y-2">
-                    <p className="eyebrow block">Room</p>
-                    <div className="border border-(--hairline) bg-(--surface-02) px-3 py-2.5">
-                        <span className="text-[0.9rem] font-medium text-(--bone)">{selectedRoom.title}</span>
-                        <span className="tabular-num ml-2 text-[0.72rem] text-(--bone-dim)">
-                            &middot; {selectedRoom.location} &middot; {selectedRoom.capacity}p &middot; max{" "}
-                            {selectedRoom.maxBookingDurationHours}h
-                        </span>
-                    </div>
-                </div>
-            ) : (
-                <div className="space-y-2">
-                    <Label className="eyebrow block">Room</Label>
-                    <Select
-                        value={roomId}
-                        onValueChange={(value) => onRoomChange(value ?? "")}
-                        items={roomSelectItems}
-                        required
-                    >
-                        <SelectTrigger className="h-10 w-full rounded-none border-0 border-b border-(--hairline) bg-transparent text-[0.9rem] text-(--bone) shadow-none ring-0 focus:border-(--gold) focus:ring-0 [&>svg]:text-(--bone-dim)">
-                            <SelectValue placeholder="Select a room" />
-                        </SelectTrigger>
-                        <SelectContent className="w-(--anchor-width) rounded-none border-(--hairline) bg-(--surface-02)">
-                            {rooms.map((room) => (
-                                <SelectItem
-                                    key={room.id}
-                                    value={room.id}
-                                    className="rounded-none text-(--bone) focus:bg-(--gold-wash) focus:text-(--bone)"
-                                >
-                                    <span className="font-medium">{room.title}</span>
-                                    <span className="tabular-num ml-2 text-(--bone-dim)">
-                                        &middot; {room.location} &middot; {room.capacity}p &middot; max{" "}
-                                        {room.maxBookingDurationHours}h
-                                    </span>
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-            )}
+        <div className="space-y-2">
+            <Label className="eyebrow block">Room</Label>
+            <Select
+                value={roomId}
+                onValueChange={(value) => onRoomChange(value ?? "")}
+                items={roomSelectItems}
+                required
+            >
+                <SelectTrigger className="h-10 w-full rounded-none border-0 border-b border-(--hairline) bg-transparent text-[0.9rem] text-(--bone) shadow-none ring-0 focus:border-(--gold) focus:ring-0 [&>svg]:text-(--bone-dim)">
+                    <SelectValue placeholder="Select a room" />
+                </SelectTrigger>
+                <SelectContent className="w-(--anchor-width) rounded-none border-(--hairline) bg-(--surface-02)">
+                    {rooms.map((room) => (
+                        <SelectItem
+                            key={room.id}
+                            value={room.id}
+                            className="rounded-none text-(--bone) focus:bg-(--gold-wash) focus:text-(--bone)"
+                        >
+                            <span className="font-medium">{room.title}</span>
+                            <span className="tabular-num ml-2 text-(--bone-dim)">
+                                &middot; {room.location} &middot; {room.capacity}p &middot; max{" "}
+                                {room.maxBookingDurationHours}h
+                            </span>
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
         </div>
     );
 };

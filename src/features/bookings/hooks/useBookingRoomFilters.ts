@@ -1,20 +1,13 @@
 import { useState } from "react";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 
 import { bookingCalendarSearchDefaults } from "@/features/bookings/schemas/booking-calendar-search.schema";
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import {
-    getBookableRooms,
-    getFilteredRoomCount,
-    getRoomFilterState,
-    sortStrings,
-} from "@/features/bookings/utils/booking-calendar";
+import { bookingCalendarRoomsQueryOptions } from "@/features/bookings/services/queries";
 
 const bookingsRoute = getRouteApi("/_bookings/bookings");
 
 export const useBookingRoomFilters = () => {
-    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
     const navigate = bookingsRoute.useNavigate();
     const { capacity, equipment, location } = bookingsRoute.useSearch();
     const [open, setOpen] = useState(false);
@@ -22,17 +15,20 @@ export const useBookingRoomFilters = () => {
     const [draftEquipment, setDraftEquipment] = useState(equipment);
     const [draftLocation, setDraftLocation] = useState(location);
 
+    const { data } = useSuspenseQuery(bookingCalendarRoomsQueryOptions({ capacity, equipment, location }));
+    // The draft selection previews its match count straight from the server;
+    // applying the draft then reuses the already-cached query.
+    const { data: draftData } = useQuery({
+        ...bookingCalendarRoomsQueryOptions({
+            capacity: draftCapacity,
+            equipment: draftEquipment,
+            location: draftLocation,
+        }),
+        placeholderData: keepPreviousData,
+    });
+
     const activeFilterCount = (capacity > 0 ? 1 : 0) + (equipment.length > 0 ? 1 : 0) + (location.length > 0 ? 1 : 0);
     const hasActiveFilters = activeFilterCount > 0;
-    const bookableRooms = getBookableRooms(data.rooms);
-    const allEquipment = sortStrings(Array.from(new Set(bookableRooms.flatMap((room) => room.equipment))));
-    const allLocations = sortStrings(Array.from(new Set(bookableRooms.map((room) => room.location))));
-    const draftRoomFilterState = getRoomFilterState({
-        capacity: draftCapacity,
-        equipment: draftEquipment,
-        location: draftLocation,
-    });
-    const draftRoomsShown = getFilteredRoomCount(bookableRooms, draftRoomFilterState);
     const hasDraftFilters = draftCapacity > 0 || draftEquipment.length > 0 || draftLocation.length > 0;
 
     const handleOpenChange = (nextOpen: boolean) => {
@@ -73,20 +69,20 @@ export const useBookingRoomFilters = () => {
 
     return {
         activeFilterCount,
-        allEquipment,
-        allLocations,
+        allEquipment: data.allEquipment,
+        allLocations: data.allLocations,
         applyDraftFilters,
         clearDraftFilters,
         draftCapacity,
         draftEquipment,
         draftLocation,
-        draftRoomsShown,
+        draftRoomsShown: draftData?.rooms.length ?? 0,
         handleOpenChange,
         hasActiveFilters,
         hasDraftFilters,
         open,
         setDraftCapacity,
-        totalRooms: bookableRooms.length,
+        totalRooms: data.totalRoomCount,
         toggleDraftEquipment,
         toggleDraftLocation,
     };

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, desc, eq, gt, inArray, lt, lte, ne, or } from "drizzle-orm";
+import { and, asc, count, countDistinct, desc, eq, gt, gte, inArray, lt, lte, ne, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -174,6 +174,72 @@ const validateBookingSchedule = async ({
     }
 };
 
+const roomFiltersSchema = z.object({
+    capacity: z.number().int().min(0),
+    equipment: z.string().array(),
+    location: z.string().array(),
+});
+
+type RoomFilters = z.infer<typeof roomFiltersSchema>;
+
+const getBookableRoomConditions = (filters: RoomFilters) => {
+    const conditions = [eq(rooms.available, true)];
+
+    if (filters.capacity > 0) {
+        conditions.push(gte(rooms.capacity, filters.capacity));
+    }
+    if (filters.location.length > 0) {
+        conditions.push(inArray(rooms.location, filters.location));
+    }
+    if (filters.equipment.length > 0) {
+        // Relational division: the room must carry every selected equipment name.
+        conditions.push(
+            inArray(
+                rooms.roomId,
+                db
+                    .select({ roomId: roomEquipment.roomId })
+                    .from(roomEquipment)
+                    .innerJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
+                    .where(inArray(equipment.name, filters.equipment))
+                    .groupBy(roomEquipment.roomId)
+                    .having(eq(countDistinct(equipment.name), filters.equipment.length)),
+            ),
+        );
+    }
+
+    return conditions;
+};
+
+type RoomEquipmentRow = {
+    room: typeof rooms.$inferSelect;
+    equipmentName: string | null;
+};
+
+const groupRoomEquipmentRows = (rows: RoomEquipmentRow[]) => {
+    const groupedRooms = new Map<string, RoomEquipmentRow["room"] & { equipment: string[] }>();
+
+    for (const row of rows) {
+        const existing = groupedRooms.get(row.room.roomId);
+        const target = existing ?? { ...row.room, equipment: [] };
+        if (!existing) groupedRooms.set(row.room.roomId, target);
+        if (row.equipmentName && !target.equipment.includes(row.equipmentName)) {
+            target.equipment.push(row.equipmentName);
+        }
+    }
+
+    return Array.from(groupedRooms.values());
+};
+
+const toBookingRoom = (room: RoomEquipmentRow["room"] & { equipment: string[] }) => ({
+    id: room.roomId,
+    title: room.name,
+    location: room.location,
+    capacity: room.capacity,
+    maxBookingDurationHours: room.maxBookingDurationHours,
+    available: room.available,
+    equipment: room.equipment,
+});
+
 export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
     .handler(async ({ context }) => {
@@ -187,36 +253,9 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
             .from(rooms)
             .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
             .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
-            .orderBy(asc(rooms.name));
+            .orderBy(asc(rooms.name), asc(equipment.name));
 
-        type RoomRow = (typeof roomRows)[number]["room"];
-        const groupedRooms = new Map<string, RoomRow & { equipment: string[] }>();
-
-        for (const row of roomRows) {
-            const existing = groupedRooms.get(row.room.roomId);
-            const target = existing ?? { ...row.room, equipment: [] };
-            if (!existing) groupedRooms.set(row.room.roomId, target);
-            if (row.equipmentName && !target.equipment.includes(row.equipmentName)) {
-                target.equipment.push(row.equipmentName);
-            }
-        }
-
-        const bookingRows = await db
-            .select({
-                booking: bookings,
-                organizer: {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                },
-            })
-            .from(bookings)
-            .innerJoin(user, eq(user.id, bookings.userId))
-            .where(eq(bookings.status, "active"))
-            .orderBy(asc(bookings.startTime));
-
-        const bookingIds = bookingRows.map((row) => row.booking.bookingId);
-        const attendeesByBooking = await getAttendeesByBooking(bookingIds);
+        const groupedRooms = groupRoomEquipmentRows(roomRows);
 
         const users = await db
             .select({
@@ -228,7 +267,6 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
             .where(ne(user.id, session.user.id))
             .orderBy(asc(user.name));
 
-        const now = Date.now();
         const attendedBookingRows = await db
             .select({ bookingId: attendees.bookingId })
             .from(attendees)
@@ -281,26 +319,7 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
         return {
             currentUserId: session.user.id,
             currentUserRole: session.user.role,
-            rooms: Array.from(groupedRooms.values()).map((room) => ({
-                id: room.roomId,
-                title: room.name,
-                location: room.location,
-                capacity: room.capacity,
-                maxBookingDurationHours: room.maxBookingDurationHours,
-                available: room.available,
-                equipment: room.equipment,
-            })),
-            events: bookingRows.map((row) => ({
-                id: row.booking.bookingId,
-                roomId: row.booking.roomId,
-                title: row.booking.title,
-                start: toIso(row.booking.startTime),
-                end: toIso(row.booking.endTime),
-                description: row.booking.description ?? "",
-                organizer: row.organizer,
-                attendees: attendeesByBooking.get(row.booking.bookingId) ?? [],
-                canManage: row.booking.userId === session.user.id && new Date(row.booking.endTime).getTime() > now,
-            })),
+            rooms: groupedRooms.map(toBookingRoom),
             history: historyRows.map((row) =>
                 getBookingHistoryItem({
                     booking: {
@@ -324,6 +343,165 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
                 }),
             ),
             users,
+        };
+    });
+
+export const getBookingCalendarEventsFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .inputValidator(
+        z.object({
+            rangeStart: z.iso.datetime(),
+            rangeEnd: z.iso.datetime(),
+            // Either a single room (room day page, availability ignored so
+            // existing bookings in unavailable rooms stay visible) or the
+            // calendar's room filters (bookable rooms only).
+            roomId: z.uuid().optional(),
+            capacity: z.number().int().min(0).default(0),
+            equipment: z.string().array().default([]),
+            location: z.string().array().default([]),
+        }),
+    )
+    .handler(async ({ context, data }) => {
+        const session = context.session;
+        const rangeStart = new Date(data.rangeStart);
+        const rangeEnd = new Date(data.rangeEnd);
+
+        const roomScope = data.roomId
+            ? eq(bookings.roomId, data.roomId)
+            : inArray(
+                  bookings.roomId,
+                  db
+                      .select({ roomId: rooms.roomId })
+                      .from(rooms)
+                      .where(and(...getBookableRoomConditions(data))),
+              );
+
+        const bookingRows = await db
+            .select({
+                booking: bookings,
+                organizer: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                },
+            })
+            .from(bookings)
+            .innerJoin(user, eq(user.id, bookings.userId))
+            .where(
+                and(
+                    eq(bookings.status, "active"),
+                    lt(bookings.startTime, rangeEnd),
+                    gt(bookings.endTime, rangeStart),
+                    roomScope,
+                ),
+            )
+            .orderBy(asc(bookings.startTime));
+
+        const bookingIds = bookingRows.map((row) => row.booking.bookingId);
+        const attendeesByBooking = await getAttendeesByBooking(bookingIds);
+        const now = Date.now();
+
+        // Shaped as FullCalendar EventInput so the calendar renders the
+        // payload directly and dialogs can reuse clicked events as-is.
+        return bookingRows.map((row) => {
+            const bookingAttendees = attendeesByBooking.get(row.booking.bookingId) ?? [];
+
+            return {
+                id: row.booking.bookingId,
+                resourceId: row.booking.roomId,
+                title: row.booking.title,
+                start: toIso(row.booking.startTime),
+                end: toIso(row.booking.endTime),
+                extendedProps: {
+                    resourceId: row.booking.roomId,
+                    organizerId: row.organizer.id,
+                    organizer: row.organizer.name,
+                    organizerEmail: row.organizer.email,
+                    attendees: bookingAttendees.map((attendee) => attendee.name),
+                    attendeeIds: bookingAttendees.map((attendee) => attendee.id),
+                    description: row.booking.description ?? "",
+                    canManage: row.booking.userId === session.user.id && new Date(row.booking.endTime).getTime() > now,
+                },
+            };
+        });
+    });
+
+export const getBookingCalendarRoomsFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .inputValidator(roomFiltersSchema)
+    .handler(async ({ data }) => {
+        const roomRows = await db
+            .select({
+                room: rooms,
+                equipmentName: equipment.name,
+            })
+            .from(rooms)
+            .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
+            .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
+            .where(and(...getBookableRoomConditions(data)))
+            .orderBy(asc(rooms.name), asc(equipment.name));
+
+        const [totalRoomCountRow] = await db.select({ value: count() }).from(rooms).where(eq(rooms.available, true));
+
+        const equipmentRows = await db
+            .selectDistinct({ name: equipment.name })
+            .from(equipment)
+            .innerJoin(roomEquipment, eq(roomEquipment.equipmentId, equipment.equipmentId))
+            .innerJoin(rooms, and(eq(rooms.roomId, roomEquipment.roomId), eq(rooms.available, true)))
+            .orderBy(asc(equipment.name));
+
+        const locationRows = await db
+            .selectDistinct({ location: rooms.location })
+            .from(rooms)
+            .where(eq(rooms.available, true))
+            .orderBy(asc(rooms.location));
+
+        return {
+            rooms: groupRoomEquipmentRows(roomRows).map(toBookingRoom),
+            totalRoomCount: totalRoomCountRow?.value ?? 0,
+            allEquipment: equipmentRows.map((row) => row.name),
+            allLocations: locationRows.map((row) => row.location),
+        };
+    });
+
+export const getBookableRoomsFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .handler(async () => {
+        const roomRows = await db
+            .select({
+                room: rooms,
+                equipmentName: equipment.name,
+            })
+            .from(rooms)
+            .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
+            .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
+            .where(eq(rooms.available, true))
+            .orderBy(asc(rooms.name), asc(equipment.name));
+
+        return groupRoomEquipmentRows(roomRows).map(toBookingRoom);
+    });
+
+export const getBookingCalendarSummaryFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .handler(async () => {
+        const now = new Date();
+        const bookableBookingConditions = [eq(bookings.status, "active"), eq(rooms.available, true)];
+
+        const [bookingCountRow] = await db
+            .select({ value: count() })
+            .from(bookings)
+            .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+            .where(and(...bookableBookingConditions));
+
+        const [liveBookingCountRow] = await db
+            .select({ value: count() })
+            .from(bookings)
+            .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+            .where(and(...bookableBookingConditions, lte(bookings.startTime, now), gt(bookings.endTime, now)));
+
+        return {
+            bookingCount: bookingCountRow?.value ?? 0,
+            liveBookingCount: liveBookingCountRow?.value ?? 0,
         };
     });
 

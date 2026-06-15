@@ -4,12 +4,14 @@ import { Link } from "@tanstack/react-router";
 import { addMinutes, isPast } from "date-fns";
 import { Building2, FilterX, Plus } from "lucide-react";
 
-import { BookingAvailabilityCalendar } from "@/features/bookings/components/booking-availability-calendar";
+import {
+    BookingAvailabilityCalendar,
+    isPastCalendarEvent,
+} from "@/features/bookings/components/booking-availability-calendar";
 import { BookingEmptyState } from "@/features/bookings/components/booking-empty-state";
 import { useBookingCalendarAvailability } from "@/features/bookings/hooks/useBookingCalendarAvailability";
 import { isAdminRole } from "@/lib/roles";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
-import { isPastCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 
 type AvailabilityCalendarProps = ComponentProps<typeof BookingAvailabilityCalendar>;
 

@@ -22,6 +22,7 @@ type BookingCalendarState = {
         closeReservationDialog: () => void;
         openExistingReservation: (event: EventInput) => void;
         openNewReservation: (initialDetails?: BookingReservationInitialDetails) => void;
+        setReservationEditing: (isEditing: boolean) => void;
         goNext: () => void;
         goPrev: () => void;
         goToday: () => void;
@@ -41,10 +42,15 @@ const createScopedStore = () =>
                 set({ activeReservationDialog: null });
             },
             openExistingReservation: (event) => {
-                set({ activeReservationDialog: { mode: "view", event } });
+                set({ activeReservationDialog: { mode: "view", event, isEditing: false } });
             },
             openNewReservation: (initialDetails) => {
                 set({ activeReservationDialog: { mode: "create", initialDetails } });
+            },
+            setReservationEditing: (isEditing) => {
+                const dialog = get().activeReservationDialog;
+                if (dialog?.mode !== "view") return;
+                set({ activeReservationDialog: { ...dialog, isEditing } });
             },
             goNext: () => get().calendar?.getApi().next(),
             goPrev: () => get().calendar?.getApi().prev(),

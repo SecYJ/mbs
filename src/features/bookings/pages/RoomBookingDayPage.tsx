@@ -1,17 +1,17 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowLeft, Plus } from "lucide-react";
 
-import { BookingReservationEditorDialog } from "@/features/bookings/components/booking-reservation-editor-dialog";
+import { BookingReservationEditorDialog } from "@/features/bookings/components/BookingReservationEditorDialog";
 import { RoomBookingEquipment } from "@/features/bookings/components/room-booking-equipment";
 import { RoomBookingNextOpening } from "@/features/bookings/components/room-booking-next-opening";
 import { RoomBookingSchedule } from "@/features/bookings/components/room-booking-schedule";
 import { RoomBookingSummary } from "@/features/bookings/components/room-booking-summary";
 import { useRoomBookingDayModel } from "@/features/bookings/hooks/useRoomBookingDayModel";
+import type { BookingCalendarEvent } from "@/features/bookings/services/queries";
 import {
     BookingCalendarStoreProvider,
     useBookingCalendarStore,
 } from "@/features/bookings/stores/booking-calendar-store";
-import { getBookingEventInput, type BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
 import { cn } from "@/lib/utils";
 
 export const RoomBookingDayPage = () => (
@@ -53,7 +53,7 @@ const RoomBookingDayPageContent = () => {
     };
 
     const openEventDialog = (event: BookingCalendarEvent) => {
-        openExistingReservation(getBookingEventInput(event));
+        openExistingReservation(event);
     };
 
     return (

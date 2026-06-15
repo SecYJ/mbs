@@ -6,11 +6,23 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import multiMonthPlugin from "@fullcalendar/multimonth";
 import interactionPlugin from "@fullcalendar/interaction";
-import type { DateSelectArg, EventClickArg } from "@fullcalendar/core";
+import type { DateSelectArg, EventClickArg, EventInput } from "@fullcalendar/core";
+import { compareAsc } from "date-fns";
+import { z } from "zod";
 
 import { useBookingAvailabilityCalendar } from "@/features/bookings/hooks/useBookingAvailabilityCalendar";
+import { bookingCalendarViewMap } from "@/features/bookings/schemas/booking-calendar-search.schema";
 import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
-import { bookingCalendarViewMap, isPastCalendarEvent } from "@/features/bookings/utils/booking-calendar";
+
+const eventEndDateSchema = z
+    .preprocess((value) => (value ? value : undefined), z.coerce.date().optional())
+    .transform((date) => date ?? null)
+    .catch(null);
+
+export const isPastCalendarEvent = (event: EventInput, now = new Date()) => {
+    const end = eventEndDateSchema.parse(event.end);
+    return !!end && compareAsc(end, now) <= 0;
+};
 
 type SlotClickArg = {
     date: Date;

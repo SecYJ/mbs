@@ -23,6 +23,7 @@ Before substantial work:
 - use type instead of interface
 - prefer auto-inferred return types over explicit return type annotations.
 - For Zod schema fallbacks, do not chain `.default()` together with `.catch()`; `.catch()` already covers the fallback cases `.default()` would handle.
+- Do not extract utility functions by default. Keep simple, single-use logic close to its caller, and prefer expressing parsing, validation, coercion, defaults, and input normalization in the relevant Zod schema. Create a utility when the behavior is reused, represents domain logic, or would be clearer outside a schema.
 
 ## React
 

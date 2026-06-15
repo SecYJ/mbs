@@ -1,18 +1,15 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
 
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import { getBookableRooms, getFilteredRooms, getRoomFilterState } from "@/features/bookings/utils/booking-calendar";
+import { bookingCalendarQueryOptions, bookingCalendarRoomsQueryOptions } from "@/features/bookings/services/queries";
 
 export const useBookingCalendarAvailability = () => {
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
     const { capacity, equipment, location } = useSearch({ from: "/_bookings/bookings" });
+    const { data: roomsData } = useSuspenseQuery(bookingCalendarRoomsQueryOptions({ capacity, equipment, location }));
 
-    const roomFilterState = getRoomFilterState({ capacity, equipment, location });
-    const bookableRooms = getBookableRooms(data.rooms);
-    const filteredRooms = getFilteredRooms(bookableRooms, roomFilterState);
-    const hasRooms = bookableRooms.length > 0;
-    const hasFilteredRooms = filteredRooms.length > 0;
+    const hasRooms = roomsData.totalRoomCount > 0;
+    const hasFilteredRooms = roomsData.rooms.length > 0;
 
     return {
         currentUserRole: data.currentUserRole,

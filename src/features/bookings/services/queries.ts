@@ -3,13 +3,40 @@ import { format } from "date-fns";
 
 import type { MyBookingGroup } from "@/features/bookings/my-bookings.constants";
 import {
+    getBookableRoomsFn,
     getBookingCalendarDataFn,
+    getBookingCalendarEventsFn,
+    getBookingCalendarRoomsFn,
+    getBookingCalendarSummaryFn,
     getBookingDetailsFn,
     getMyBookingsDataFn,
     getMyBookingsStatsFn,
 } from "@/features/bookings/services/fns";
 
 export type BookingCalendarData = Awaited<ReturnType<typeof getBookingCalendarDataFn>>;
+export type BookingCalendarEvents = Awaited<ReturnType<typeof getBookingCalendarEventsFn>>;
+export type BookingCalendarEvent = BookingCalendarEvents[number];
+
+export type BookingRoomFilters = {
+    capacity: number;
+    equipment: string[];
+    location: string[];
+};
+
+export type BookingCalendarEventsScope = {
+    start: Date;
+    end: Date;
+    roomId?: string;
+    filters?: BookingRoomFilters;
+};
+
+// Sorted copies keep the query key stable regardless of the order the user
+// toggled the filter options in.
+const normalizeRoomFilters = ({ capacity, equipment, location }: BookingRoomFilters) => ({
+    capacity,
+    equipment: equipment.toSorted(),
+    location: location.toSorted(),
+});
 
 type MyBookingsFilters = {
     group: MyBookingGroup;
@@ -20,6 +47,43 @@ export const bookingCalendarQueryOptions = () =>
     queryOptions({
         queryKey: ["bookings", "calendar"],
         queryFn: getBookingCalendarDataFn,
+    });
+
+export const bookingCalendarEventsQueryOptions = ({ start, end, roomId, filters }: BookingCalendarEventsScope) => {
+    const data = {
+        rangeStart: start.toISOString(),
+        rangeEnd: end.toISOString(),
+        ...(roomId ? { roomId } : filters ? normalizeRoomFilters(filters) : {}),
+    };
+
+    return queryOptions({
+        queryKey: ["bookings", "calendar", "events", data],
+        queryFn: () => getBookingCalendarEventsFn({ data }),
+    });
+};
+
+export const bookingCalendarRoomsQueryOptions = (filters: BookingRoomFilters) => {
+    const data = normalizeRoomFilters(filters);
+
+    return queryOptions({
+        queryKey: ["bookings", "calendar", "rooms", data],
+        queryFn: () => getBookingCalendarRoomsFn({ data }),
+    });
+};
+
+// Nested under ["bookings", "calendar"] so the post-mutation invalidations of
+// that key refresh this list too.
+export const bookableRoomsQueryOptions = () =>
+    queryOptions({
+        queryKey: ["bookings", "calendar", "rooms", "bookable"],
+        queryFn: getBookableRoomsFn,
+    });
+
+export const bookingCalendarSummaryQueryOptions = () =>
+    queryOptions({
+        queryKey: ["bookings", "calendar", "summary"],
+        queryFn: getBookingCalendarSummaryFn,
+        refetchInterval: 60_000,
     });
 
 export const myBookingsQueryKey = ["bookings", "my-bookings"] as const;

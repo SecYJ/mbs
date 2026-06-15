@@ -1,7 +1,7 @@
 import { BookingCalendarAvailability } from "@/features/bookings/components/booking-calendar-availability";
 import { BookingCalendarControls } from "@/features/bookings/components/booking-calendar-controls";
 import { BookingNewReservationButton } from "@/features/bookings/components/booking-new-reservation-button";
-import { BookingReservationEditorDialog } from "@/features/bookings/components/booking-reservation-editor-dialog";
+import { BookingReservationEditorDialog } from "@/features/bookings/components/BookingReservationEditorDialog";
 import { BookingCalendarSummary } from "@/features/bookings/components/booking-calendar-summary";
 import { BookingCalendarStoreProvider } from "@/features/bookings/stores/booking-calendar-store";
 
