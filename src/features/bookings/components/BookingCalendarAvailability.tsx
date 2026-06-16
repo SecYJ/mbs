@@ -7,11 +7,11 @@ import { Building2, FilterX, Plus } from "lucide-react";
 import {
     BookingAvailabilityCalendar,
     isPastCalendarEvent,
-} from "@/features/bookings/components/booking-availability-calendar";
-import { BookingEmptyState } from "@/features/bookings/components/booking-empty-state";
+} from "@/features/bookings/components/BookingAvailabilityCalendar";
+import { BookingEmptyState } from "@/features/bookings/components/BookingEmptyState";
 import { useBookingCalendarAvailability } from "@/features/bookings/hooks/useBookingCalendarAvailability";
 import { isAdminRole } from "@/lib/roles";
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 
 type AvailabilityCalendarProps = ComponentProps<typeof BookingAvailabilityCalendar>;
 

@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
 
-import { AdminHeader } from "@/features/admin/components/admin-header";
-import { useRoomsCreateStore } from "@/features/admin/stores/rooms-create-store";
+import { AdminHeader } from "@/features/admin/components/AdminHeader";
+import { useRoomsCreateStore } from "@/features/admin/stores/RoomsCreateStore";
 
 export const RoomsPageHeader = () => {
     const { setOpen } = useRoomsCreateStore((s) => s.actions);

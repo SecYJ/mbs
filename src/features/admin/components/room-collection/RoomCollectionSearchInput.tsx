@@ -1,6 +1,6 @@
 import { getRouteApi } from "@tanstack/react-router";
 
-import { AdminSearchInput } from "@/features/admin/components/admin-search-input";
+import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 
 const Route = getRouteApi("/admin/rooms");
 

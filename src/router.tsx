@@ -2,7 +2,7 @@ import { createRouter as createTanStackRouter, parseSearchWith, stringifySearchW
 import { routeTree } from "./routeTree.gen";
 
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
-import { getContext } from "./integrations/tanstack-query/root-provider";
+import { getContext } from "./integrations/tanstack-query/RootProvider";
 import { AppPending } from "./components/AppPending";
 
 export const getRouter = () => {

@@ -5,11 +5,11 @@ import { getRouteApi } from "@tanstack/react-router";
 import { bookingCalendarSearchDefaults } from "@/features/bookings/schemas/booking-calendar-search.schema";
 import { bookingCalendarRoomsQueryOptions } from "@/features/bookings/services/queries";
 
-const bookingsRoute = getRouteApi("/_bookings/bookings");
+const Route = getRouteApi("/_bookings/bookings");
 
 export const useBookingRoomFilters = () => {
-    const navigate = bookingsRoute.useNavigate();
-    const { capacity, equipment, location } = bookingsRoute.useSearch();
+    const navigate = Route.useNavigate();
+    const { capacity, equipment, location } = Route.useSearch();
     const [open, setOpen] = useState(false);
     const [draftCapacity, setDraftCapacity] = useState(capacity);
     const [draftEquipment, setDraftEquipment] = useState(equipment);

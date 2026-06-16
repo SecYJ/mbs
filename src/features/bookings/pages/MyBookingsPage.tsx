@@ -2,7 +2,7 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi, Link } from "@tanstack/react-router";
 import { Ban, CalendarDays, Check, Clock, Eye, Pencil, Search, UserRound, Users, X, XCircle } from "lucide-react";
 
-import { MyBookingsHeader } from "@/features/bookings/components/my-bookings-header";
+import { MyBookingsHeader } from "@/features/bookings/components/MyBookingsHeader";
 import { useMyBookingsPage } from "@/features/bookings/hooks/useMyBookingsPage";
 import {
     type BookingHistoryItem,

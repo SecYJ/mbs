@@ -12,7 +12,7 @@ import { z } from "zod";
 
 import { useBookingAvailabilityCalendar } from "@/features/bookings/hooks/useBookingAvailabilityCalendar";
 import { bookingCalendarViewMap } from "@/features/bookings/schemas/booking-calendar-search.schema";
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 
 const eventEndDateSchema = z
     .preprocess((value) => (value ? value : undefined), z.coerce.date().optional())

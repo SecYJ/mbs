@@ -3,7 +3,7 @@ import { useShallow } from "zustand/shallow";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { BookingReservationDetails } from "@/features/bookings/components/BookingReservationDetails";
 import { BookingReservationForm } from "@/features/bookings/components/BookingReservationForm";
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import { cn } from "@/lib/utils";
 
 const dialogContentClassName =

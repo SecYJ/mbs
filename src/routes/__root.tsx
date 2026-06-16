@@ -6,8 +6,8 @@ import { useEffect, type ReactNode } from "react";
 import type { QueryClient } from "@tanstack/react-query";
 
 import appCss from "@/styles.css?url";
-import { NotFound } from "@/components/not-found";
-import { PersistentClientStoreHydrator } from "@/stores/persistent-client-store-hydrator";
+import { NotFound } from "@/components/NotFound";
+import { PersistentClientStoreHydrator } from "@/stores/PersistentClientStoreHydrator";
 
 type MyRouterContext = {
     queryClient: QueryClient;

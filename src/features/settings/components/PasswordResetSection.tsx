@@ -2,7 +2,7 @@ import { Check, KeyRound, ShieldCheck } from "lucide-react";
 import { useId } from "react";
 import { Controller, FormStateSubscribe } from "react-hook-form";
 
-import { PasswordInput } from "@/components/password-input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { useChangePassword } from "@/features/settings/hooks/useChangePassword";
 
 export const PasswordResetSection = () => {

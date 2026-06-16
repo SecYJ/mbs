@@ -16,7 +16,7 @@ import type {
 import { useBookingCalendarEvents } from "@/features/bookings/hooks/useBookingCalendarEvents";
 import { cancelBookingFn, updateBookingFn } from "@/features/bookings/services/fns";
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 
 const bookingReservationExtendedPropsSchema = z.object({

@@ -20,7 +20,7 @@ import {
 } from "@/features/bookings/services/booking-conflicts";
 import { createBookingFn } from "@/features/bookings/services/fns";
 import { bookableRoomsQueryOptions, bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 
 const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;

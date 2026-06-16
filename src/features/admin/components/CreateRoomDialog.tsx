@@ -5,8 +5,8 @@ import { toast } from "sonner";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses } from "@/features/admin/admin-classes";
-import { StatusToggle } from "@/features/admin/components/status-toggle";
-import { useRoomsCreateStore } from "@/features/admin/stores/rooms-create-store";
+import { StatusToggle } from "@/features/admin/components/StatusToggle";
+import { useRoomsCreateStore } from "@/features/admin/stores/RoomsCreateStore";
 import { useCreateRoom } from "@/features/admin/hooks/useCreateRoom";
 
 export const CreateRoomDialog = () => {

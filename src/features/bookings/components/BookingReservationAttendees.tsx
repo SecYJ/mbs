@@ -3,7 +3,7 @@ import { Users, X } from "lucide-react";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { Label } from "@/components/ui/label";
-import { BookingAttendeePickerDialog } from "@/features/bookings/components/booking-attendee-picker-dialog";
+import { BookingAttendeePickerDialog } from "@/features/bookings/components/BookingAttendeePickerDialog";
 import type { BookableUser } from "@/features/bookings/components/booking-reservation-editor.types";
 import type { BookingReservationFormValues } from "@/features/bookings/hooks/useBookingReservationForm";
 

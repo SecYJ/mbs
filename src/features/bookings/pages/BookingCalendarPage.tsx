@@ -1,9 +1,9 @@
-import { BookingCalendarAvailability } from "@/features/bookings/components/booking-calendar-availability";
-import { BookingCalendarControls } from "@/features/bookings/components/booking-calendar-controls";
-import { BookingNewReservationButton } from "@/features/bookings/components/booking-new-reservation-button";
+import { BookingCalendarAvailability } from "@/features/bookings/components/BookingCalendarAvailability";
+import { BookingCalendarControls } from "@/features/bookings/components/BookingCalendarControls";
+import { BookingNewReservationButton } from "@/features/bookings/components/BookingNewReservationButton";
 import { BookingReservationEditorDialog } from "@/features/bookings/components/BookingReservationEditorDialog";
-import { BookingCalendarSummary } from "@/features/bookings/components/booking-calendar-summary";
-import { BookingCalendarStoreProvider } from "@/features/bookings/stores/booking-calendar-store";
+import { BookingCalendarSummary } from "@/features/bookings/components/BookingCalendarSummary";
+import { BookingCalendarStoreProvider } from "@/features/bookings/stores/BookingCalendarStore";
 
 export const BookingCalendarPage = () => (
     <BookingCalendarStoreProvider>

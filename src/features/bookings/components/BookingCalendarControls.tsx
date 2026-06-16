@@ -1,9 +1,9 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { BookingRoomFilters } from "@/features/bookings/components/booking-room-filters";
+import { BookingRoomFilters } from "@/features/bookings/components/BookingRoomFilters";
 import { useBookingCalendarControls } from "@/features/bookings/hooks/useBookingCalendarControls";
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import {
     bookingCalendarViewMap,
     bookingCalendarViews,

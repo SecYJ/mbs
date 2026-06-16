@@ -5,7 +5,7 @@ import { Controller, FormStateSubscribe } from "react-hook-form";
 
 import { adminInputClasses } from "@/features/admin/admin-classes";
 import { EmptyState } from "@/features/admin/components/EmptyState";
-import { StatusToggle } from "@/features/admin/components/status-toggle";
+import { StatusToggle } from "@/features/admin/components/StatusToggle";
 import { useUpdateRoom } from "@/features/admin/hooks/useUpdateRoom";
 import { roomsSearchDefaults } from "@/features/admin/schema/rooms-search.schema";
 import { roomQueryOptions } from "@/features/admin/services/rooms/queries";

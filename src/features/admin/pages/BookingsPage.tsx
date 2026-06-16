@@ -3,10 +3,10 @@ import { getRouteApi } from "@tanstack/react-router";
 import { Filter } from "lucide-react";
 
 import { adminSelectClasses } from "@/features/admin/admin-classes";
-import { AdminBookingStats } from "@/features/admin/components/admin-booking-stats";
-import { AdminBookingsTable } from "@/features/admin/components/admin-bookings-table";
-import { AdminHeader } from "@/features/admin/components/admin-header";
-import { AdminSearchInput } from "@/features/admin/components/admin-search-input";
+import { AdminBookingStats } from "@/features/admin/components/AdminBookingStats";
+import { AdminBookingsTable } from "@/features/admin/components/AdminBookingsTable";
+import { AdminHeader } from "@/features/admin/components/AdminHeader";
+import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import { useAdminBookingFilters } from "@/features/admin/hooks/useAdminBookingFilters";
 import { adminBookingsQueryOptions, type AdminBookingFilters } from "@/features/admin/services/bookings/queries";
 

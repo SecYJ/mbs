@@ -1,6 +1,6 @@
 import { Bell, SlidersHorizontal, Volume2, VolumeX } from "lucide-react";
 
-import { PasswordResetSection } from "@/features/settings/components/password-reset-section";
+import { PasswordResetSection } from "@/features/settings/components/PasswordResetSection";
 import { playNotificationSound } from "@/features/settings/notification-sound";
 import { cn } from "@/lib/utils";
 import { usePersistentClientStore } from "@/stores/persistent-client-store";

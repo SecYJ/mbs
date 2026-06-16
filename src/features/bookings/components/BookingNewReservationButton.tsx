@@ -3,7 +3,7 @@ import { useSearch } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
 import { bookingCalendarRoomsQueryOptions } from "@/features/bookings/services/queries";
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import { cn } from "@/lib/utils";
 
 export const BookingNewReservationButton = () => {

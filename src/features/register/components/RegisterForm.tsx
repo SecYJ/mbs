@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Controller, FormStateSubscribe } from "react-hook-form";
 
-import { PasswordInput } from "@/components/password-input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RegisterSubmitAction } from "@/features/register/components/RegisterSubmitAction";

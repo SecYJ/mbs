@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { BookingReservationAttendees } from "@/features/bookings/components/booking-reservation-attendees";
+import { BookingReservationAttendees } from "@/features/bookings/components/BookingReservationAttendees";
 import type {
     BookingReservationEditing,
     BookingReservationInitialDetails,

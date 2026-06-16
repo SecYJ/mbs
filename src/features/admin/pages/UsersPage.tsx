@@ -5,9 +5,9 @@ import { Plus, Users } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 
 import { adminBadgeClasses } from "@/features/admin/admin-classes";
-import { AdminHeader } from "@/features/admin/components/admin-header";
-import { AdminSearchInput } from "@/features/admin/components/admin-search-input";
-import { CreateUserDialog } from "@/features/admin/components/create-user-dialog";
+import { AdminHeader } from "@/features/admin/components/AdminHeader";
+import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
+import { CreateUserDialog } from "@/features/admin/components/CreateUserDialog";
 import { EmptyState } from "@/features/admin/components/EmptyState";
 import { usersSearchDefaults } from "@/features/admin/schema/users-search.schema";
 import { usersQueryOptions } from "@/features/admin/services/users/queries";

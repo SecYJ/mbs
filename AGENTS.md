@@ -1,16 +1,24 @@
-<!-- intent-skills:start -->
+## Library Documentation
 
-## Skill Loading
+- Load documentation skills when implementation depends on an unfamiliar,
+  ambiguous, or potentially version-specific library API.
+- Skip documentation skill loading when:
+    - No external library API is involved.
+    - The change follows an existing usage pattern already present in the repository.
+    - The task is a simple refactor, rename, styling change, or explanatory question.
+- When uncertain whether an API is version-specific, load the relevant skill.
 
-Before substantial work:
+### TanStack Libraries
 
-- Skill check: run `vpx @tanstack/intent@latest list`, or use skills already listed in context.
-- Skill guidance: if one local skill clearly matches the task, run `vpx @tanstack/intent@latest load <package>#<skill>` and follow the returned `SKILL.md`.
-- Monorepos: when working across packages, run the skill check from the workspace root and prefer the local skill for the package being changed.
-- Multiple matches: prefer the most specific local skill for the package or concern you are changing; load additional skills only when the task spans multiple packages or concerns.
-    <!-- intent-skills:end -->
+- For non-trivial TanStack API usage:
+    1. Run `pnpm dlx @tanstack/intent@latest list`.
+    2. Load the most specific matching skill with:
+       `pnpm dlx @tanstack/intent@latest load <package>#<skill>`.
+- Do not run TanStack Intent for tasks unrelated to TanStack libraries.
 
-# AGENTS.md
+### Other Libraries
+
+- Use Context7 when current documentation is needed for a non-TanStack library.
 
 ## Coding Style
 
@@ -20,6 +28,7 @@ Before substantial work:
 - Conditional `className` values must use the `cn` function instead of string template literals or inline conditional strings.
 
 ## TypeScript
+
 - use type instead of interface
 - prefer auto-inferred return types over explicit return type annotations.
 - For Zod schema fallbacks, do not chain `.default()` together with `.catch()`; `.catch()` already covers the fallback cases `.default()` would handle.

@@ -11,7 +11,7 @@ import {
     type BookingCalendarEvents,
     type BookingCalendarEventsScope,
 } from "@/features/bookings/services/queries";
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 
 const emptyEvents: BookingCalendarEvents = [];
 
