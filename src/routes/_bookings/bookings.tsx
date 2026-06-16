@@ -7,9 +7,9 @@ import {
     getBookingCalendarViewRange,
 } from "@/features/bookings/schemas/booking-calendar-search.schema";
 import {
-    bookableRoomsQueryOptions,
     bookingCalendarEventsQueryOptions,
     bookingCalendarQueryOptions,
+    bookingCalendarRoomCatalogQueryOptions,
     bookingCalendarRoomsQueryOptions,
     bookingCalendarSummaryQueryOptions,
 } from "@/features/bookings/services/queries";
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/_bookings/bookings")({
         const filters = { capacity, equipment, location };
 
         queryClient.ensureQueryData(bookingCalendarQueryOptions());
-        queryClient.ensureQueryData(bookableRoomsQueryOptions());
+        queryClient.ensureQueryData(bookingCalendarRoomCatalogQueryOptions());
         queryClient.ensureQueryData(bookingCalendarRoomsQueryOptions(filters));
         queryClient.ensureQueryData(
             bookingCalendarEventsQueryOptions({ ...getBookingCalendarViewRange(view, new Date()), filters }),

@@ -1,22 +1,45 @@
 import {
+    bookingCalendarRoomCatalogQueryOptions,
     bookingCalendarRoomsQueryOptions,
     bookingCalendarSummaryQueryOptions,
+    type BookingCalendarRoomCatalog,
+    type BookingCalendarRooms,
+    type BookingCalendarSummary as BookingCalendarSummaryData,
 } from "@/features/bookings/services/queries";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useSearch } from "@tanstack/react-router";
 
-export const BookingCalendarSummary = () => {
-    const { data: summary } = useSuspenseQuery(bookingCalendarSummaryQueryOptions());
-    const { capacity, equipment, location } = useSearch({ from: "/_bookings/bookings" });
-    const { data: roomsData } = useSuspenseQuery(bookingCalendarRoomsQueryOptions({ capacity, equipment, location }));
+const selectBookingStats = (data: BookingCalendarSummaryData) => ({
+    bookingCount: data.bookingCount,
+    liveBookingCount: data.liveBookingCount,
+});
+const selectRoomsShownCount = (data: BookingCalendarRooms) => data.rooms.length;
+const selectTotalRoomCount = (data: BookingCalendarRoomCatalog) => data.totalRoomCount;
 
-    const roomsShown = `${roomsData.rooms.length}/${roomsData.totalRoomCount}`;
+export const BookingCalendarSummary = () => {
+    const {
+        data: { bookingCount, liveBookingCount },
+    } = useSuspenseQuery({
+        ...bookingCalendarSummaryQueryOptions(),
+        select: selectBookingStats,
+    });
+    const { capacity, equipment, location } = useSearch({ from: "/_bookings/bookings" });
+    const { data: roomsShownCount } = useSuspenseQuery({
+        ...bookingCalendarRoomsQueryOptions({ capacity, equipment, location }),
+        select: selectRoomsShownCount,
+    });
+    const { data: totalRoomCount } = useSuspenseQuery({
+        ...bookingCalendarRoomCatalogQueryOptions(),
+        select: selectTotalRoomCount,
+    });
+
+    const roomsShown = `${roomsShownCount}/${totalRoomCount}`;
 
     return (
         <div className="grid grid-cols-3 items-stretch divide-x divide-(--hairline) border-y border-(--hairline) py-2 xl:border-y-0 xl:py-0">
-            <BookingCalendarStat label="Bookings" value={summary.bookingCount} />
+            <BookingCalendarStat label="Bookings" value={bookingCount} />
             <BookingCalendarStat label="Rooms Shown" value={roomsShown} />
-            <BookingCalendarStat label="In Session" value={summary.liveBookingCount} />
+            <BookingCalendarStat label="In Session" value={liveBookingCount} />
         </div>
     );
 };

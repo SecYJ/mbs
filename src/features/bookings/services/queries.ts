@@ -3,9 +3,9 @@ import { format } from "date-fns";
 
 import type { MyBookingGroup } from "@/features/bookings/my-bookings.constants";
 import {
-    getBookableRoomsFn,
     getBookingCalendarDataFn,
     getBookingCalendarEventsFn,
+    getBookingCalendarRoomCatalogFn,
     getBookingCalendarRoomsFn,
     getBookingCalendarSummaryFn,
     getBookingDetailsFn,
@@ -16,6 +16,9 @@ import {
 export type BookingCalendarData = Awaited<ReturnType<typeof getBookingCalendarDataFn>>;
 export type BookingCalendarEvents = Awaited<ReturnType<typeof getBookingCalendarEventsFn>>;
 export type BookingCalendarEvent = BookingCalendarEvents[number];
+export type BookingCalendarRooms = Awaited<ReturnType<typeof getBookingCalendarRoomsFn>>;
+export type BookingCalendarRoomCatalog = Awaited<ReturnType<typeof getBookingCalendarRoomCatalogFn>>;
+export type BookingCalendarSummary = Awaited<ReturnType<typeof getBookingCalendarSummaryFn>>;
 
 export type BookingRoomFilters = {
     capacity: number;
@@ -72,11 +75,11 @@ export const bookingCalendarRoomsQueryOptions = (filters: BookingRoomFilters) =>
 };
 
 // Nested under ["bookings", "calendar"] so the post-mutation invalidations of
-// that key refresh this list too.
-export const bookableRoomsQueryOptions = () =>
+// that key refresh this catalog too.
+export const bookingCalendarRoomCatalogQueryOptions = () =>
     queryOptions({
-        queryKey: ["bookings", "calendar", "rooms", "bookable"],
-        queryFn: getBookableRoomsFn,
+        queryKey: ["bookings", "calendar", "room-catalog"],
+        queryFn: getBookingCalendarRoomCatalogFn,
     });
 
 export const bookingCalendarSummaryQueryOptions = () =>
@@ -105,7 +108,7 @@ export const myBookingsQueryOptions = (filters: MyBookingsFilters) =>
 export const myBookingsStatsQueryOptions = () =>
     queryOptions({
         queryKey: ["bookings", "my-bookings", "stats"],
-        queryFn: () => getMyBookingsStatsFn(),
+        queryFn: getMyBookingsStatsFn,
     });
 
 export const bookingDetailsQueryOptions = (bookingId: string) =>

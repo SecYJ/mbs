@@ -19,11 +19,17 @@ import {
     getOverlappingBookingConflict,
 } from "@/features/bookings/services/booking-conflicts";
 import { createBookingFn } from "@/features/bookings/services/fns";
-import { bookableRoomsQueryOptions, bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { bookingCalendarQueryOptions, type BookingCalendarData } from "@/features/bookings/services/queries";
 import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 
 const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const selectReservationData = ({ currentUserId, rooms, users }: BookingCalendarData) => ({
+    currentUserId,
+    rooms,
+    users,
+    bookableRooms: rooms.filter((room) => room.available),
+});
 
 const bookingReservationFormSchema = z.object({
     title: z.string().trim().min(1, "Meeting title is required").max(160, "Meeting title is too long"),
@@ -90,8 +96,10 @@ const getBookingReservationFormValues = ({
 };
 
 export const useBookingReservationForm = ({ editing, initialDetails }: UseBookingReservationFormOptions) => {
-    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
-    const { data: bookableRooms } = useSuspenseQuery(bookableRoomsQueryOptions());
+    const { data } = useSuspenseQuery({
+        ...bookingCalendarQueryOptions(),
+        select: selectReservationData,
+    });
     const calendarEvents = useBookingCalendarEvents();
     const { closeReservationDialog } = useBookingCalendarStore((state) => state.actions);
     const queryClient = useQueryClient();
@@ -123,7 +131,7 @@ export const useBookingReservationForm = ({ editing, initialDetails }: UseBookin
         editing?.onSubmit ?? ((payload: BookingReservationPayload) => createBookingMutation.mutate({ data: payload }));
 
     const formValues = getBookingReservationFormValues({
-        bookableRooms,
+        bookableRooms: data.bookableRooms,
         currentUserId: data.currentUserId,
         editing,
         initialDetails,
@@ -134,7 +142,7 @@ export const useBookingReservationForm = ({ editing, initialDetails }: UseBookin
     // The booking's original room stays selectable while editing, even if it
     // has since become unavailable.
     const originalRoom = isEditing ? data.rooms.find((room) => room.id === formValues.roomId) : undefined;
-    const rooms = originalRoom && !originalRoom.available ? [originalRoom, ...bookableRooms] : bookableRooms;
+    const rooms = originalRoom && !originalRoom.available ? [originalRoom, ...data.bookableRooms] : data.bookableRooms;
     const inviteableUsers = data.currentUserId
         ? data.users.filter((user) => user.id !== data.currentUserId)
         : data.users;

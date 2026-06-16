@@ -1,16 +1,21 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useSearch } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
 
-import { bookingCalendarRoomsQueryOptions } from "@/features/bookings/services/queries";
+import {
+    bookingCalendarRoomCatalogQueryOptions,
+    type BookingCalendarRoomCatalog,
+} from "@/features/bookings/services/queries";
 import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import { cn } from "@/lib/utils";
 
+const select = (data: BookingCalendarRoomCatalog) => data.totalRoomCount > 0;
+
 export const BookingNewReservationButton = () => {
-    const { capacity, equipment, location } = useSearch({ from: "/_bookings/bookings" });
-    const { data } = useSuspenseQuery(bookingCalendarRoomsQueryOptions({ capacity, equipment, location }));
+    const { data: hasBookableRooms } = useSuspenseQuery({
+        ...bookingCalendarRoomCatalogQueryOptions(),
+        select,
+    });
     const { openNewReservation } = useBookingCalendarStore((state) => state.actions);
-    const hasBookableRooms = data.totalRoomCount > 0;
 
     return (
         <button

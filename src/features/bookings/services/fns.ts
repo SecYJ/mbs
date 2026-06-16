@@ -441,6 +441,14 @@ export const getBookingCalendarRoomsFn = createServerFn({ method: "GET" })
             .where(and(...getBookableRoomConditions(data)))
             .orderBy(asc(rooms.name), asc(equipment.name));
 
+        return {
+            rooms: groupRoomEquipmentRows(roomRows).map(toBookingRoom),
+        };
+    });
+
+export const getBookingCalendarRoomCatalogFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .handler(async () => {
         const [totalRoomCountRow] = await db.select({ value: count() }).from(rooms).where(eq(rooms.available, true));
 
         const equipmentRows = await db
@@ -457,28 +465,10 @@ export const getBookingCalendarRoomsFn = createServerFn({ method: "GET" })
             .orderBy(asc(rooms.location));
 
         return {
-            rooms: groupRoomEquipmentRows(roomRows).map(toBookingRoom),
             totalRoomCount: totalRoomCountRow?.value ?? 0,
             allEquipment: equipmentRows.map((row) => row.name),
             allLocations: locationRows.map((row) => row.location),
         };
-    });
-
-export const getBookableRoomsFn = createServerFn({ method: "GET" })
-    .middleware([authenticatedUserMiddleware])
-    .handler(async () => {
-        const roomRows = await db
-            .select({
-                room: rooms,
-                equipmentName: equipment.name,
-            })
-            .from(rooms)
-            .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
-            .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
-            .where(eq(rooms.available, true))
-            .orderBy(asc(rooms.name), asc(equipment.name));
-
-        return groupRoomEquipmentRows(roomRows).map(toBookingRoom);
     });
 
 export const getBookingCalendarSummaryFn = createServerFn({ method: "GET" })
@@ -502,47 +492,6 @@ export const getBookingCalendarSummaryFn = createServerFn({ method: "GET" })
         return {
             bookingCount: bookingCountRow?.value ?? 0,
             liveBookingCount: liveBookingCountRow?.value ?? 0,
-        };
-    });
-
-export const getBookingRoomDetailsFn = createServerFn({ method: "GET" })
-    .middleware([authenticatedUserMiddleware])
-    .inputValidator(z.object({ roomId: z.uuid() }))
-    .handler(async ({ data }) => {
-        const rows = await db
-            .select({
-                room: {
-                    id: rooms.roomId,
-                    title: rooms.name,
-                    location: rooms.location,
-                    capacity: rooms.capacity,
-                    maxBookingDurationHours: rooms.maxBookingDurationHours,
-                    available: rooms.available,
-                },
-                assignmentQuantity: roomEquipment.quantity,
-                equipment: {
-                    id: equipment.equipmentId,
-                    name: equipment.name,
-                    brand: equipment.brand,
-                    model: equipment.model,
-                },
-            })
-            .from(rooms)
-            .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
-            .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
-            .where(eq(rooms.roomId, data.roomId))
-            .orderBy(asc(equipment.name));
-
-        const firstRow = rows[0];
-        if (!firstRow) return null;
-
-        return {
-            ...firstRow.room,
-            equipment: rows.flatMap((row) =>
-                row.equipment && row.assignmentQuantity !== null
-                    ? [{ ...row.equipment, quantity: row.assignmentQuantity }]
-                    : [],
-            ),
         };
     });
 

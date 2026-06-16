@@ -3,23 +3,28 @@ import { SlidersHorizontal, X } from "lucide-react";
 
 import { useBookingRoomFilters } from "@/features/bookings/hooks/useBookingRoomFilters";
 import { cn } from "@/lib/utils";
+import { bookingCalendarRoomCatalogQueryOptions } from "@/features/bookings/services/queries";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export const BookingRoomFilters = () => {
     const filters = useBookingRoomFilters();
+    const {
+        data: { allEquipment, allLocations },
+    } = useSuspenseQuery(bookingCalendarRoomCatalogQueryOptions());
 
     return (
         <Drawer.Root open={filters.open} onOpenChange={filters.handleOpenChange} swipeDirection="right">
             <Drawer.Trigger
                 className={cn(
                     "flex cursor-pointer items-center gap-3 border px-4 py-2 text-[0.66rem] font-semibold tracking-[0.28em] uppercase transition-all",
-                    filters.hasActiveFilters
+                    filters.activeFilterCount > 0
                         ? "border-(--gold) text-(--gold)"
                         : "border-(--hairline) text-(--bone-dim) hover:border-(--hairline-strong) hover:text-(--bone)",
                 )}
             >
                 <SlidersHorizontal className="size-3.5" strokeWidth={1.5} />
                 <span>Filters</span>
-                {filters.hasActiveFilters && (
+                {filters.activeFilterCount > 0 && (
                     <span className="tabular-num inline-flex h-4 min-w-4 items-center justify-center border border-(--gold) px-1 text-[0.58rem] tracking-normal text-(--gold)">
                         {filters.activeFilterCount}
                     </span>
@@ -50,7 +55,7 @@ export const BookingRoomFilters = () => {
                                 {[0, 4, 6, 8, 12, 20].map((n) => (
                                     <BookingFilterChoice
                                         key={n}
-                                        active={filters.draftCapacity === n}
+                                        active={filters.draft.capacity === n}
                                         onClick={() => filters.setDraftCapacity(n)}
                                     >
                                         {n === 0 ? "Any" : `${n}+`}
@@ -59,14 +64,14 @@ export const BookingRoomFilters = () => {
                             </BookingFilterGroup>
 
                             <BookingFilterGroup label="Equipment">
-                                {filters.allEquipment.length === 0 ? (
+                                {allEquipment.length === 0 ? (
                                     <p className="text-[0.72rem] text-(--bone-dim)">No equipment assigned yet.</p>
                                 ) : (
-                                    filters.allEquipment.map((item) => (
+                                    allEquipment.map((item) => (
                                         <BookingFilterChoice
                                             key={item}
-                                            active={filters.draftEquipment.includes(item)}
-                                            onClick={() => filters.toggleDraftEquipment(item)}
+                                            active={filters.draft.equipment.includes(item)}
+                                            onClick={() => filters.toggleDraftFilter("equipment", item)}
                                         >
                                             {item}
                                         </BookingFilterChoice>
@@ -75,14 +80,14 @@ export const BookingRoomFilters = () => {
                             </BookingFilterGroup>
 
                             <BookingFilterGroup label="Location">
-                                {filters.allLocations.length === 0 ? (
+                                {allLocations.length === 0 ? (
                                     <p className="text-[0.72rem] text-(--bone-dim)">No locations available yet.</p>
                                 ) : (
-                                    filters.allLocations.map((item) => (
+                                    allLocations.map((item) => (
                                         <BookingFilterChoice
                                             key={item}
-                                            active={filters.draftLocation.includes(item)}
-                                            onClick={() => filters.toggleDraftLocation(item)}
+                                            active={filters.draft.location.includes(item)}
+                                            onClick={() => filters.toggleDraftFilter("location", item)}
                                         >
                                             {item}
                                         </BookingFilterChoice>
@@ -106,11 +111,7 @@ export const BookingRoomFilters = () => {
                             onClick={filters.applyDraftFilters}
                             className="group flex flex-1 cursor-pointer items-center justify-center gap-2 border border-(--bone) bg-(--bone) py-2.5 text-[0.66rem] font-semibold tracking-[0.28em] uppercase text-black transition-all hover:bg-white hover:tracking-[0.32em]"
                         >
-                            <span>Show</span>
-                            <span className="tabular-num tracking-normal">
-                                {filters.draftRoomsShown} / {filters.totalRooms}
-                            </span>
-                            <span>rooms</span>
+                            confirm
                         </button>
                     </div>
                 </Drawer.Popup>
