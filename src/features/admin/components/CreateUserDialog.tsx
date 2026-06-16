@@ -32,7 +32,7 @@ export const CreateUserDialog = ({ canCreateSuperAdmin, open, onOpenChange }: Cr
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent
                 showCloseButton={false}
-                className="admin-shell border-0 bg-transparent p-0 shadow-none sm:max-w-[440px]"
+                className="admin-shell border-0 bg-transparent p-0 shadow-none sm:max-w-110"
             >
                 <form
                     onSubmit={onSubmit}
