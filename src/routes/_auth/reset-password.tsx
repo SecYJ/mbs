@@ -3,7 +3,7 @@ import { CompositeComponent } from "@tanstack/react-start/rsc";
 import { z } from "zod";
 
 import { ResetPasswordForm } from "@/features/reset-password/components/ResetPasswordForm";
-import { getResetPasswordPage } from "@/features/reset-password/rsc/reset-password";
+import { getResetPasswordPage } from "@/features/reset-password/rsc/ResetPassword";
 import { redirectAuthenticatedUser } from "@/lib/session";
 
 const resetPasswordSearchSchema = z.object({

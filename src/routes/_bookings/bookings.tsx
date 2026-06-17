@@ -1,11 +1,18 @@
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 
-import { BookingCalendarPage } from "@/features/bookings/pages/booking-calendar-page";
+import { BookingCalendarPage } from "@/features/bookings/pages/BookingCalendarPage";
 import {
     bookingCalendarSearchDefaults,
     bookingCalendarSearchSchema,
+    getBookingCalendarViewRange,
 } from "@/features/bookings/schemas/booking-calendar-search.schema";
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import {
+    bookingCalendarEventsQueryOptions,
+    bookingCalendarQueryOptions,
+    bookingCalendarRoomCatalogQueryOptions,
+    bookingCalendarRoomsQueryOptions,
+    bookingCalendarSummaryQueryOptions,
+} from "@/features/bookings/services/queries";
 
 export const Route = createFileRoute("/_bookings/bookings")({
     validateSearch: bookingCalendarSearchSchema,
@@ -19,6 +26,17 @@ export const Route = createFileRoute("/_bookings/bookings")({
             }),
         ],
     },
-    loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(bookingCalendarQueryOptions()),
+    loaderDeps: (deps) => deps.search,
+    loader: ({ context: { queryClient }, deps: { view, capacity, equipment, location } }) => {
+        const filters = { capacity, equipment, location };
+
+        queryClient.ensureQueryData(bookingCalendarQueryOptions());
+        queryClient.ensureQueryData(bookingCalendarRoomCatalogQueryOptions());
+        queryClient.ensureQueryData(bookingCalendarRoomsQueryOptions(filters));
+        queryClient.ensureQueryData(
+            bookingCalendarEventsQueryOptions({ ...getBookingCalendarViewRange(view, new Date()), filters }),
+        );
+        queryClient.ensureQueryData(bookingCalendarSummaryQueryOptions());
+    },
     component: BookingCalendarPage,
 });

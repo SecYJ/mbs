@@ -13,19 +13,9 @@ export type Room = {
     name: string;
     location: string;
     capacity: number;
+    maxBookingDurationHours: number;
     active: boolean;
     equipment: RoomEquipmentLine[];
-};
-
-export type Equipment = {
-    id: string;
-    name: string;
-    brand: string;
-    model: string;
-    price: number;
-    quantity: number;
-    purchaseDate: string;
-    warrantyExpiry: string | null;
 };
 
 export type AdminUser = {

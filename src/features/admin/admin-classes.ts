@@ -25,4 +25,6 @@ export const adminToggleClasses =
 
 export const adminConfirmClasses = "animate-[admin-confirm-in_180ms_cubic-bezier(0.16,1,0.3,1)_both]";
 
-export const adminExpandRowClasses = "overflow-hidden animate-[admin-expand_250ms_ease_both]";
+// Shimmer sweep is an ::after pseudo-element; the admin-skeleton-sweep keyframes live in admin.css.
+export const adminSkeletonClasses =
+    "relative overflow-hidden rounded-md bg-(--a-surface-2) after:absolute after:inset-0 after:-translate-x-full after:animate-[admin-skeleton-sweep_1.8s_ease-in-out_infinite] after:bg-[linear-gradient(90deg,transparent,rgba(241,243,248,0.07)_50%,transparent)] after:content-[''] motion-reduce:after:animate-none";

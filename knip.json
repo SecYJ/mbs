@@ -1,8 +1,7 @@
 {
     "$schema": "https://unpkg.com/knip@6/schema.json",
-    "entry": ["src/router.tsx", "src/routes/**/*.{ts,tsx}", "src/scripts/**/*.ts", "vite.config.ts"],
-    "project": ["src/**/*.{ts,tsx,css}", "vite.config.ts"],
-    "ignore": ["src/routeTree.gen.ts"],
+    "entry": ["src/router.tsx", "src/routes/**/*.{ts,tsx}", "src/scripts/**/*.ts"],
+    "project": ["src/**/*.{ts,tsx,css}"],
     "drizzle": {
         "config": []
     },

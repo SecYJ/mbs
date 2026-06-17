@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, desc, eq, gt, inArray, lt, lte, ne, or } from "drizzle-orm";
+import { and, asc, count, countDistinct, desc, eq, gt, gte, inArray, lt, lte, ne, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { attendees, bookings, bookingRules, equipment, notifications, roomEquipment, rooms, user } from "@/db/schema";
+import { attendees, bookings, equipment, notifications, roomEquipment, rooms, user } from "@/db/schema";
 import { PAST_BOOKING_START_MESSAGE } from "@/features/bookings/booking.constants";
 import { getBookingConflictMessage } from "@/features/bookings/services/booking-conflicts";
 import { getBookingHistoryItem } from "@/features/bookings/services/booking-history";
@@ -16,9 +16,6 @@ import {
 import { myBookingGroups, type MyBookingGroup } from "@/features/bookings/my-bookings.constants";
 import { isSuperAdminRole } from "@/lib/roles";
 import { authenticatedUserMiddleware } from "@/middleware/auth";
-
-const DEFAULT_MAX_BOOKING_DURATION_HOURS = 8;
-const BOOKING_RULES_ID = 1;
 
 type BookingUser = {
     id: string;
@@ -91,22 +88,24 @@ const matchesMyBookingQuery = (booking: ReturnType<typeof getBookingHistoryItem>
     return haystack.includes(normalized);
 };
 
-const getBookingRules = async () => {
-    const [rules] = await db.select().from(bookingRules).where(eq(bookingRules.id, BOOKING_RULES_ID)).limit(1);
-    return rules ?? { maxBookingDurationHours: DEFAULT_MAX_BOOKING_DURATION_HOURS };
+const validateBookingAttendees = async (attendeeIds: string[]) => {
+    if (attendeeIds.length === 0) return;
+
+    const existingUsers = await db.select({ id: user.id }).from(user).where(inArray(user.id, attendeeIds));
+    if (existingUsers.length !== attendeeIds.length) {
+        throw new Error("One or more selected attendees no longer exist");
+    }
 };
 
-const validateBookingDetails = async ({
+const validateBookingSchedule = async ({
     roomId,
     startTime,
     endTime,
-    attendeeIds,
     excludedBookingId,
 }: {
     roomId: string;
     startTime: Date;
     endTime: Date;
-    attendeeIds: string[];
     excludedBookingId?: string;
 }) => {
     const durationMs = endTime.getTime() - startTime.getTime();
@@ -115,15 +114,12 @@ const validateBookingDetails = async ({
         throw new Error(PAST_BOOKING_START_MESSAGE);
     }
 
-    const rules = await getBookingRules();
-    const maxDurationMs = rules.maxBookingDurationHours * 60 * 60 * 1000;
-
-    if (durationMs > maxDurationMs) {
-        throw new Error(`Bookings cannot exceed ${rules.maxBookingDurationHours} hours`);
-    }
-
     const [room] = await db
-        .select({ id: rooms.roomId, available: rooms.available })
+        .select({
+            id: rooms.roomId,
+            available: rooms.available,
+            maxBookingDurationHours: rooms.maxBookingDurationHours,
+        })
         .from(rooms)
         .where(eq(rooms.roomId, roomId))
         .limit(1);
@@ -132,15 +128,14 @@ const validateBookingDetails = async ({
         throw new Error("Selected room no longer exists");
     }
 
-    if (!room.available) {
-        throw new Error("Selected room is not available for booking");
+    const maxDurationMs = room.maxBookingDurationHours * 60 * 60 * 1000;
+
+    if (durationMs > maxDurationMs) {
+        throw new Error(`Bookings cannot exceed ${room.maxBookingDurationHours} hours for this room`);
     }
 
-    if (attendeeIds.length > 0) {
-        const existingUsers = await db.select({ id: user.id }).from(user).where(inArray(user.id, attendeeIds));
-        if (existingUsers.length !== attendeeIds.length) {
-            throw new Error("One or more selected attendees no longer exist");
-        }
+    if (!room.available) {
+        throw new Error("Selected room is not available for booking");
     }
 
     const overlapConditions = [
@@ -179,6 +174,72 @@ const validateBookingDetails = async ({
     }
 };
 
+const roomFiltersSchema = z.object({
+    capacity: z.number().int().min(0),
+    equipment: z.string().array(),
+    location: z.string().array(),
+});
+
+type RoomFilters = z.infer<typeof roomFiltersSchema>;
+
+const getBookableRoomConditions = (filters: RoomFilters) => {
+    const conditions = [eq(rooms.available, true)];
+
+    if (filters.capacity > 0) {
+        conditions.push(gte(rooms.capacity, filters.capacity));
+    }
+    if (filters.location.length > 0) {
+        conditions.push(inArray(rooms.location, filters.location));
+    }
+    if (filters.equipment.length > 0) {
+        // Relational division: the room must carry every selected equipment name.
+        conditions.push(
+            inArray(
+                rooms.roomId,
+                db
+                    .select({ roomId: roomEquipment.roomId })
+                    .from(roomEquipment)
+                    .innerJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
+                    .where(inArray(equipment.name, filters.equipment))
+                    .groupBy(roomEquipment.roomId)
+                    .having(eq(countDistinct(equipment.name), filters.equipment.length)),
+            ),
+        );
+    }
+
+    return conditions;
+};
+
+type RoomEquipmentRow = {
+    room: typeof rooms.$inferSelect;
+    equipmentName: string | null;
+};
+
+const groupRoomEquipmentRows = (rows: RoomEquipmentRow[]) => {
+    const groupedRooms = new Map<string, RoomEquipmentRow["room"] & { equipment: string[] }>();
+
+    for (const row of rows) {
+        const existing = groupedRooms.get(row.room.roomId);
+        const target = existing ?? { ...row.room, equipment: [] };
+        if (!existing) groupedRooms.set(row.room.roomId, target);
+        if (row.equipmentName && !target.equipment.includes(row.equipmentName)) {
+            target.equipment.push(row.equipmentName);
+        }
+    }
+
+    return Array.from(groupedRooms.values());
+};
+
+const toBookingRoom = (room: RoomEquipmentRow["room"] & { equipment: string[] }) => ({
+    id: room.roomId,
+    title: room.name,
+    location: room.location,
+    capacity: room.capacity,
+    maxBookingDurationHours: room.maxBookingDurationHours,
+    available: room.available,
+    equipment: room.equipment,
+});
+
 export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
     .handler(async ({ context }) => {
@@ -192,36 +253,9 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
             .from(rooms)
             .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
             .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
-            .orderBy(asc(rooms.name));
+            .orderBy(asc(rooms.name), asc(equipment.name));
 
-        type RoomRow = (typeof roomRows)[number]["room"];
-        const groupedRooms = new Map<string, RoomRow & { equipment: string[] }>();
-
-        for (const row of roomRows) {
-            const existing = groupedRooms.get(row.room.roomId);
-            const target = existing ?? { ...row.room, equipment: [] };
-            if (!existing) groupedRooms.set(row.room.roomId, target);
-            if (row.equipmentName && !target.equipment.includes(row.equipmentName)) {
-                target.equipment.push(row.equipmentName);
-            }
-        }
-
-        const bookingRows = await db
-            .select({
-                booking: bookings,
-                organizer: {
-                    id: user.id,
-                    name: user.name,
-                    email: user.email,
-                },
-            })
-            .from(bookings)
-            .innerJoin(user, eq(user.id, bookings.userId))
-            .where(eq(bookings.status, "active"))
-            .orderBy(asc(bookings.startTime));
-
-        const bookingIds = bookingRows.map((row) => row.booking.bookingId);
-        const attendeesByBooking = await getAttendeesByBooking(bookingIds);
+        const groupedRooms = groupRoomEquipmentRows(roomRows);
 
         const users = await db
             .select({
@@ -233,7 +267,6 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
             .where(ne(user.id, session.user.id))
             .orderBy(asc(user.name));
 
-        const now = Date.now();
         const attendedBookingRows = await db
             .select({ bookingId: attendees.bookingId })
             .from(attendees)
@@ -286,25 +319,7 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
         return {
             currentUserId: session.user.id,
             currentUserRole: session.user.role,
-            rooms: Array.from(groupedRooms.values()).map((room) => ({
-                id: room.roomId,
-                title: room.name,
-                location: room.location,
-                capacity: room.capacity,
-                available: room.available,
-                equipment: room.equipment,
-            })),
-            events: bookingRows.map((row) => ({
-                id: row.booking.bookingId,
-                roomId: row.booking.roomId,
-                title: row.booking.title,
-                start: toIso(row.booking.startTime),
-                end: toIso(row.booking.endTime),
-                description: row.booking.description ?? "",
-                organizer: row.organizer,
-                attendees: attendeesByBooking.get(row.booking.bookingId) ?? [],
-                canManage: row.booking.userId === session.user.id && new Date(row.booking.endTime).getTime() > now,
-            })),
+            rooms: groupedRooms.map(toBookingRoom),
             history: historyRows.map((row) =>
                 getBookingHistoryItem({
                     booking: {
@@ -328,6 +343,155 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
                 }),
             ),
             users,
+        };
+    });
+
+export const getBookingCalendarEventsFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .inputValidator(
+        z.object({
+            rangeStart: z.iso.datetime(),
+            rangeEnd: z.iso.datetime(),
+            // Either a single room (room day page, availability ignored so
+            // existing bookings in unavailable rooms stay visible) or the
+            // calendar's room filters (bookable rooms only).
+            roomId: z.uuid().optional(),
+            capacity: z.number().int().min(0).default(0),
+            equipment: z.string().array().default([]),
+            location: z.string().array().default([]),
+        }),
+    )
+    .handler(async ({ context, data }) => {
+        const session = context.session;
+        const rangeStart = new Date(data.rangeStart);
+        const rangeEnd = new Date(data.rangeEnd);
+
+        const roomScope = data.roomId
+            ? eq(bookings.roomId, data.roomId)
+            : inArray(
+                  bookings.roomId,
+                  db
+                      .select({ roomId: rooms.roomId })
+                      .from(rooms)
+                      .where(and(...getBookableRoomConditions(data))),
+              );
+
+        const bookingRows = await db
+            .select({
+                booking: bookings,
+                organizer: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                },
+            })
+            .from(bookings)
+            .innerJoin(user, eq(user.id, bookings.userId))
+            .where(
+                and(
+                    eq(bookings.status, "active"),
+                    lt(bookings.startTime, rangeEnd),
+                    gt(bookings.endTime, rangeStart),
+                    roomScope,
+                ),
+            )
+            .orderBy(asc(bookings.startTime));
+
+        const bookingIds = bookingRows.map((row) => row.booking.bookingId);
+        const attendeesByBooking = await getAttendeesByBooking(bookingIds);
+        const now = Date.now();
+
+        // Shaped as FullCalendar EventInput so the calendar renders the
+        // payload directly and dialogs can reuse clicked events as-is.
+        return bookingRows.map((row) => {
+            const bookingAttendees = attendeesByBooking.get(row.booking.bookingId) ?? [];
+
+            return {
+                id: row.booking.bookingId,
+                resourceId: row.booking.roomId,
+                title: row.booking.title,
+                start: toIso(row.booking.startTime),
+                end: toIso(row.booking.endTime),
+                extendedProps: {
+                    resourceId: row.booking.roomId,
+                    organizerId: row.organizer.id,
+                    organizer: row.organizer.name,
+                    organizerEmail: row.organizer.email,
+                    attendees: bookingAttendees.map((attendee) => attendee.name),
+                    attendeeIds: bookingAttendees.map((attendee) => attendee.id),
+                    description: row.booking.description ?? "",
+                    canManage: row.booking.userId === session.user.id && new Date(row.booking.endTime).getTime() > now,
+                },
+            };
+        });
+    });
+
+export const getBookingCalendarRoomsFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .inputValidator(roomFiltersSchema)
+    .handler(async ({ data }) => {
+        const roomRows = await db
+            .select({
+                room: rooms,
+                equipmentName: equipment.name,
+            })
+            .from(rooms)
+            .leftJoin(roomEquipment, eq(roomEquipment.roomId, rooms.roomId))
+            .leftJoin(equipment, eq(equipment.equipmentId, roomEquipment.equipmentId))
+            .where(and(...getBookableRoomConditions(data)))
+            .orderBy(asc(rooms.name), asc(equipment.name));
+
+        return {
+            rooms: groupRoomEquipmentRows(roomRows).map(toBookingRoom),
+        };
+    });
+
+export const getBookingCalendarRoomCatalogFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .handler(async () => {
+        const [totalRoomCountRow] = await db.select({ value: count() }).from(rooms).where(eq(rooms.available, true));
+
+        const equipmentRows = await db
+            .selectDistinct({ name: equipment.name })
+            .from(equipment)
+            .innerJoin(roomEquipment, eq(roomEquipment.equipmentId, equipment.equipmentId))
+            .innerJoin(rooms, and(eq(rooms.roomId, roomEquipment.roomId), eq(rooms.available, true)))
+            .orderBy(asc(equipment.name));
+
+        const locationRows = await db
+            .selectDistinct({ location: rooms.location })
+            .from(rooms)
+            .where(eq(rooms.available, true))
+            .orderBy(asc(rooms.location));
+
+        return {
+            totalRoomCount: totalRoomCountRow?.value ?? 0,
+            allEquipment: equipmentRows.map((row) => row.name),
+            allLocations: locationRows.map((row) => row.location),
+        };
+    });
+
+export const getBookingCalendarSummaryFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
+    .handler(async () => {
+        const now = new Date();
+        const bookableBookingConditions = [eq(bookings.status, "active"), eq(rooms.available, true)];
+
+        const [bookingCountRow] = await db
+            .select({ value: count() })
+            .from(bookings)
+            .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+            .where(and(...bookableBookingConditions));
+
+        const [liveBookingCountRow] = await db
+            .select({ value: count() })
+            .from(bookings)
+            .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+            .where(and(...bookableBookingConditions, lte(bookings.startTime, now), gt(bookings.endTime, now)));
+
+        return {
+            bookingCount: bookingCountRow?.value ?? 0,
+            liveBookingCount: liveBookingCountRow?.value ?? 0,
         };
     });
 
@@ -457,11 +621,7 @@ export const getMyBookingsStatsFn = createServerFn({ method: "GET" })
 
 export const getBookingDetailsFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(
-        z.object({
-            bookingId: z.uuid(),
-        }),
-    )
+    .inputValidator(z.object({ bookingId: z.uuid() }))
     .handler(async ({ context, data }) => {
         const session = context.session;
 
@@ -473,6 +633,7 @@ export const getBookingDetailsFn = createServerFn({ method: "GET" })
                     name: rooms.name,
                     location: rooms.location,
                     capacity: rooms.capacity,
+                    maxBookingDurationHours: rooms.maxBookingDurationHours,
                     available: rooms.available,
                 },
                 organizer: {
@@ -625,7 +786,8 @@ export const createBookingFn = createServerFn({ method: "POST" })
         const startTime = new Date(data.startTime);
         const endTime = new Date(data.endTime);
         const attendeeIds = getAttendeeIds(data.attendeeIds, session.user.id);
-        await validateBookingDetails({ roomId: data.roomId, startTime, endTime, attendeeIds });
+        await validateBookingAttendees(attendeeIds);
+        await validateBookingSchedule({ roomId: data.roomId, startTime, endTime });
 
         const created = await db.transaction(async (tx) => {
             const [booking] = await tx
@@ -677,7 +839,9 @@ export const updateBookingFn = createServerFn({ method: "POST" })
         const [existingBooking] = await db
             .select({
                 id: bookings.bookingId,
+                roomId: bookings.roomId,
                 userId: bookings.userId,
+                startTime: bookings.startTime,
                 endTime: bookings.endTime,
             })
             .from(bookings)
@@ -699,13 +863,20 @@ export const updateBookingFn = createServerFn({ method: "POST" })
         const startTime = new Date(data.startTime);
         const endTime = new Date(data.endTime);
         const attendeeIds = getAttendeeIds(data.attendeeIds, session.user.id);
-        await validateBookingDetails({
-            roomId: data.roomId,
-            startTime,
-            endTime,
-            attendeeIds,
-            excludedBookingId: data.bookingId,
-        });
+        const scheduleChanged =
+            data.roomId !== existingBooking.roomId ||
+            startTime.getTime() !== new Date(existingBooking.startTime).getTime() ||
+            endTime.getTime() !== new Date(existingBooking.endTime).getTime();
+
+        await validateBookingAttendees(attendeeIds);
+        if (scheduleChanged) {
+            await validateBookingSchedule({
+                roomId: data.roomId,
+                startTime,
+                endTime,
+                excludedBookingId: data.bookingId,
+            });
+        }
 
         await db.transaction(async (tx) => {
             const updated = await tx

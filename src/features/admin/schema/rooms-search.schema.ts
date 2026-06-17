@@ -1,20 +1,20 @@
 import { z } from "zod";
 
-const searchTextSchema = z
-    .union([z.string(), z.number()])
-    .optional()
-    .transform((value) => (value === undefined ? undefined : String(value)));
-
 export const roomsSearchSchema = z.object({
-    q: searchTextSchema.default("").catch(""),
-    sort: z.enum(["name", "location", "capacity"]).optional().catch(undefined),
-    dir: z.enum(["asc", "desc"]).optional().catch(undefined),
-    expanded: z.string().optional().catch(undefined),
+    q: z.string().trim().optional().catch(undefined),
+    status: z.enum(["all", "available", "disabled"]).optional().catch("all"),
+    sort: z
+        .enum(["recent", "name-asc", "name-desc", "capacity-desc", "capacity-asc", "duration-desc", "duration-asc"])
+        .optional()
+        .catch("recent"),
+    view: z.enum(["grid", "list"]).optional().catch("grid"),
 });
 
 export const roomsSearchDefaults: z.infer<typeof roomsSearchSchema> = {
-    q: "",
-    sort: undefined,
-    dir: undefined,
-    expanded: undefined,
+    q: undefined,
+    status: "all",
+    sort: "recent",
+    view: "grid",
 };
+
+export type RoomsSearch = z.infer<typeof roomsSearchSchema>;

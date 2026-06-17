@@ -1,0 +1,2 @@
+ALTER TABLE "rooms" ADD COLUMN "max_booking_duration_hours" integer DEFAULT 4 NOT NULL;--> statement-breakpoint
+ALTER TABLE "rooms" ADD CONSTRAINT "rooms_max_booking_duration_positive" CHECK ("rooms"."max_booking_duration_hours" > 0);

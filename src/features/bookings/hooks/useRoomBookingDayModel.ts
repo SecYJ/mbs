@@ -8,16 +8,15 @@ import {
     format,
     isAfter,
     isBefore,
-    isValid,
     max as maxDate,
     min as minDate,
-    parse,
     set,
     startOfDay,
 } from "date-fns";
 
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
+import { useBookingCalendarEvents } from "@/features/bookings/hooks/useBookingCalendarEvents";
+import { parseRoomBookingDateKey } from "@/features/bookings/schemas/room-booking-search.schema";
+import { bookingCalendarQueryOptions, type BookingCalendarEvent } from "@/features/bookings/services/queries";
 
 const roomBookingRoute = getRouteApi("/_bookings/rooms/$roomId");
 
@@ -40,18 +39,6 @@ export type RoomBookingDaySegment =
           bookableSlot: RoomBookingSlot | null;
       };
 
-const parseDateKey = (value: string | undefined) => {
-    if (!value) return startOfDay(new Date());
-
-    const parsedDate = parse(value, "yyyy-MM-dd", new Date());
-
-    if (!isValid(parsedDate) || format(parsedDate, "yyyy-MM-dd") !== value) {
-        return startOfDay(new Date());
-    }
-
-    return startOfDay(parsedDate);
-};
-
 const getDayBounds = (date: Date) => {
     const start = set(date, { hours: 7, minutes: 0, seconds: 0, milliseconds: 0 });
     const end = addDays(startOfDay(date), 1);
@@ -73,13 +60,9 @@ const getBookableSlot = (start: Date, end: Date) => {
     return isAfter(slotEnd, slotStart) ? { start: slotStart, end: slotEnd } : null;
 };
 
-const getRoomDayEvents = (events: BookingCalendarEvent[], roomId: string, dayStart: Date, dayEnd: Date) =>
+const getRoomDayEvents = (events: BookingCalendarEvent[], dayStart: Date, dayEnd: Date) =>
     events
-        .filter((event) => {
-            if (event.roomId !== roomId) return false;
-
-            return isBefore(new Date(event.start), dayEnd) && isAfter(new Date(event.end), dayStart);
-        })
+        .filter((event) => isBefore(new Date(event.start), dayEnd) && isAfter(new Date(event.end), dayStart))
         .toSorted((a, b) => compareAsc(new Date(a.start), new Date(b.start)));
 
 const getDaySegments = (events: BookingCalendarEvent[], dayStart: Date, dayEnd: Date) => {
@@ -137,11 +120,12 @@ export const useRoomBookingDayModel = () => {
     const { date } = roomBookingRoute.useSearch();
     const navigate = roomBookingRoute.useNavigate();
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+    const calendarEvents = useBookingCalendarEvents();
 
-    const selectedDate = parseDateKey(date);
+    const selectedDate = parseRoomBookingDateKey(date);
     const room = data.rooms.find((item) => item.id === roomId);
     const { start: dayStart, end: dayEnd } = getDayBounds(selectedDate);
-    const dayEvents = room ? getRoomDayEvents(data.events, room.id, dayStart, dayEnd) : [];
+    const dayEvents = room ? getRoomDayEvents(calendarEvents, dayStart, dayEnd) : [];
     const segments = getDaySegments(dayEvents, dayStart, dayEnd);
     const bookableSlot = getFirstBookableSlot(segments, room?.available ?? false);
     const freeMinutes = segments.reduce(

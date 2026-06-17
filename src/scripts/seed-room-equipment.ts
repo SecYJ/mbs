@@ -1,4 +1,4 @@
-import { and, eq, notInArray, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { equipment, roomEquipment, rooms } from "@/db/schema";
@@ -24,14 +24,8 @@ type Assignment = {
     items: { brand: string; model: string; quantity: number }[];
 };
 
-// Room 33A — 1st floor, capacity 25 (larger room → 75" TV, laser projector, larger AC + whiteboard)
-// Room 35B — 3rd floor, capacity 20 (smaller → 65" TV, mid-range projector)
-// Items NOT listed here remain unassigned in inventory for future rooms:
-//   TVs: Samsung QM55C, LG 65UR640S9UD, Philips 65BFL2214/27, Philips 75BDL3550Q
-//   Projectors: Epson EB-W49
-//   Air conditioners: Panasonic CS-PU10VKH, Samsung AR12TYHYEWKNST
-//   Whiteboards: U Brands 2825U00-01, Luxor MB4836WW, Office Depot OD-WB23
-//   Chairs: 5 of the 50 IKEA TEODORES (25 + 20 = 45 assigned)
+// Equipment is assigned through room_equipment. Rooms no longer own equipment-specific columns.
+// Items not listed here remain unassigned in inventory for future rooms.
 const assignments: Assignment[] = [
     {
         roomName: "33A",
@@ -55,8 +49,6 @@ const assignments: Assignment[] = [
     },
 ];
 
-const reset = process.argv.includes("--reset");
-
 for (const { roomName, items } of assignments) {
     const room = await findRoom(roomName);
     const rows = await Promise.all(
@@ -73,22 +65,7 @@ for (const { roomName, items } of assignments) {
     );
 
     await db.transaction(async (tx) => {
-        if (reset) {
-            const removed = await tx.delete(roomEquipment).where(eq(roomEquipment.roomId, room.roomId)).returning();
-            console.log(`[${roomName}] reset deleted ${removed.length} assignments`);
-        } else if (rows.length > 0) {
-            await tx.delete(roomEquipment).where(
-                and(
-                    eq(roomEquipment.roomId, room.roomId),
-                    notInArray(
-                        roomEquipment.equipmentId,
-                        rows.map((r) => r.equipmentId),
-                    ),
-                ),
-            );
-        } else {
-            await tx.delete(roomEquipment).where(eq(roomEquipment.roomId, room.roomId));
-        }
+        const removed = await tx.delete(roomEquipment).where(eq(roomEquipment.roomId, room.roomId)).returning();
         const inserted = await tx
             .insert(roomEquipment)
             .values(rows)
@@ -97,7 +74,9 @@ for (const { roomName, items } of assignments) {
                 set: { quantity: sql`excluded.quantity`, updatedAt: sql`now()` },
             })
             .returning();
-        console.log(`[${roomName}] upserted ${inserted.length} equipment line(s)`);
+        console.log(
+            `[${roomName}] replaced ${removed.length} assignment(s), seeded ${inserted.length} equipment line(s)`,
+        );
     });
 }
 

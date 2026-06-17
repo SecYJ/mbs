@@ -12,19 +12,7 @@ const pgNativeShim = fileURLToPath(new URL("./src/lib/pg-native.ts", import.meta
 const nodePostgresPackages = ["pg", "pg-pool", "pg-native"];
 
 const config = defineConfig({
-    staged: {
-        "*": "vp check --fix",
-    },
-    test: {
-        deps: {
-            optimizer: {
-                client: {
-                    enabled: true,
-                    include: ["@testing-library/dom", "@testing-library/react", "pretty-format"],
-                },
-            },
-        },
-    },
+    staged: { "*": "vp check --fix" },
     lint: {
         options: { typeAware: true, typeCheck: true },
         plugins: ["import", "jsx-a11y", "unicorn"],

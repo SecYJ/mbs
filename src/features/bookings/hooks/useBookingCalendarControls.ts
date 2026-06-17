@@ -1,7 +1,7 @@
 import { useSearch } from "@tanstack/react-router";
 import { format, isWithinInterval, subMilliseconds } from "date-fns";
 
-import { useBookingCalendarStore } from "@/features/bookings/stores/booking-calendar-store";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 
 export const useBookingCalendarControls = () => {
     const { view } = useSearch({ from: "/_bookings/bookings" });

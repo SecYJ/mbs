@@ -4,35 +4,21 @@ import {
     addDays,
     compareAsc,
     differenceInMinutes,
-    format,
     isAfter,
     isBefore,
-    isValid,
     max as maxDate,
     min as minDate,
-    parse,
     set,
     startOfDay,
 } from "date-fns";
 
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
-import type { BookingCalendarEvent } from "@/features/bookings/utils/booking-calendar";
+import { useBookingCalendarEvents } from "@/features/bookings/hooks/useBookingCalendarEvents";
+import { parseRoomBookingDateKey } from "@/features/bookings/schemas/room-booking-search.schema";
+import { bookingCalendarQueryOptions, type BookingCalendarEvent } from "@/features/bookings/services/queries";
 
 type OccupiedWindow = {
     start: Date;
     end: Date;
-};
-
-const parseDateKey = (value: string | undefined) => {
-    if (!value) return startOfDay(new Date());
-
-    const parsedDate = parse(value, "yyyy-MM-dd", new Date());
-
-    if (!isValid(parsedDate) || format(parsedDate, "yyyy-MM-dd") !== value) {
-        return startOfDay(new Date());
-    }
-
-    return startOfDay(parsedDate);
 };
 
 const deriveDayBounds = (date: Date) => {
@@ -41,13 +27,9 @@ const deriveDayBounds = (date: Date) => {
     return { start, end };
 };
 
-const filterRoomDayEvents = (events: BookingCalendarEvent[], roomId: string, dayStart: Date, dayEnd: Date) =>
+const filterRoomDayEvents = (events: BookingCalendarEvent[], dayStart: Date, dayEnd: Date) =>
     events
-        .filter((event) => {
-            if (event.roomId !== roomId) return false;
-
-            return isBefore(new Date(event.start), dayEnd) && isAfter(new Date(event.end), dayStart);
-        })
+        .filter((event) => isBefore(new Date(event.start), dayEnd) && isAfter(new Date(event.end), dayStart))
         .toSorted((a, b) => compareAsc(new Date(a.start), new Date(b.start)));
 
 const collectOccupiedWindows = (events: BookingCalendarEvent[], dayStart: Date, dayEnd: Date) => {
@@ -76,11 +58,12 @@ export const useRoomBookingSummaryModel = () => {
     const { roomId } = useParams({ from: "/_bookings/rooms/$roomId" });
     const { date } = useSearch({ from: "/_bookings/rooms/$roomId" });
     const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
+    const calendarEvents = useBookingCalendarEvents();
 
-    const selectedDate = parseDateKey(date);
+    const selectedDate = parseRoomBookingDateKey(date);
     const room = data.rooms.find((item) => item.id === roomId);
     const { start: dayStart, end: dayEnd } = deriveDayBounds(selectedDate);
-    const dayEvents = room ? filterRoomDayEvents(data.events, room.id, dayStart, dayEnd) : [];
+    const dayEvents = room ? filterRoomDayEvents(calendarEvents, dayStart, dayEnd) : [];
     const occupiedMinutes = collectOccupiedWindows(dayEvents, dayStart, dayEnd).reduce(
         (total, window) => total + differenceInMinutes(window.end, window.start),
         0,

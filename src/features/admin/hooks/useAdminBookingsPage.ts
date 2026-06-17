@@ -1,15 +1,16 @@
 import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate, useSearch } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useFieldArray, useForm } from "react-hook-form";
+import { toast } from "sonner";
 
+import { useAdminBookingFilters } from "@/features/admin/hooks/useAdminBookingFilters";
 import { cancelAdminBookingFn } from "@/features/admin/services/bookings/fns";
 import {
     adminBookingStatsQueryOptions,
     adminBookingsQueryOptions,
     type AdminBookingFilters,
 } from "@/features/admin/services/bookings/queries";
-import { adminToast } from "@/features/admin/utils/admin-toast";
 
 type AdminBookingSearchUpdate = Partial<AdminBookingFilters>;
 
@@ -21,11 +22,11 @@ type AdminBookingCancellationFormValues = {
 };
 
 export const useAdminBookingsPage = () => {
-    const filters = useSearch({ from: "/admin/bookings" });
+    const { filters, deferredFilters } = useAdminBookingFilters();
     const navigate = useNavigate({ from: "/admin/bookings" });
     const queryClient = useQueryClient();
     const cancelAdminBooking = useServerFn(cancelAdminBookingFn);
-    const bookingsQueryOptions = adminBookingsQueryOptions(filters);
+    const bookingsQueryOptions = adminBookingsQueryOptions(deferredFilters);
     const bookingStatsQueryOptions = adminBookingStatsQueryOptions();
     const {
         data: { bookings, rooms },
@@ -60,7 +61,7 @@ export const useAdminBookingsPage = () => {
     } = useMutation({
         mutationFn: cancelAdminBooking,
         onError: (error) => {
-            adminToast(error instanceof Error ? error.message : "Failed to cancel booking", "danger");
+            toast.error(error instanceof Error ? error.message : "Failed to cancel booking");
         },
     });
 
@@ -95,7 +96,7 @@ export const useAdminBookingsPage = () => {
                         queryClient.invalidateQueries(bookingsQueryOptions),
                         queryClient.invalidateQueries(bookingStatsQueryOptions),
                     ]);
-                    adminToast(`"${booking.title}" cancelled`, "danger");
+                    toast.error(`"${booking.title}" cancelled`);
                     removeCancellation(booking.id);
                 },
             },

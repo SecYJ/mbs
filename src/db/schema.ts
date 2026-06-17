@@ -11,7 +11,6 @@ import {
     pgEnum,
     pgTable,
     primaryKey,
-    smallint,
     text,
     timestamp,
     uuid,
@@ -101,16 +100,21 @@ export const rateLimit = pgTable("rateLimit", {
     lastRequest: bigint("last_request", { mode: "number" }).notNull(),
 });
 
-export const rooms = pgTable("rooms", {
-    roomId: id("room_id"),
-    name: text().notNull(),
-    location: text().notNull(),
-    available: boolean().default(true).notNull(),
-    capacity: integer().notNull(),
+export const rooms = pgTable(
+    "rooms",
+    {
+        roomId: id("room_id"),
+        name: text().notNull(),
+        location: text().notNull(),
+        available: boolean().default(true).notNull(),
+        capacity: integer().notNull(),
+        maxBookingDurationHours: integer("max_booking_duration_hours").default(4).notNull(),
 
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
-});
+        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+    },
+    (table) => [check("rooms_max_booking_duration_positive", sql`${table.maxBookingDurationHours} > 0`)],
+);
 
 export const bookings = pgTable(
     "bookings",
@@ -262,20 +266,6 @@ export const roomFacilities = pgTable(
             }),
         ];
     },
-);
-
-export const bookingRules = pgTable(
-    "booking_rules",
-    {
-        id: smallint().primaryKey().default(1).notNull(),
-        maxBookingDurationHours: integer("max_booking_duration_hours").default(8).notNull(),
-        createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-        updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-    },
-    (table) => [
-        check("booking_rules_singleton", sql`${table.id} = 1`),
-        check("booking_rules_duration_positive", sql`${table.maxBookingDurationHours} > 0`),
-    ],
 );
 
 export const roomEquipment = pgTable(

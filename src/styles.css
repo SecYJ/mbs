@@ -197,6 +197,11 @@
     --color-sidebar-ring: var(--sidebar-ring);
 }
 
+html {
+    scrollbar-gutter: stable;
+    scrollbar-width: thin;
+}
+
 html,
 body,
 #app {

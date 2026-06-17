@@ -161,3 +161,20 @@
         max-height: 500px;
     }
 }
+
+/* ── Keyframes referenced by the pending-view skeleton (admin-pending.tsx) ── */
+
+@keyframes admin-skeleton-sweep {
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes admin-pending-bar {
+    from {
+        transform: translateX(-100%);
+    }
+    to {
+        transform: translateX(500%);
+    }
+}

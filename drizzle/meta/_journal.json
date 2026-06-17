@@ -127,6 +127,20 @@
             "when": 1780468585550,
             "tag": "0017_exotic_joseph",
             "breakpoints": true
+        },
+        {
+            "idx": 18,
+            "version": "7",
+            "when": 1780588064547,
+            "tag": "0018_harsh_devos",
+            "breakpoints": true
+        },
+        {
+            "idx": 19,
+            "version": "7",
+            "when": 1780588590653,
+            "tag": "0019_normal_white_queen",
+            "breakpoints": true
         }
     ]
 }

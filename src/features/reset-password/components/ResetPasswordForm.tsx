@@ -3,7 +3,7 @@ import { FormStateSubscribe } from "react-hook-form";
 
 import { Link } from "@tanstack/react-router";
 
-import { PasswordInput } from "@/components/password-input";
+import { PasswordInput } from "@/components/PasswordInput";
 import { useResetPassword } from "@/features/reset-password/hooks/useResetPassword";
 
 type Props = {

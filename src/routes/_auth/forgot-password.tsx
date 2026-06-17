@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CompositeComponent } from "@tanstack/react-start/rsc";
 
 import { ForgotPasswordForm } from "@/features/forgot-password/components/ForgotPasswordForm";
-import { getForgotPasswordPage } from "@/features/forgot-password/rsc/forgot-password";
+import { getForgotPasswordPage } from "@/features/forgot-password/rsc/ForgotPassword";
 import { redirectAuthenticatedUser } from "@/lib/session";
 
 export const ForgotPasswordPage = () => {

@@ -1,251 +1,263 @@
 import type { EventInput } from "@fullcalendar/core";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { addMinutes, format, startOfMinute } from "date-fns";
-import type { SubmitEvent } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 import { z } from "zod";
 
 import { PAST_BOOKING_START_MESSAGE } from "@/features/bookings/booking.constants";
 import type {
-    BookingFormData,
+    BookingReservationEditing,
     BookingReservationInitialDetails,
+    BookingReservationPayload,
+    BookingReservationRoom,
 } from "@/features/bookings/components/booking-reservation-editor.types";
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { useBookingCalendarEvents } from "@/features/bookings/hooks/useBookingCalendarEvents";
+import {
+    getBookingConflictMessage,
+    getOverlappingBookingConflict,
+} from "@/features/bookings/services/booking-conflicts";
+import { createBookingFn } from "@/features/bookings/services/fns";
+import { bookingCalendarQueryOptions, type BookingCalendarData } from "@/features/bookings/services/queries";
+import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
+import { notificationsQueryOptions } from "@/features/notifications/services/queries";
+
+const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const selectReservationData = ({ currentUserId, rooms, users }: BookingCalendarData) => ({
+    currentUserId,
+    rooms,
+    users,
+    bookableRooms: rooms.filter((room) => room.available),
+});
+
+const bookingReservationFormSchema = z.object({
+    title: z.string().trim().min(1, "Meeting title is required").max(160, "Meeting title is too long"),
+    roomId: z.string().min(1, "Select a room"),
+    startTime: z.string().min(1, "Select a start time").regex(dateTimeLocalPattern, "Select a valid start time"),
+    endTime: z.string().min(1, "Select a end time").regex(dateTimeLocalPattern, "Select a valid end time"),
+    attendeeIds: z.string().array().catch([]),
+    draftAttendeeIds: z.string().array().catch([]),
+    description: z.string().trim().max(1000, "Description is too long").catch(""),
+});
+
+export type BookingReservationFormValues = z.infer<typeof bookingReservationFormSchema>;
+type BookingReservationFieldName = keyof BookingReservationFormValues;
+type BookingSchedule = Pick<BookingReservationFormValues, "roomId" | "startTime" | "endTime">;
+
+const toDateTimeLocal = (value: Date | EventInput["start"]) =>
+    value ? format(value instanceof Date ? value : new Date(String(value)), "yyyy-MM-dd'T'HH:mm") : "";
 
 type UseBookingReservationFormOptions = {
-    error: string | null;
-    event: EventInput | null;
-    isEditing: boolean;
-    isSubmitting: boolean;
+    editing?: BookingReservationEditing;
     initialDetails: BookingReservationInitialDetails;
-    onSubmit: (data: BookingFormData) => void;
 };
 
-const getEventRoomId = (event: EventInput | null) =>
-    String(event?.resourceId ?? event?.extendedProps?.resourceId ?? "");
-
-const dateTimeLocalFormat = "yyyy-MM-dd'T'HH:mm";
-const dateTimeLocalPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
-
-const formatDateTimeLocal = (date: Date) => format(date, dateTimeLocalFormat);
-
-const getEventDateTime = (value: EventInput["start"]) => {
-    if (!value) return "";
-    return formatDateTimeLocal(new Date(String(value)));
-};
-
-const createDateTimeLocalSchema = (label: string) =>
-    z.string().min(1, `Select a ${label}`).regex(dateTimeLocalPattern, `Select a valid ${label}`);
-
-const createBookingReservationFormSchema = (now: number) =>
-    z
-        .object({
-            title: z.string().trim().min(1, "Meeting title is required").max(160, "Meeting title is too long"),
-            roomId: z.string().min(1, "Select a room"),
-            startTime: createDateTimeLocalSchema("start time"),
-            endTime: createDateTimeLocalSchema("end time"),
-            attendeeIds: z.array(z.string()).default([]),
-            draftAttendeeIds: z.array(z.string()).default([]),
-            description: z.string().trim().max(1000, "Description is too long").default(""),
-        })
-        .superRefine((data, ctx) => {
-            const startTimeMs = new Date(data.startTime).getTime();
-            const endTimeMs = new Date(data.endTime).getTime();
-
-            if (Number.isNaN(startTimeMs)) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["startTime"],
-                    message: "Select a valid start time",
-                });
-                return;
-            }
-
-            if (Number.isNaN(endTimeMs)) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["endTime"],
-                    message: "Select a valid end time",
-                });
-                return;
-            }
-
-            if (startTimeMs <= now) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["startTime"],
-                    message: PAST_BOOKING_START_MESSAGE,
-                });
-            }
-
-            if (endTimeMs <= startTimeMs) {
-                ctx.addIssue({
-                    code: "custom",
-                    path: ["endTime"],
-                    message: "End time must be after start time",
-                });
-            }
-        });
-
-export type BookingReservationFormValues = z.infer<ReturnType<typeof createBookingReservationFormSchema>>;
-type BookingReservationFieldName = keyof BookingReservationFormValues;
-
-const bookingReservationFieldNames: BookingReservationFieldName[] = [
-    "title",
-    "roomId",
-    "startTime",
-    "endTime",
-    "attendeeIds",
-    "draftAttendeeIds",
-    "description",
-];
-
-const isBookingReservationFieldName = (value: unknown): value is BookingReservationFieldName =>
-    typeof value === "string" && bookingReservationFieldNames.includes(value as BookingReservationFieldName);
-
-const getBookingReservationDefaultValues = ({
+const getBookingReservationFormValues = ({
+    bookableRooms,
     currentUserId,
-    event,
+    editing,
     initialDetails,
-    isEditing,
-}: {
-    currentUserId?: string;
-    event: EventInput | null;
-    initialDetails: BookingReservationInitialDetails;
-    isEditing: boolean;
-}): BookingReservationFormValues => {
-    const attendeeIds =
-        isEditing && event && Array.isArray(event.extendedProps?.attendeeIds)
-            ? event.extendedProps.attendeeIds.filter(
-                  (id): id is string => typeof id === "string" && id !== currentUserId,
-              )
-            : [];
+}: UseBookingReservationFormOptions & {
+    bookableRooms: BookingReservationRoom[];
+    currentUserId: string;
+}) => {
+    if (editing) {
+        const { event } = editing;
+        const attendeeIds = z
+            .string()
+            .array()
+            .transform((arr) => arr.filter((id) => id !== currentUserId))
+            .catch([])
+            .parse(event.extendedProps?.attendeeIds);
+
+        return {
+            title: event.title ?? "",
+            roomId: String(event.resourceId ?? event.extendedProps?.resourceId ?? ""),
+            startTime: toDateTimeLocal(event.start),
+            endTime: toDateTimeLocal(event.end),
+            attendeeIds,
+            draftAttendeeIds: attendeeIds,
+            description: z.string().catch("").parse(event.extendedProps?.description),
+        };
+    }
+
+    const initialRoomIsBookable = bookableRooms.some((room) => room.id === initialDetails.roomId);
 
     return {
-        title: isEditing ? (event?.title ?? "") : "",
-        roomId: isEditing ? getEventRoomId(event) : (initialDetails.roomId ?? ""),
-        startTime: isEditing
-            ? getEventDateTime(event?.start)
-            : initialDetails.start
-              ? formatDateTimeLocal(initialDetails.start)
-              : "",
-        endTime: isEditing
-            ? getEventDateTime(event?.end)
-            : initialDetails.end
-              ? formatDateTimeLocal(initialDetails.end)
-              : "",
-        attendeeIds,
-        draftAttendeeIds: attendeeIds,
-        description:
-            isEditing && typeof event?.extendedProps?.description === "string" ? event.extendedProps.description : "",
+        title: "",
+        roomId: initialDetails.roomId && initialRoomIsBookable ? initialDetails.roomId : "",
+        startTime: initialDetails.start ? toDateTimeLocal(initialDetails.start) : "",
+        endTime: initialDetails.end ? toDateTimeLocal(initialDetails.end) : "",
+        attendeeIds: [],
+        draftAttendeeIds: [],
+        description: "",
     };
 };
 
-const getReservationFormError = (errors: FieldErrors<BookingReservationFormValues>, externalError: string | null) =>
-    errors.title?.message ??
-    errors.roomId?.message ??
-    errors.startTime?.message ??
-    errors.endTime?.message ??
-    errors.description?.message ??
-    errors.attendeeIds?.message ??
-    errors.draftAttendeeIds?.message ??
-    errors.root?.message ??
-    externalError;
+export const useBookingReservationForm = ({ editing, initialDetails }: UseBookingReservationFormOptions) => {
+    const { data } = useSuspenseQuery({
+        ...bookingCalendarQueryOptions(),
+        select: selectReservationData,
+    });
+    const calendarEvents = useBookingCalendarEvents();
+    const { closeReservationDialog } = useBookingCalendarStore((state) => state.actions);
+    const queryClient = useQueryClient();
+    const createBooking = useServerFn(createBookingFn);
 
-const toBookingFormData = (values: BookingReservationFormValues, currentUserId?: string): BookingFormData => ({
-    title: values.title,
-    roomId: values.roomId,
-    start: new Date(values.startTime),
-    end: new Date(values.endTime),
-    attendeeIds: values.attendeeIds.filter((id) => id !== currentUserId),
-    description: values.description,
-});
+    // Create mode is self-contained: the form owns the create mutation and
+    // closes the dialog itself. Edit mode injects everything via `editing`,
+    // since the update mutation belongs to the view flow.
+    const createBookingMutation = useMutation({
+        mutationFn: createBooking,
+        onSuccess: async () => {
+            await Promise.all([
+                queryClient.invalidateQueries(bookingCalendarQueryOptions()),
+                queryClient.invalidateQueries(notificationsQueryOptions()),
+            ]);
 
-export const useBookingReservationForm = ({
-    error,
-    event,
-    initialDetails,
-    isEditing,
-    isSubmitting,
-    onSubmit,
-}: UseBookingReservationFormOptions) => {
-    const { data } = useSuspenseQuery(bookingCalendarQueryOptions());
-    const now = Date.now();
-    const formSchema = createBookingReservationFormSchema(now);
-    const form = useForm({
-        resolver: zodResolver(formSchema, undefined, { mode: "sync" }),
-        defaultValues: getBookingReservationDefaultValues({
-            currentUserId: data.currentUserId,
-            event,
-            initialDetails,
-            isEditing,
-        }),
+            closeReservationDialog();
+        },
     });
 
-    const { clearErrors, getValues, setError, watch } = form;
-    const roomId = watch("roomId");
-    const startTime = watch("startTime");
-    const endTime = watch("endTime");
+    const isEditing = editing !== undefined;
+    const error = editing
+        ? editing.error
+        : createBookingMutation.error instanceof Error
+          ? createBookingMutation.error.message
+          : null;
+    const isSubmitting = editing?.isSubmitting ?? createBookingMutation.isPending;
+    const onSubmit =
+        editing?.onSubmit ?? ((payload: BookingReservationPayload) => createBookingMutation.mutate({ data: payload }));
+
+    const formValues = getBookingReservationFormValues({
+        bookableRooms: data.bookableRooms,
+        currentUserId: data.currentUserId,
+        editing,
+        initialDetails,
+    });
+    const form = useForm({ resolver: zodResolver(bookingReservationFormSchema), values: formValues });
+    const { watch } = form;
+
+    // The booking's original room stays selectable while editing, even if it
+    // has since become unavailable.
+    const originalRoom = isEditing ? data.rooms.find((room) => room.id === formValues.roomId) : undefined;
+    const rooms = originalRoom && !originalRoom.available ? [originalRoom, ...data.bookableRooms] : data.bookableRooms;
     const inviteableUsers = data.currentUserId
         ? data.users.filter((user) => user.id !== data.currentUserId)
         : data.users;
-    const selectedRoomId = roomId || initialDetails.roomId;
-    const selectedRoom = data.rooms.find((room) => room.id === selectedRoomId);
-    const roomIsLockedToInitialDetails = !isEditing && !!initialDetails.roomId && !!selectedRoom;
     const showStartTimeField = isEditing || !initialDetails.start;
-    const minimumStartTime = formatDateTimeLocal(addMinutes(startOfMinute(new Date(now)), 1));
+    const minimumStartTime = toDateTimeLocal(addMinutes(startOfMinute(new Date()), 1));
+
+    // Every booking rule lives here, applied to the live schedule below (submit
+    // button + banner) and to the parsed values at submit time, so the two
+    // paths can never drift apart. While editing, room policy only applies once
+    // the schedule actually changes, so an existing booking stays saveable even
+    // if its room has since become unavailable.
+    const getPolicyError = (
+        values: BookingSchedule,
+    ): { field: BookingReservationFieldName | "root"; message: string } | null => {
+        const now = Date.now();
+        const startMs = values.startTime ? new Date(values.startTime).getTime() : null;
+        const endMs = values.endTime ? new Date(values.endTime).getTime() : null;
+
+        if (Number.isNaN(startMs)) {
+            return { field: "startTime", message: "Select a valid start time" };
+        }
+        if (Number.isNaN(endMs)) return { field: "endTime", message: "Select a valid end time" };
+
+        if (startMs === null) return null;
+
+        if (startMs <= now) {
+            return { field: "startTime", message: PAST_BOOKING_START_MESSAGE };
+        }
+
+        if (endMs === null) return null;
+
+        if (endMs <= startMs) {
+            return { field: "endTime", message: "End time must be after start time" };
+        }
+
+        const scheduleChanged =
+            values.roomId !== formValues.roomId ||
+            values.startTime !== formValues.startTime ||
+            values.endTime !== formValues.endTime;
+        const room = data.rooms.find((item) => item.id === values.roomId);
+
+        if ((isEditing && !scheduleChanged) || !room) return null;
+
+        if (!room.available) return { field: "roomId", message: "Selected room is not available for booking" };
+
+        const maxDurationMs = room.maxBookingDurationHours * 60 * 60 * 1000;
+        if (maxDurationMs && endMs - startMs > maxDurationMs) {
+            return {
+                field: "endTime",
+                message: `Bookings cannot exceed ${room.maxBookingDurationHours} hours for ${room.title}`,
+            };
+        }
+
+        const conflict = getOverlappingBookingConflict({
+            endTime: values.endTime,
+            events: calendarEvents,
+            excludedBookingId: editing?.event.id ? String(editing.event.id) : undefined,
+            roomId: room.id,
+            roomName: room.title,
+            startTime: values.startTime,
+        });
+
+        return conflict ? { field: "root", message: getBookingConflictMessage(conflict) } : null;
+    };
+
+    // The only reactive form state the hook reads; everything else subscribes
+    // through Controller/FormStateSubscribe in the component.
+    const [roomId, startTime, endTime] = watch(["roomId", "startTime", "endTime"]);
     const minimumEndTime = startTime && startTime > minimumStartTime ? startTime : minimumStartTime;
-    const selectedStartDate = startTime ? new Date(startTime) : null;
-    const selectedEndDate = endTime ? new Date(endTime) : null;
-    const timeValidationError =
-        selectedStartDate && selectedStartDate.getTime() <= now
-            ? PAST_BOOKING_START_MESSAGE
-            : selectedStartDate && selectedEndDate && selectedEndDate.getTime() <= selectedStartDate.getTime()
-              ? "End time must be after start time"
-              : null;
-    const submitLabel = isEditing ? (isSubmitting ? "Saving" : "Save") : isSubmitting ? "Reserving" : "Reserve";
+    const policyError = getPolicyError({ roomId, startTime, endTime });
 
     const getFormError = (errors: FieldErrors<BookingReservationFormValues>) =>
-        timeValidationError ?? getReservationFormError(errors, error);
+        policyError?.message ??
+        errors.title?.message ??
+        errors.roomId?.message ??
+        errors.startTime?.message ??
+        errors.endTime?.message ??
+        errors.description?.message ??
+        errors.attendeeIds?.message ??
+        errors.draftAttendeeIds?.message ??
+        errors.root?.message ??
+        error;
 
-    const submitReservation = (e: SubmitEvent) => {
-        e.preventDefault();
+    const submitReservation = form.handleSubmit((values) => {
         if (isSubmitting) return;
 
-        const result = createBookingReservationFormSchema(Date.now()).safeParse(getValues());
+        const submitError = getPolicyError(values);
 
-        if (!result.success) {
-            clearErrors();
-            result.error.issues.forEach((issue) => {
-                const fieldName = issue.path[0];
-
-                if (isBookingReservationFieldName(fieldName)) {
-                    setError(fieldName, { message: issue.message, type: "manual" });
-                    return;
-                }
-
-                setError("root", { message: issue.message, type: "manual" });
-            });
+        if (submitError) {
+            form.setError(submitError.field, { message: submitError.message, type: "manual" });
             return;
         }
 
-        clearErrors();
-        onSubmit(toBookingFormData(result.data, data.currentUserId));
-    };
+        onSubmit({
+            title: values.title,
+            roomId: values.roomId,
+            startTime: new Date(values.startTime).toISOString(),
+            endTime: new Date(values.endTime).toISOString(),
+            attendeeIds: values.attendeeIds.filter((id) => id !== data.currentUserId),
+            description: values.description,
+        });
+    });
 
     return {
         form,
         getFormError,
         inviteableUsers,
+        isSubmitting,
         minimumEndTime,
         minimumStartTime,
-        rooms: data.rooms,
-        roomIsLockedToInitialDetails,
-        selectedRoom,
+        onCancel: editing?.onCancel ?? closeReservationDialog,
+        rooms,
         showStartTimeField,
-        submitDisabled: !!timeValidationError,
-        submitLabel,
+        submitDisabled: policyError !== null,
+        submitLabel: isEditing ? (isSubmitting ? "Saving" : "Save") : isSubmitting ? "Reserving" : "Reserve",
         submitReservation,
     };
 };
