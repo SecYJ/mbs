@@ -5,8 +5,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 import viteReact from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-
-import rsc from "@vitejs/plugin-rsc";
+import reactScan from "@react-scan/vite-plugin-react-scan";
 
 const pgNativeShim = fileURLToPath(new URL("./src/lib/pg-native.ts", import.meta.url));
 const nodePostgresPackages = ["pg", "pg-pool", "pg-native"];
@@ -55,16 +54,14 @@ const config = defineConfig({
     },
     plugins: [
         tailwindcss(),
-        tanstackStart({
-            rsc: {
-                enabled: true,
-            },
-        }),
-        rsc(),
+        tanstackStart(),
         viteReact({
             babel: {
                 plugins: ["babel-plugin-react-compiler"],
             },
+        }),
+        reactScan({
+            enable: true,
         }),
     ],
 });
