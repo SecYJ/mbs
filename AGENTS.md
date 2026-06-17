@@ -1,6 +1,8 @@
-### Latest library information
+## Latest Documentation
 
-- Use Context7 when looking for up to date docs and information.
+- Use Context7 to get latest library docs and data.
+
+Prefer these over relying on training knowledge — even for well-known libraries — since versions and APIs drift. For general web lookups (news, blog posts, articles, non-library questions), use the `exa` MCP server instead of generic web search.
 
 ## Coding Style
 
@@ -11,10 +13,13 @@
 
 ## TypeScript
 
-- use type instead of interface
+- use type allias instead of interface
 - prefer auto-inferred return types over explicit return type annotations.
+
+## Zod
+
 - For Zod schema fallbacks, do not chain `.default()` together with `.catch()`; `.catch()` already covers the fallback cases `.default()` would handle.
-- Do not extract utility functions by default. Keep simple, single-use logic close to its caller, and prefer expressing parsing, validation, coercion, defaults, and input normalization in the relevant Zod schema. Create a utility when the behavior is reused, represents domain logic, or would be clearer outside a schema.
+-   - **No unused schema types**: Do not create or export an inferred type from a Zod schema (e.g., `z.infer<typeof Schema>`) unless it is actually used somewhere. If the type has no consumers, remove it.
 
 ## React
 

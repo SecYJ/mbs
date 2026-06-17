@@ -1,4 +1,6 @@
-export type NotificationFilter = "all" | "unread";
+export const notificationFilters = ["all", "unread"] as const;
+
+export type NotificationFilter = (typeof notificationFilters)[number];
 
 export const NOTIFICATION_FILTER_DEFAULTS = {
     filter: "all" as NotificationFilter,

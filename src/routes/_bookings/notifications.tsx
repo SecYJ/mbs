@@ -4,17 +4,18 @@ import { Bell, CalendarDays, CheckCheck, CheckCircle2 } from "lucide-react";
 import { z } from "zod";
 
 import { Badge } from "@/components/ui/badge";
+import { useNotificationReadActions } from "@/features/notifications/hooks/use-notification-read-actions";
 import {
     filterNotifications,
     NOTIFICATION_FILTER_DEFAULTS,
     NOTIFICATION_FILTER_OPTIONS,
+    notificationFilters,
 } from "@/features/notifications/notification-filter";
 import {
     formatNotificationDate,
     formatNotificationDateTime,
     formatNotificationTime,
 } from "@/features/notifications/notification-format";
-import { useNotificationReadActions } from "@/features/notifications/hooks/use-notification-read-actions";
 import { notificationsQueryOptions } from "@/features/notifications/services/queries";
 import { cn } from "@/lib/utils";
 
@@ -26,17 +27,26 @@ const statusLabel = {
 
 const notificationSearchSchema = z.object({
     filter: z
-        .enum(["all", "unread"])
-        .default(NOTIFICATION_FILTER_DEFAULTS.filter)
-        .catch(NOTIFICATION_FILTER_DEFAULTS.filter),
+        .enum(notificationFilters)
+        .catch(NOTIFICATION_FILTER_DEFAULTS.filter)
+        .prefault(NOTIFICATION_FILTER_DEFAULTS.filter),
 });
 
-export const NotificationsPage = () => {
+export const Route = createFileRoute("/_bookings/notifications")({
+    validateSearch: notificationSearchSchema,
+    search: {
+        middlewares: [stripSearchParams(NOTIFICATION_FILTER_DEFAULTS)],
+    },
+    loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(notificationsQueryOptions()),
+    component: NotificationsPage,
+});
+
+export function NotificationsPage() {
+    const { filter } = Route.useSearch();
     const { data: notifications } = useSuspenseQuery(notificationsQueryOptions());
     const { markAsRead, markAllAsRead, isMarkingRead, isMarkingAllRead } = useNotificationReadActions();
-    const { filter } = Route.useSearch();
     const unreadCount = notifications.filter((notification) => notification.status === "unread").length;
-    const filteredNotifications = filterNotifications(notifications, filter);
+    const visibleNotifications = filterNotifications(notifications, filter);
 
     return (
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
@@ -77,26 +87,29 @@ export const NotificationsPage = () => {
                         {NOTIFICATION_FILTER_OPTIONS.map((option) => (
                             <Link
                                 key={option.value}
-                                to="/notifications"
-                                search={{ filter: option.value }}
-                                className={cn(
-                                    "border px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] uppercase no-underline",
-                                    filter === option.value
-                                        ? "border-(--hairline-strong) bg-(--surface-02) text-(--bone)"
-                                        : "border-transparent text-(--bone-dim) transition-colors hover:border-(--hairline) hover:text-(--bone)",
-                                )}
+                                to="."
+                                search={(previous) => ({ ...previous, filter: option.value })}
+                                activeOptions={{ exact: true }}
+                                activeProps={{
+                                    className: "border-(--hairline-strong) bg-(--surface-02) text-(--bone)",
+                                }}
+                                inactiveProps={{
+                                    className:
+                                        "border-transparent text-(--bone-dim) transition-colors hover:border-(--hairline) hover:text-(--bone)",
+                                }}
+                                className="border px-4 py-2 text-[0.66rem] font-semibold tracking-[0.24em] uppercase no-underline"
                             >
                                 {option.label}
                             </Link>
                         ))}
                     </div>
                     <p className="text-xs text-(--bone-dim)">
-                        Showing {filteredNotifications.length} of {notifications.length}
+                        Showing {visibleNotifications.length} of {notifications.length}
                     </p>
                 </div>
             ) : null}
 
-            {filteredNotifications.length === 0 ? (
+            {visibleNotifications.length === 0 ? (
                 <section className="flex min-h-80 flex-col items-center justify-center border border-dashed border-(--hairline) px-6 text-center">
                     <Bell className="size-8 text-(--bone-dim)" strokeWidth={1.4} />
                     <h2 className="mt-5 text-lg font-semibold text-(--bone)">
@@ -110,7 +123,7 @@ export const NotificationsPage = () => {
                 </section>
             ) : (
                 <section className="divide-y divide-(--hairline) border-y border-(--hairline)">
-                    {filteredNotifications.map((notification) => (
+                    {visibleNotifications.map((notification) => (
                         <article
                             key={notification.id}
                             className="grid gap-4 px-1 py-5 md:grid-cols-[1fr_auto] md:items-center"
@@ -182,14 +195,4 @@ export const NotificationsPage = () => {
             )}
         </div>
     );
-};
-
-// react-doctor-disable-next-line react-doctor/only-export-components -- TanStack file routes must export Route.
-export const Route = createFileRoute("/_bookings/notifications")({
-    validateSearch: notificationSearchSchema,
-    search: {
-        middlewares: [stripSearchParams(NOTIFICATION_FILTER_DEFAULTS)],
-    },
-    loader: ({ context: { queryClient } }) => queryClient.ensureQueryData(notificationsQueryOptions()),
-    component: NotificationsPage,
-});
+}
