@@ -1,6 +1,8 @@
-### Latest library information
+## Latest Documentation
 
-- Use Context7 when looking for up to date docs and information.
+- Use Context7 to get latest library docs and data.
+
+Prefer these over relying on training knowledge — even for well-known libraries — since versions and APIs drift. For general web lookups (news, blog posts, articles, non-library questions), use the `exa` MCP server instead of generic web search.
 
 ## Coding Style
 
