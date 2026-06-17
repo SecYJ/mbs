@@ -1,6 +1,6 @@
-## Latest Documentation
+### Latest library information
 
-- Use Context7 to get latest library docs and data.
+- Use Context7 when looking for up to date docs and information.
 
 ## Coding Style
 
