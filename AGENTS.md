@@ -1,24 +1,6 @@
-## Library Documentation
+### Latest library information
 
-- Load documentation skills when implementation depends on an unfamiliar,
-  ambiguous, or potentially version-specific library API.
-- Skip documentation skill loading when:
-    - No external library API is involved.
-    - The change follows an existing usage pattern already present in the repository.
-    - The task is a simple refactor, rename, styling change, or explanatory question.
-- When uncertain whether an API is version-specific, load the relevant skill.
-
-### TanStack Libraries
-
-- For non-trivial TanStack API usage:
-    1. Run `pnpm dlx @tanstack/intent@latest list`.
-    2. Load the most specific matching skill with:
-       `pnpm dlx @tanstack/intent@latest load <package>#<skill>`.
-- Do not run TanStack Intent for tasks unrelated to TanStack libraries.
-
-### Other Libraries
-
-- Use Context7 when current documentation is needed for a non-TanStack library.
+- Use Context7 when looking for up to date docs and information.
 
 ## Coding Style
 
@@ -43,7 +25,6 @@
 ## Feature Organization
 
 - Keep route files thin: route config, search validation, loaders, and the imported feature page only.
-- Route loaders should usually start data fetching without `async`/`await` so the page can render while server data streams in. Only make a loader `async` and await inside it when the route must block rendering before continuing.
 - Feature folders should own their `components/`, `hooks/`, `schemas/`, `services/` and `utils/` when those concerns exist.
 - Prefer `schemas/` over a singular `schema/` folder.
 - Move workflow and data-model logic into feature hooks so JSX components do not become bloated.
@@ -54,15 +35,3 @@
 ## Dev Server
 
 - If you start a dev server manually (e.g. `vp dev`) for verification, stop it once the task is complete. Don't leave it running in the background.
-
-## Research & Documentation
-
-Resolution priority for library/framework docs:
-
-1. **First** -> use the installed `find-docs` skill for any up-to-date library/framework/API documentation. Follow its `SKILL.md`, which uses the Context7 CLI lookup flow.
-2. **If `find-docs` is unavailable** -> use the Context7 CLI directly (`ctx7`, or `npx ctx7@latest`): resolve the library ID first, then query docs with that ID.
-3. **If the Context7 CLI is unavailable or cannot be used** -> fall back to Context7 MCP.
-4. **TanStack-specific follow-up** -> if the issue still needs TanStack-specific local guidance, use the TanStack intent skill (`vpx @tanstack/intent@latest list` / `vpx @tanstack/intent@latest load <package>#<skill>`) after the docs lookup path above.
-5. **Still stuck** -> use web search (`exa` MCP for general web; generic web search as last resort).
-
-Prefer these over relying on training knowledge — even for well-known libraries — since versions and APIs drift. For general web lookups (news, blog posts, articles, non-library questions), use the `exa` MCP server instead of generic web search.
