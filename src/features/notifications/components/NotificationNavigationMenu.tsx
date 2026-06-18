@@ -28,6 +28,7 @@ type NotificationMarkAllButtonProps = {
 
 type NotificationFilterControlsProps = {
     filter: NotificationFilter;
+    prefetchNotifications: (filter: NotificationFilter) => void;
     setFilter: (filter: NotificationFilter) => void;
 };
 
@@ -50,6 +51,7 @@ export const NotificationNavigationMenu = () => {
         isPending,
         markAllAsRead,
         notificationFilter,
+        prefetchNotifications,
         previewNotifications,
         selectNotification,
         setNotificationFilter,
@@ -76,7 +78,11 @@ export const NotificationNavigationMenu = () => {
                 </NotificationMenuHeader>
 
                 {totalCount > 0 ? (
-                    <NotificationFilterControls filter={notificationFilter} setFilter={setNotificationFilter} />
+                    <NotificationFilterControls
+                        filter={notificationFilter}
+                        prefetchNotifications={prefetchNotifications}
+                        setFilter={setNotificationFilter}
+                    />
                 ) : null}
 
                 {isPending ? (
@@ -149,13 +155,14 @@ const NotificationMenuHeader = ({ children, unreadCount }: NotificationMenuHeade
     </div>
 );
 
-const NotificationFilterControls = ({ filter, setFilter }: NotificationFilterControlsProps) => (
+const NotificationFilterControls = ({ filter, prefetchNotifications, setFilter }: NotificationFilterControlsProps) => (
     <div className="flex gap-1 border-b border-(--hairline) p-2">
         {NOTIFICATION_FILTER_OPTIONS.map((option) => (
             <button
                 key={option.value}
                 type="button"
                 onClick={() => setFilter(option.value)}
+                onMouseEnter={() => prefetchNotifications(option.value)}
                 aria-pressed={filter === option.value}
                 className={cn(
                     "flex-1 cursor-pointer border px-3 py-2 text-[0.62rem] font-semibold tracking-[0.22em] uppercase",

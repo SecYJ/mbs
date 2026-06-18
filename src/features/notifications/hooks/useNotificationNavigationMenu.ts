@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
 import { useState, useTransition } from "react";
 
 import { useNotificationReadActions } from "@/features/notifications/hooks/useNotificationReadActions";
@@ -19,6 +19,7 @@ const selectNotificationMenu = (data: NotificationsData) => ({
 });
 
 export const useNotificationNavigationMenu = () => {
+    const queryClient = useQueryClient();
     const [visibleFilter, setVisibleFilter] = useState<NotificationFilter | null>(null);
     const [isPending, startTransition] = useTransition();
     const isOpen = visibleFilter !== null;
@@ -39,6 +40,10 @@ export const useNotificationNavigationMenu = () => {
         setVisibleFilter(null);
     };
 
+    const prefetchNotifications = (filter: NotificationFilter) => {
+        void queryClient.ensureQueryData(notificationsQueryOptions(filter));
+    };
+
     const closeMenu = () => setVisibleFilter(null);
     const setNotificationFilter = (filter: NotificationFilter) => {
         startTransition(() => setVisibleFilter(filter));
@@ -52,6 +57,7 @@ export const useNotificationNavigationMenu = () => {
         markAllAsRead,
         notificationFilter,
         previewNotifications,
+        prefetchNotifications,
         selectNotification,
         setNotificationFilter,
         setVisibleFilter,
