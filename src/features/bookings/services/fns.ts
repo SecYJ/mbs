@@ -348,7 +348,7 @@ export const getBookingCalendarDataFn = createServerFn({ method: "GET" })
 
 export const getBookingCalendarEventsFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(
+    .validator(
         z.object({
             rangeStart: z.iso.datetime(),
             rangeEnd: z.iso.datetime(),
@@ -428,7 +428,7 @@ export const getBookingCalendarEventsFn = createServerFn({ method: "GET" })
 
 export const getBookingCalendarRoomsFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(roomFiltersSchema)
+    .validator(roomFiltersSchema)
     .handler(async ({ data }) => {
         const roomRows = await db
             .select({
@@ -497,7 +497,7 @@ export const getBookingCalendarSummaryFn = createServerFn({ method: "GET" })
 
 export const getMyBookingsDataFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(
+    .validator(
         z.object({
             group: z.enum(myBookingGroups),
             q: z.string(),
@@ -621,7 +621,7 @@ export const getMyBookingsStatsFn = createServerFn({ method: "GET" })
 
 export const getBookingDetailsFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(z.object({ bookingId: z.uuid() }))
+    .validator(z.object({ bookingId: z.uuid() }))
     .handler(async ({ context, data }) => {
         const session = context.session;
 
@@ -723,7 +723,7 @@ export const getBookingDetailsFn = createServerFn({ method: "GET" })
 
 export const rsvpBookingInviteFn = createServerFn({ method: "POST" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(
+    .validator(
         z.object({
             bookingId: z.string().uuid(),
             status: z.enum(["accepted", "declined"]),
@@ -780,7 +780,7 @@ export const rsvpBookingInviteFn = createServerFn({ method: "POST" })
 
 export const createBookingFn = createServerFn({ method: "POST" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(createBookingSchema)
+    .validator(createBookingSchema)
     .handler(async ({ context, data }) => {
         const session = context.session;
         const startTime = new Date(data.startTime);
@@ -833,7 +833,7 @@ export const createBookingFn = createServerFn({ method: "POST" })
 
 export const updateBookingFn = createServerFn({ method: "POST" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(updateBookingSchema)
+    .validator(updateBookingSchema)
     .handler(async ({ context, data }) => {
         const session = context.session;
         const [existingBooking] = await db
@@ -922,7 +922,7 @@ export const updateBookingFn = createServerFn({ method: "POST" })
 
 export const cancelBookingFn = createServerFn({ method: "POST" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(cancelBookingSchema)
+    .validator(cancelBookingSchema)
     .handler(async ({ context, data }) => {
         const session = context.session;
         const [booking] = await db
