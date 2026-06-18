@@ -28,6 +28,7 @@ type NotificationMarkAllButtonProps = {
 
 type NotificationFilterControlsProps = {
     filter: NotificationFilter;
+    prefetchNotifications: (filter: NotificationFilter) => void;
     setFilter: (filter: NotificationFilter) => void;
 };
 
@@ -47,10 +48,13 @@ export const NotificationNavigationMenu = () => {
         closeMenu,
         isMarkingAllRead,
         isOpen,
+        isPending,
         markAllAsRead,
         notificationFilter,
+        prefetchNotifications,
         previewNotifications,
         selectNotification,
+        setNotificationFilter,
         setVisibleFilter,
         totalCount,
         unreadBadgeLabel,
@@ -74,14 +78,22 @@ export const NotificationNavigationMenu = () => {
                 </NotificationMenuHeader>
 
                 {totalCount > 0 ? (
-                    <NotificationFilterControls filter={notificationFilter} setFilter={setVisibleFilter} />
+                    <NotificationFilterControls
+                        filter={notificationFilter}
+                        prefetchNotifications={prefetchNotifications}
+                        setFilter={setNotificationFilter}
+                    />
                 ) : null}
 
-                <NotificationPreviewList
-                    totalCount={totalCount}
-                    previewNotifications={previewNotifications}
-                    selectNotification={selectNotification}
-                />
+                {isPending ? (
+                    <NotificationPreviewListSkeleton />
+                ) : (
+                    <NotificationPreviewList
+                        totalCount={totalCount}
+                        previewNotifications={previewNotifications}
+                        selectNotification={selectNotification}
+                    />
+                )}
 
                 <NotificationCenterLink closeMenu={closeMenu} filter={notificationFilter} />
             </PopoverContent>
@@ -143,13 +155,14 @@ const NotificationMenuHeader = ({ children, unreadCount }: NotificationMenuHeade
     </div>
 );
 
-const NotificationFilterControls = ({ filter, setFilter }: NotificationFilterControlsProps) => (
+const NotificationFilterControls = ({ filter, prefetchNotifications, setFilter }: NotificationFilterControlsProps) => (
     <div className="flex gap-1 border-b border-(--hairline) p-2">
         {NOTIFICATION_FILTER_OPTIONS.map((option) => (
             <button
                 key={option.value}
                 type="button"
                 onClick={() => setFilter(option.value)}
+                onMouseEnter={() => prefetchNotifications(option.value)}
                 aria-pressed={filter === option.value}
                 className={cn(
                     "flex-1 cursor-pointer border px-3 py-2 text-[0.62rem] font-semibold tracking-[0.22em] uppercase",
@@ -160,6 +173,21 @@ const NotificationFilterControls = ({ filter, setFilter }: NotificationFilterCon
             >
                 {option.label}
             </button>
+        ))}
+    </div>
+);
+
+const NotificationPreviewListSkeleton = () => (
+    <div aria-busy="true" aria-label="Loading notifications" className="divide-y divide-(--hairline)">
+        {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className="flex items-start gap-3 px-4 py-3">
+                <div className="mt-1 size-1.5 shrink-0 animate-pulse rounded-full bg-(--bone-faint)" />
+                <div className="flex-1 space-y-2">
+                    <div className="h-3 w-4/5 animate-pulse bg-(--surface-03)" />
+                    <div className="h-2.5 w-2/5 animate-pulse bg-(--surface-03)" />
+                    <div className="h-2.5 w-1/4 animate-pulse bg-(--surface-03)" />
+                </div>
+            </div>
         ))}
     </div>
 );
