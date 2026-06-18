@@ -11,7 +11,7 @@
 
 ## TypeScript
 
-- use type allias instead of interface
+- use type alias instead of interface
 - prefer auto-inferred return types over explicit return type annotations.
 
 ## Zod

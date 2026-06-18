@@ -5,7 +5,7 @@ import { compareAsc, format, formatDuration, intervalToDuration } from "date-fns
 
 import { rsvpBookingInviteFn } from "@/features/bookings/services/fns";
 import { bookingCalendarQueryOptions, bookingDetailsQueryOptions } from "@/features/bookings/services/queries";
-import { notificationsQueryOptions } from "@/features/notifications/services/queries";
+import { notificationsQueryKey } from "@/features/notifications/services/queries";
 
 type BookingStateInput = {
     start: string;
@@ -55,7 +55,7 @@ export const useBookingDetailsPage = () => {
             await Promise.all([
                 queryClient.invalidateQueries(bookingDetailsQueryOptions(bookingId)),
                 queryClient.invalidateQueries(bookingCalendarQueryOptions()),
-                queryClient.invalidateQueries(notificationsQueryOptions()),
+                queryClient.invalidateQueries({ queryKey: notificationsQueryKey }),
             ]);
         },
     });
