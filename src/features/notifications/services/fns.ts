@@ -1,16 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
 import { bookings, notifications, rooms } from "@/db/schema";
+import { notificationFilterSchema } from "@/features/notifications/schemas/notificationSchema";
 import { authenticatedUserMiddleware } from "@/middleware/auth";
 
 const toIso = (value: Date | string | null) => (value ? new Date(value).toISOString() : new Date().toISOString());
 
 export const getNotificationsFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
-    .handler(async ({ context }) => {
+    .validator(z.object({ filter: notificationFilterSchema.optional() }))
+    .handler(async ({ context, data }) => {
+        const userId = context.session.user.id;
+        const statusFilter = data.filter === "unread" ? eq(notifications.status, "unread") : undefined;
+
         const rows = await db
             .select({
                 notification: notifications,
@@ -28,10 +33,18 @@ export const getNotificationsFn = createServerFn({ method: "GET" })
             .from(notifications)
             .innerJoin(bookings, eq(bookings.bookingId, notifications.bookingId))
             .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
-            .where(eq(notifications.userId, context.session.user.id))
+            .where(and(eq(notifications.userId, userId), statusFilter))
             .orderBy(desc(notifications.createdAt));
 
-        return rows.map((row) => ({
+        const [counts] = await db
+            .select({
+                totalCount: count(),
+                unreadCount: sql<number>`count(*) filter (where ${notifications.status} = 'unread')`.mapWith(Number),
+            })
+            .from(notifications)
+            .where(eq(notifications.userId, userId));
+
+        const items = rows.map((row) => ({
             id: row.notification.notificationId,
             bookingId: row.notification.bookingId,
             message: row.notification.message,
@@ -45,13 +58,19 @@ export const getNotificationsFn = createServerFn({ method: "GET" })
             },
             room: row.room,
         }));
+
+        return {
+            items,
+            totalCount: counts?.totalCount ?? 0,
+            unreadCount: counts?.unreadCount ?? 0,
+        };
     });
 
 export const markNotificationReadFn = createServerFn({ method: "POST" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(
+    .validator(
         z.object({
-            notificationId: z.string().uuid(),
+            notificationId: z.uuid(),
         }),
     )
     .handler(async ({ context, data }) => {
@@ -72,7 +91,6 @@ export const markNotificationReadFn = createServerFn({ method: "POST" })
 
 export const markAllNotificationsReadFn = createServerFn({ method: "POST" })
     .middleware([authenticatedUserMiddleware])
-    .inputValidator(z.object({}))
     .handler(async ({ context }) => {
         const updatedNotifications = await db
             .update(notifications)

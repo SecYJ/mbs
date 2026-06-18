@@ -91,7 +91,7 @@ const getPasswordResetErrorMessage = async (response: Response) => {
 };
 
 export const requestPasswordResetFn = createServerFn({ method: "POST" })
-    .inputValidator(forgotPasswordSchema)
+    .validator(forgotPasswordSchema)
     .handler(async ({ data }) => {
         const request = getRequest();
 

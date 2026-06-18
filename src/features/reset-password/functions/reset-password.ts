@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { resetPasswordServerSchema } from "@/features/reset-password/schema/reset-password.schema";
 
 export const resetPasswordFn = createServerFn({ method: "POST" })
-    .inputValidator(resetPasswordServerSchema)
+    .validator(resetPasswordServerSchema)
     .handler(async ({ data }) => {
         await auth.api.resetPassword({
             body: {

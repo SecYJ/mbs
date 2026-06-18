@@ -1,25 +1,18 @@
-import { scan } from "react-scan";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router";
 
-import { useEffect, type ReactNode } from "react";
 import type { QueryClient } from "@tanstack/react-query";
+import { type ReactNode } from "react";
 
-import appCss from "@/styles.css?url";
 import { NotFound } from "@/components/NotFound";
 import { PersistentClientStoreHydrator } from "@/stores/PersistentClientStoreHydrator";
+import appCss from "@/styles.css?url";
 
 type MyRouterContext = {
     queryClient: QueryClient;
 };
 
 const RootDocument = ({ children }: { children: ReactNode }) => {
-    useEffect(() => {
-        scan({
-            trackUnnecessaryRenders: true,
-        });
-    }, []);
-
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
             <head>

@@ -2,13 +2,13 @@ import { Link } from "@tanstack/react-router";
 import { ArrowRight, Bell, CheckCheck } from "lucide-react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { NOTIFICATION_FILTER_OPTIONS, type NotificationFilter } from "@/features/notifications/notification-filter";
-import { formatNotificationDateTime } from "@/features/notifications/notification-format";
-import {
-    type NotificationNavigationItem,
-    useNotificationNavigationMenu,
-} from "@/features/notifications/hooks/use-notification-navigation-menu";
+import { useNotificationNavigationMenu } from "@/features/notifications/hooks/useNotificationNavigationMenu";
+import { type NotificationFilter } from "@/features/notifications/schemas/notificationSchema";
+import { formatNotificationDateTime } from "@/features/notifications/utils/notificationFormat";
 import { cn } from "@/lib/utils";
+import type { ReactNode } from "react";
+import { NOTIFICATION_FILTER_OPTIONS } from "@/features/notifications/constants/notificationConstants";
+import type { NotificationItem } from "@/features/notifications/services/queries";
 
 type NotificationMenuTriggerProps = {
     unreadBadgeLabel: string;
@@ -16,6 +16,11 @@ type NotificationMenuTriggerProps = {
 };
 
 type NotificationMenuHeaderProps = {
+    children: ReactNode;
+    unreadCount: number;
+};
+
+type NotificationMarkAllButtonProps = {
     isMarkingAllRead: boolean;
     markAllAsRead: () => void;
     unreadCount: number;
@@ -27,9 +32,9 @@ type NotificationFilterControlsProps = {
 };
 
 type NotificationPreviewListProps = {
-    notifications: NotificationNavigationItem[];
-    previewNotifications: NotificationNavigationItem[];
-    selectNotification: (notification: NotificationNavigationItem) => void;
+    totalCount: number;
+    previewNotifications: NotificationItem[];
+    selectNotification: (notification: NotificationItem) => void;
 };
 
 type NotificationCenterLinkProps = {
@@ -44,36 +49,40 @@ export const NotificationNavigationMenu = () => {
         isOpen,
         markAllAsRead,
         notificationFilter,
-        notifications,
         previewNotifications,
         selectNotification,
-        setNotificationFilter,
-        setOpen,
+        setVisibleFilter,
+        totalCount,
         unreadBadgeLabel,
         unreadCount,
     } = useNotificationNavigationMenu();
 
     return (
-        <Popover open={isOpen} onOpenChange={setOpen}>
+        <Popover open={isOpen} onOpenChange={(open) => setVisibleFilter(open ? "all" : null)}>
             <NotificationMenuTrigger unreadBadgeLabel={unreadBadgeLabel} unreadCount={unreadCount} />
             <PopoverContent
                 align="end"
                 sideOffset={10}
                 className="w-[min(calc(100vw-2rem),23rem)] rounded-none border-(--hairline) bg-(--surface-01) p-0 text-(--bone) shadow-[0_18px_40px_rgba(0,0,0,0.6)]"
             >
-                <NotificationMenuHeader
-                    isMarkingAllRead={isMarkingAllRead}
-                    markAllAsRead={markAllAsRead}
-                    unreadCount={unreadCount}
-                />
-                {notifications.length > 0 ? (
-                    <NotificationFilterControls filter={notificationFilter} setFilter={setNotificationFilter} />
+                <NotificationMenuHeader unreadCount={unreadCount}>
+                    <NotificationMarkAllButton
+                        isMarkingAllRead={isMarkingAllRead}
+                        markAllAsRead={markAllAsRead}
+                        unreadCount={unreadCount}
+                    />
+                </NotificationMenuHeader>
+
+                {totalCount > 0 ? (
+                    <NotificationFilterControls filter={notificationFilter} setFilter={setVisibleFilter} />
                 ) : null}
+
                 <NotificationPreviewList
-                    notifications={notifications}
+                    totalCount={totalCount}
                     previewNotifications={previewNotifications}
                     selectNotification={selectNotification}
                 />
+
                 <NotificationCenterLink closeMenu={closeMenu} filter={notificationFilter} />
             </PopoverContent>
         </Popover>
@@ -97,7 +106,11 @@ const NotificationMenuTrigger = ({ unreadBadgeLabel, unreadCount }: Notification
     </PopoverTrigger>
 );
 
-const NotificationMarkAllButton = ({ isMarkingAllRead, markAllAsRead, unreadCount }: NotificationMenuHeaderProps) => (
+const NotificationMarkAllButton = ({
+    isMarkingAllRead,
+    markAllAsRead,
+    unreadCount,
+}: NotificationMarkAllButtonProps) => (
     <button
         type="button"
         onClick={markAllAsRead}
@@ -110,7 +123,7 @@ const NotificationMarkAllButton = ({ isMarkingAllRead, markAllAsRead, unreadCoun
     </button>
 );
 
-const NotificationMenuHeader = ({ isMarkingAllRead, markAllAsRead, unreadCount }: NotificationMenuHeaderProps) => (
+const NotificationMenuHeader = ({ children, unreadCount }: NotificationMenuHeaderProps) => (
     <div className="flex items-center justify-between border-b border-(--hairline) px-4 py-3">
         <div>
             <p className="text-[0.74rem] font-semibold tracking-[0.22em] uppercase text-(--bone)">Notifications</p>
@@ -124,11 +137,8 @@ const NotificationMenuHeader = ({ isMarkingAllRead, markAllAsRead, unreadCount }
                     {unreadCount}
                 </span>
             ) : null}
-            <NotificationMarkAllButton
-                isMarkingAllRead={isMarkingAllRead}
-                markAllAsRead={markAllAsRead}
-                unreadCount={unreadCount}
-            />
+
+            {children}
         </div>
     </div>
 );
@@ -154,25 +164,23 @@ const NotificationFilterControls = ({ filter, setFilter }: NotificationFilterCon
     </div>
 );
 
-const NotificationEmptyPreview = ({ notifications }: Pick<NotificationPreviewListProps, "notifications">) => (
-    <div className="px-4 py-7 text-center">
-        <Bell className="mx-auto size-5 text-(--bone-dim)" strokeWidth={1.4} />
-        <p className="mt-3 text-sm font-semibold text-(--bone)">
-            {notifications.length === 0 ? "No notifications yet" : "No unread notifications"}
-        </p>
-        <p className="mt-1 text-xs leading-5 text-(--bone-muted)">
-            {notifications.length === 0 ? "Booking updates will collect here." : "Everything has been read."}
-        </p>
-    </div>
-);
-
 const NotificationPreviewList = ({
-    notifications,
+    totalCount,
     previewNotifications,
     selectNotification,
 }: NotificationPreviewListProps) => {
     if (previewNotifications.length === 0) {
-        return <NotificationEmptyPreview notifications={notifications} />;
+        return (
+            <div className="px-4 py-7 text-center">
+                <Bell className="mx-auto size-5 text-(--bone-dim)" strokeWidth={1.4} />
+                <p className="mt-3 text-sm font-semibold text-(--bone)">
+                    {totalCount === 0 ? "No notifications yet" : "No unread notifications"}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-(--bone-muted)">
+                    {totalCount === 0 ? "Booking updates will collect here." : "Everything has been read."}
+                </p>
+            </div>
+        );
     }
 
     return (

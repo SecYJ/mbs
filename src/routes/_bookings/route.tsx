@@ -1,33 +1,15 @@
-import { createFileRoute, Link, linkOptions, Outlet, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, Link, linkOptions, Outlet } from "@tanstack/react-router";
 import { Shield } from "lucide-react";
-import { z } from "zod";
 
 import { AppPending } from "@/components/AppPending";
 import { AuthenticatedAccountMenu } from "@/features/account/components/AuthenticatedAccountMenu";
 import { NotificationNavigationMenu } from "@/features/notifications/components/NotificationNavigationMenu";
-import { notificationsQueryOptions } from "@/features/notifications/services/queries";
-import { requireAuthenticatedUser } from "@/lib/session";
 import { isAdminRole } from "@/lib/roles";
-
-const BOOKING_SEARCH_DEFAULTS = {
-    filter: "unread",
-} as const;
-
-const bookingsSearchSchema = z.object({
-    filter: z.enum(["unread", "all"]).catch(BOOKING_SEARCH_DEFAULTS.filter).prefault(BOOKING_SEARCH_DEFAULTS.filter),
-});
+import { requireAuthenticatedUser } from "@/lib/session";
 
 export const Route = createFileRoute("/_bookings")({
-    validateSearch: bookingsSearchSchema,
-    search: {
-        middlewares: [stripSearchParams(BOOKING_SEARCH_DEFAULTS)],
-    },
     beforeLoad: async () => ({ session: await requireAuthenticatedUser() }),
-    loader: async ({ context }) => {
-        await context.queryClient.ensureQueryData(notificationsQueryOptions());
-
-        return context.session;
-    },
+    loader: ({ context }) => context.session,
     component: AppLayout,
     pendingComponent: AppPending,
 });

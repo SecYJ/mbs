@@ -51,10 +51,12 @@ export const useBookingDetailsPage = () => {
 
     const rsvpMutation = useMutation({
         mutationFn: rsvpBookingInvite,
-        onSuccess: () => {
-            queryClient.invalidateQueries(bookingDetailsQueryOptions(bookingId));
-            queryClient.invalidateQueries(bookingCalendarQueryOptions());
-            queryClient.invalidateQueries(notificationsQueryOptions());
+        onSuccess: async () => {
+            await Promise.all([
+                queryClient.invalidateQueries(bookingDetailsQueryOptions(bookingId)),
+                queryClient.invalidateQueries(bookingCalendarQueryOptions()),
+                queryClient.invalidateQueries(notificationsQueryOptions()),
+            ]);
         },
     });
 

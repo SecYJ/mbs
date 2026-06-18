@@ -35,7 +35,7 @@ const getUsersOrderBy = ({ sort, dir }: Pick<UsersSearch, "sort" | "dir">) => {
 };
 
 export const getUsersFn = createServerFn({ method: "GET" })
-    .inputValidator(usersSearchSchema)
+    .validator(usersSearchSchema)
     .handler(async ({ data }) => {
         await requireAdminUser();
 
@@ -72,7 +72,7 @@ export const getUsersFn = createServerFn({ method: "GET" })
     });
 
 export const createUserFn = createServerFn({ method: "POST" })
-    .inputValidator(createUserServerSchema)
+    .validator(createUserServerSchema)
     .handler(async ({ data }) => {
         const currentSession = await requireAdminUser();
 
