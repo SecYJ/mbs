@@ -29,7 +29,7 @@ export const useNotificationNavigationMenu = () => {
         ...notificationsQueryOptions(notificationFilter),
         select: selectNotificationMenu,
     });
-    const { markAsRead, markAllAsRead, isMarkingAllRead } = useNotificationReadActions();
+    const { markAsRead, markAllAsRead, isMarkingAllRead } = useNotificationReadActions(notificationFilter);
 
     const unreadBadgeLabel = unreadCount > 99 ? "99+" : unreadCount.toString();
 

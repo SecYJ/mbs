@@ -45,7 +45,9 @@ export function NotificationsPage() {
 		data: { items: notifications, totalCount, unreadCount },
 	} = useSuspenseQuery(notificationsQueryOptions(filter));
 
-	const { markAsRead, markAllAsRead, isMarkingRead, isMarkingAllRead } = useNotificationReadActions();
+	const { markAsRead, markAllAsRead, isMarkingRead, isMarkingAllRead } = useNotificationReadActions(
+		filter ?? NOTIFICATION_DEFAULT_FILTER.filter,
+	);
 
 	return (
 		<div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
