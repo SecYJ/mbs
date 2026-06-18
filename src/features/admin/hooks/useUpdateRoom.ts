@@ -6,8 +6,9 @@ import { toast } from "sonner";
 
 import { updateRoomSchema } from "@/features/admin/schema/room.schema";
 import { updateRoomFn } from "@/features/admin/services/rooms/fns";
-import { roomsQueryKey } from "@/features/admin/services/rooms/queries";
+import { roomQueryOptions } from "@/features/admin/services/rooms/queries";
 import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { useRouter } from "@tanstack/react-router";
 
 type Defaults = {
     roomId: string;
@@ -20,6 +21,7 @@ type Defaults = {
 
 export const useUpdateRoom = (defaults: Defaults) => {
     const queryClient = useQueryClient();
+    const router = useRouter();
     const updateRoom = useServerFn(updateRoomFn);
     const form = useForm({
         resolver: zodResolver(updateRoomSchema),
@@ -28,9 +30,14 @@ export const useUpdateRoom = (defaults: Defaults) => {
 
     const { mutate: submit, isPending } = useMutation({
         mutationFn: updateRoom,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: roomsQueryKey });
-            queryClient.invalidateQueries(bookingCalendarQueryOptions());
+        onSuccess: async (_data, variables) => {
+            await Promise.all([
+                queryClient.invalidateQueries(roomQueryOptions(variables.data.roomId)),
+                queryClient.invalidateQueries(bookingCalendarQueryOptions()),
+            ]);
+
+            router.invalidate();
+
             toast.success("Room updated");
         },
         onError: (error) => {

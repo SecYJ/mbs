@@ -186,7 +186,7 @@ export const notifications = pgTable(
     "notifications",
     {
         notificationId: id("notification_id"),
-        bookingId: uuid("booking_id").notNull(),
+        bookingId: uuid("booking_id"),
         userId: text("user_id"),
         message: text().notNull(),
         status: notificationStatusEnum().default("unread").notNull(),

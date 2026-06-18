@@ -1,11 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, asc, desc, eq, ilike, or, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { equipment, roomEquipment, rooms } from "@/db/schema";
-import { createRoomSchema, updateRoomSchema } from "@/features/admin/schema/room.schema";
+import { attendees, bookings, equipment, notifications, roomFacilities, roomEquipment, rooms } from "@/db/schema";
+import { createRoomSchema, deleteRoomSchema, updateRoomSchema } from "@/features/admin/schema/room.schema";
 import { roomsSearchSchema, type RoomsSearch } from "@/features/admin/schema/rooms-search.schema";
+import { isSuperAdminRole } from "@/lib/roles";
 import { requireAdminUser } from "@/lib/session";
 
 const getRoomsOrderBy = (sort: RoomsSearch["sort"]) => {
@@ -18,6 +19,36 @@ const getRoomsOrderBy = (sort: RoomsSearch["sort"]) => {
 
     return [desc(rooms.createdAt)];
 };
+
+type DeletedRoomBookingNotification = {
+    endTime: Date | string;
+    roomLocation: string;
+    roomName: string;
+    title: string;
+    startTime: Date | string;
+};
+
+const formatDeletedRoomNotificationDate = (value: Date | string) =>
+    new Date(value).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        timeZone: "UTC",
+    });
+
+const formatDeletedRoomNotificationTime = (value: Date | string) =>
+    new Date(value).toLocaleTimeString("en-US", {
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: "UTC",
+    });
+
+const getDeletedRoomBookingMessage = (booking: DeletedRoomBookingNotification) =>
+    `Room deleted: Your booking "${booking.title}" in ${booking.roomName}, ${booking.roomLocation} on ${formatDeletedRoomNotificationDate(
+        booking.startTime,
+    )} from ${formatDeletedRoomNotificationTime(booking.startTime)} to ${formatDeletedRoomNotificationTime(
+        booking.endTime,
+    )} was removed.`;
 
 export const getRoomsFn = createServerFn({ method: "GET" })
     .validator(roomsSearchSchema)
@@ -140,6 +171,55 @@ export const updateRoomFn = createServerFn({ method: "POST" })
             })
             .where(eq(rooms.roomId, data.roomId))
             .returning();
+
+        if (!room) throw new Error("Room no longer exists");
+
+        return { room };
+    });
+
+export const deleteRoomFn = createServerFn({ method: "POST" })
+    .validator(deleteRoomSchema)
+    .handler(async ({ data }) => {
+        const session = await requireAdminUser();
+
+        if (!isSuperAdminRole(session.user.role)) {
+            throw new Error("Only super admins can delete rooms.");
+        }
+
+        const [room] = await db.transaction(async (tx) => {
+            const bookingRows = await tx
+                .select({
+                    bookingId: bookings.bookingId,
+                    endTime: bookings.endTime,
+                    roomLocation: rooms.location,
+                    roomName: rooms.name,
+                    startTime: bookings.startTime,
+                    title: bookings.title,
+                    userId: bookings.userId,
+                })
+                .from(bookings)
+                .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+                .where(eq(bookings.roomId, data.roomId));
+            const bookingIds = bookingRows.map((booking) => booking.bookingId);
+
+            if (bookingIds.length > 0) {
+                await tx.insert(notifications).values(
+                    bookingRows.map((booking) => ({
+                        bookingId: null,
+                        userId: booking.userId,
+                        message: getDeletedRoomBookingMessage(booking),
+                    })),
+                );
+
+                await tx.delete(notifications).where(inArray(notifications.bookingId, bookingIds));
+                await tx.delete(attendees).where(inArray(attendees.bookingId, bookingIds));
+                await tx.delete(bookings).where(eq(bookings.roomId, data.roomId));
+            }
+
+            await tx.delete(roomFacilities).where(eq(roomFacilities.roomId, data.roomId));
+
+            return tx.delete(rooms).where(eq(rooms.roomId, data.roomId)).returning();
+        });
 
         if (!room) throw new Error("Room no longer exists");
 

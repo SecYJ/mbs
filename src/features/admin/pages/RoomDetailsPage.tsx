@@ -1,27 +1,46 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, MapPin, Package, RotateCcw, Save, UsersRound } from "lucide-react";
+import { getRouteApi, Link, useParams } from "@tanstack/react-router";
+import { AlertTriangle, ArrowLeft, MapPin, Package, RotateCcw, Save, Trash2, UsersRound, X } from "lucide-react";
 import { Controller, FormStateSubscribe } from "react-hook-form";
+import { useState } from "react";
 
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { adminInputClasses } from "@/features/admin/admin-classes";
 import { EmptyState } from "@/features/admin/components/EmptyState";
 import { StatusToggle } from "@/features/admin/components/StatusToggle";
+import { useDeleteRoom } from "@/features/admin/hooks/useDeleteRoom";
 import { useUpdateRoom } from "@/features/admin/hooks/useUpdateRoom";
 import { roomsSearchDefaults } from "@/features/admin/schema/rooms-search.schema";
-import { roomQueryOptions } from "@/features/admin/services/rooms/queries";
+import { roomQueryOptions, type RoomQueryData } from "@/features/admin/services/rooms/queries";
 import type { Room } from "@/features/admin/types";
+import { isSuperAdminRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 const MAX_BOOKING_DURATION_HOURS_LIMIT = 24;
+const Route = getRouteApi("/admin");
+
+const selectRoomDetails = (row: RoomQueryData) => {
+    if (!row) return null;
+
+    return {
+        id: row.roomId,
+        name: row.name,
+        location: row.location,
+        capacity: row.capacity,
+        maxBookingDurationHours: row.maxBookingDurationHours,
+        active: row.available,
+        equipment: row.equipment,
+    };
+};
 
 export const RoomDetailsPage = () => {
-    const roomId = useParams({
-        from: "/admin/rooms_/$roomId",
-        select(s) {
-            return s.roomId;
-        },
+    const { user } = Route.useRouteContext();
+    const { roomId } = useParams({ from: "/admin/rooms_/$roomId" });
+    const canDeleteRoom = isSuperAdminRole(user.role);
+    const { data: room } = useSuspenseQuery({
+        ...roomQueryOptions(roomId),
+        select: selectRoomDetails,
     });
-    const { data: room } = useSuspenseQuery(roomQueryOptions(roomId));
 
     if (!room) {
         return (
@@ -57,9 +76,12 @@ export const RoomDetailsPage = () => {
                         </span>
                     </div>
                 </div>
-                <span className="inline-flex w-fit items-center rounded-full bg-(--a-surface-2) px-2.5 py-1 text-[0.75rem] font-semibold text-(--a-text-secondary)">
-                    {room.active ? "Available" : "Disabled"}
-                </span>
+                <div className="flex shrink-0 items-center gap-2">
+                    <span className="inline-flex w-fit items-center rounded-full bg-(--a-surface-2) px-2.5 py-1 text-[0.75rem] font-semibold text-(--a-text-secondary)">
+                        {room.active ? "Available" : "Disabled"}
+                    </span>
+                    {canDeleteRoom ? <RoomDeleteDialog roomId={room.id} roomName={room.name} /> : null}
+                </div>
             </div>
 
             <div className="space-y-5">
@@ -118,6 +140,88 @@ const RoomEquipmentList = ({ room }: { room: Room }) => {
                 </li>
             ))}
         </ul>
+    );
+};
+
+const RoomDeleteDialog = ({ roomId, roomName }: { roomId: string; roomName: string }) => {
+    const [open, setOpen] = useState(false);
+    const { deleteRoom, isPending } = useDeleteRoom({ roomId });
+
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (isPending && !nextOpen) return;
+        setOpen(nextOpen);
+    };
+
+    return (
+        <Dialog open={open} onOpenChange={handleOpenChange}>
+            <button
+                type="button"
+                onClick={() => setOpen(true)}
+                disabled={isPending}
+                className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-[rgba(212,84,74,0.25)] bg-(--a-danger-subtle) px-3 py-1.5 text-xs font-semibold text-(--a-danger) transition-colors hover:border-(--a-danger) disabled:cursor-not-allowed disabled:opacity-50"
+            >
+                <Trash2 className="size-3.5" strokeWidth={2} />
+                Delete
+            </button>
+
+            <DialogContent
+                showCloseButton={false}
+                className="admin-shell overflow-hidden border-(--a-border-hover) bg-(--a-surface-0) p-0 text-(--a-text) shadow-2xl sm:max-w-105"
+            >
+                <div className="flex items-start justify-between gap-4 border-b border-(--a-border) px-5 py-5">
+                    <div className="flex min-w-0 items-start gap-3">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-(--a-danger-subtle) text-(--a-danger)">
+                            <AlertTriangle className="size-4" strokeWidth={2} />
+                        </div>
+                        <div className="min-w-0">
+                            <DialogTitle className="text-[0.9375rem] font-bold tracking-tight text-(--a-text)">
+                                Delete room
+                            </DialogTitle>
+                            <DialogDescription className="mt-1 text-[0.75rem] leading-5 text-(--a-text-muted)">
+                                This action cannot be undone.
+                            </DialogDescription>
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        aria-label="Close delete warning"
+                        onClick={() => handleOpenChange(false)}
+                        disabled={isPending}
+                        className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-(--a-text-muted) transition-colors hover:bg-(--a-surface-2) hover:text-(--a-text) disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <X className="size-4" strokeWidth={2} />
+                    </button>
+                </div>
+
+                <div className="px-5 py-5">
+                    <p className="text-[0.875rem] font-semibold text-(--a-text)">Delete {roomName}?</p>
+                    <p className="mt-2 text-[0.75rem] leading-5 text-(--a-text-muted)">
+                        The room will be removed from admin room lists and booking availability. Associated bookings,
+                        attendees, and notifications for this room will also be deleted.
+                    </p>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 border-t border-(--a-border) bg-(--a-surface-1) px-5 py-4">
+                    <button
+                        type="button"
+                        onClick={() => handleOpenChange(false)}
+                        disabled={isPending}
+                        className="cursor-pointer rounded-lg bg-transparent px-3.5 py-1.5 text-xs font-medium text-(--a-text-secondary) transition-colors hover:bg-(--a-surface-2) hover:text-(--a-text) disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="button"
+                        onClick={deleteRoom}
+                        disabled={isPending}
+                        className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg bg-(--a-danger) px-3.5 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-[color-mix(in_srgb,var(--a-danger)_88%,black)] disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                        <Trash2 className="size-3.5" strokeWidth={2} />
+                        {isPending ? "Deleting..." : "Delete room"}
+                    </button>
+                </div>
+            </DialogContent>
+        </Dialog>
     );
 };
 

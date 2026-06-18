@@ -2,40 +2,22 @@ import { queryOptions } from "@tanstack/react-query";
 
 import type { RoomsSearch } from "@/features/admin/schema/rooms-search.schema";
 import { getRoomFn, getRoomsFn } from "@/features/admin/services/rooms/fns";
-import type { Room } from "@/features/admin/types";
 
-export const roomsQueryKey = ["admin", "rooms"] as const;
+export type RoomQueryData = Awaited<ReturnType<typeof getRoomFn>>;
+export type RoomsQueryData = Awaited<ReturnType<typeof getRoomsFn>>;
 
-type RoomQueryRow = {
-    roomId: string;
-    name: string;
-    location: string;
-    capacity: number;
-    maxBookingDurationHours: number;
-    available: boolean;
-    equipment: Room["equipment"];
+export const roomsListQueryKey = ["admin", "rooms", "list"] as const;
+
+export const roomQueryOptions = (roomId: string) => {
+    return queryOptions({
+        queryKey: ["admin", "rooms", "detail", roomId],
+        queryFn: () => getRoomFn({ data: { roomId } }),
+    });
 };
 
-const toRoom = (row: RoomQueryRow): Room => ({
-    id: row.roomId,
-    name: row.name,
-    location: row.location,
-    capacity: row.capacity,
-    maxBookingDurationHours: row.maxBookingDurationHours,
-    active: row.available,
-    equipment: row.equipment,
-});
-
-export const roomQueryOptions = (roomId: string) =>
-    queryOptions({
-        queryKey: [...roomsQueryKey, "detail", roomId],
-        queryFn: () => getRoomFn({ data: { roomId } }),
-        select: (row) => (row ? toRoom(row) : null),
+export const roomsQueryOptions = (filters?: RoomsSearch) => {
+    return queryOptions({
+        queryKey: [...roomsListQueryKey, filters],
+        queryFn: () => getRoomsFn({ data: filters ?? {} }),
     });
-
-export const roomsQueryOptions = (filters: RoomsSearch) =>
-    queryOptions({
-        queryKey: [...roomsQueryKey, filters],
-        queryFn: () => getRoomsFn({ data: filters }),
-        select: (rows) => rows.map(toRoom),
-    });
+};

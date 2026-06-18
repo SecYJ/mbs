@@ -141,6 +141,13 @@
             "when": 1780588590653,
             "tag": "0019_normal_white_queen",
             "breakpoints": true
+        },
+        {
+            "idx": 20,
+            "version": "7",
+            "when": 1781800011211,
+            "tag": "0020_closed_mauler",
+            "breakpoints": true
         }
     ]
 }
