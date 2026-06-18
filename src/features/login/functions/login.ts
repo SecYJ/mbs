@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { loginSchema } from "@/features/login/schema/login.schema";
 
 export const loginUserFn = createServerFn({ method: "POST" })
-    .inputValidator(loginSchema)
+    .validator(loginSchema)
     .handler(async ({ data }) => {
         const { user } = await auth.api.signInEmail({ body: data });
 

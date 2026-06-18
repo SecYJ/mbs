@@ -20,7 +20,7 @@ const getRoomsOrderBy = (sort: RoomsSearch["sort"]) => {
 };
 
 export const getRoomsFn = createServerFn({ method: "GET" })
-    .inputValidator(roomsSearchSchema)
+    .validator(roomsSearchSchema)
     .handler(async ({ data }) => {
         await requireAdminUser();
 
@@ -77,7 +77,7 @@ export const getRoomsFn = createServerFn({ method: "GET" })
     });
 
 export const getRoomFn = createServerFn({ method: "GET" })
-    .inputValidator(z.object({ roomId: z.uuid() }))
+    .validator(z.object({ roomId: z.uuid() }))
     .handler(async ({ data }) => {
         await requireAdminUser();
 
@@ -114,7 +114,7 @@ export const getRoomFn = createServerFn({ method: "GET" })
     });
 
 export const createRoomFn = createServerFn({ method: "POST" })
-    .inputValidator(createRoomSchema)
+    .validator(createRoomSchema)
     .handler(async ({ data }) => {
         await requireAdminUser();
 
@@ -124,7 +124,7 @@ export const createRoomFn = createServerFn({ method: "POST" })
     });
 
 export const updateRoomFn = createServerFn({ method: "POST" })
-    .inputValidator(updateRoomSchema)
+    .validator(updateRoomSchema)
     .handler(async ({ data }) => {
         await requireAdminUser();
 

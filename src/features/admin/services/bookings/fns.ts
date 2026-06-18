@@ -29,7 +29,7 @@ const getStatusCondition = (status: z.infer<typeof adminBookingsFilterSchema>["s
 };
 
 export const getAdminBookingsFn = createServerFn({ method: "GET" })
-    .inputValidator(adminBookingsFilterSchema)
+    .validator(adminBookingsFilterSchema)
     .handler(async ({ data }) => {
         const session = await requireAdminUser();
 
@@ -131,7 +131,7 @@ export const getAdminBookingStatsFn = createServerFn({ method: "GET" }).handler(
 });
 
 export const cancelAdminBookingFn = createServerFn({ method: "POST" })
-    .inputValidator(cancelBookingSchema)
+    .validator(cancelBookingSchema)
     .handler(async ({ data }) => {
         const session = await requireAdminUser();
         const [booking] = await db
