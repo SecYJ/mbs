@@ -47,10 +47,12 @@ export const NotificationNavigationMenu = () => {
         closeMenu,
         isMarkingAllRead,
         isOpen,
+        isPending,
         markAllAsRead,
         notificationFilter,
         previewNotifications,
         selectNotification,
+        setNotificationFilter,
         setVisibleFilter,
         totalCount,
         unreadBadgeLabel,
@@ -74,14 +76,18 @@ export const NotificationNavigationMenu = () => {
                 </NotificationMenuHeader>
 
                 {totalCount > 0 ? (
-                    <NotificationFilterControls filter={notificationFilter} setFilter={setVisibleFilter} />
+                    <NotificationFilterControls filter={notificationFilter} setFilter={setNotificationFilter} />
                 ) : null}
 
-                <NotificationPreviewList
-                    totalCount={totalCount}
-                    previewNotifications={previewNotifications}
-                    selectNotification={selectNotification}
-                />
+                {isPending ? (
+                    <NotificationPreviewListSkeleton />
+                ) : (
+                    <NotificationPreviewList
+                        totalCount={totalCount}
+                        previewNotifications={previewNotifications}
+                        selectNotification={selectNotification}
+                    />
+                )}
 
                 <NotificationCenterLink closeMenu={closeMenu} filter={notificationFilter} />
             </PopoverContent>
@@ -160,6 +166,21 @@ const NotificationFilterControls = ({ filter, setFilter }: NotificationFilterCon
             >
                 {option.label}
             </button>
+        ))}
+    </div>
+);
+
+const NotificationPreviewListSkeleton = () => (
+    <div aria-busy="true" aria-label="Loading notifications" className="divide-y divide-(--hairline)">
+        {Array.from({ length: 3 }, (_, index) => (
+            <div key={index} className="flex items-start gap-3 px-4 py-3">
+                <div className="mt-1 size-1.5 shrink-0 animate-pulse rounded-full bg-(--bone-faint)" />
+                <div className="flex-1 space-y-2">
+                    <div className="h-3 w-4/5 animate-pulse bg-(--surface-03)" />
+                    <div className="h-2.5 w-2/5 animate-pulse bg-(--surface-03)" />
+                    <div className="h-2.5 w-1/4 animate-pulse bg-(--surface-03)" />
+                </div>
+            </div>
         ))}
     </div>
 );

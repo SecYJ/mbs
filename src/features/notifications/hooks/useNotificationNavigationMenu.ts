@@ -1,5 +1,5 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { useNotificationReadActions } from "@/features/notifications/hooks/useNotificationReadActions";
 import { type NotificationFilter } from "@/features/notifications/schemas/notificationSchema";
@@ -20,6 +20,7 @@ const selectNotificationMenu = (data: NotificationsData) => ({
 
 export const useNotificationNavigationMenu = () => {
     const [visibleFilter, setVisibleFilter] = useState<NotificationFilter | null>(null);
+    const [isPending, startTransition] = useTransition();
     const isOpen = visibleFilter !== null;
     const notificationFilter = visibleFilter ?? NOTIFICATION_DEFAULT_FILTER.filter;
 
@@ -39,15 +40,20 @@ export const useNotificationNavigationMenu = () => {
     };
 
     const closeMenu = () => setVisibleFilter(null);
+    const setNotificationFilter = (filter: NotificationFilter) => {
+        startTransition(() => setVisibleFilter(filter));
+    };
 
     return {
         closeMenu,
         isMarkingAllRead,
         isOpen,
+        isPending,
         markAllAsRead,
         notificationFilter,
         previewNotifications,
         selectNotification,
+        setNotificationFilter,
         setVisibleFilter,
         totalCount,
         unreadBadgeLabel,
