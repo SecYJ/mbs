@@ -10,15 +10,15 @@ import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import { CreateUserDialog } from "@/features/admin/components/CreateUserDialog";
 import { EmptyState } from "@/features/admin/components/EmptyState";
 import { usersSearchDefaults } from "@/features/admin/schema/users-search.schema";
-import { usersQueryOptions } from "@/features/admin/services/users/queries";
+import { userQueries } from "@/features/admin/services/users/queries";
 import type { AdminUser } from "@/features/admin/types";
 import { isSuperAdminRole, USER_ROLE_LABELS, type UserRole } from "@/lib/roles";
-
-const adminRoute = getRouteApi("/admin");
 
 type SortField = "name" | "email" | "role" | "lastLogin";
 type SortDirection = "asc" | "desc";
 type AdminUserRow = Omit<AdminUser, "lastLogin"> & { createdAt: string };
+
+const Route = getRouteApi("/admin");
 
 const selectAdminUsers = (rows: AdminUserRow[]) =>
     rows.map((row) => ({
@@ -32,18 +32,18 @@ const selectAdminUsers = (rows: AdminUserRow[]) =>
     }));
 
 export const UsersPage = () => {
-    const { user: currentUser } = adminRoute.useRouteContext();
+    const { user: currentUser } = Route.useRouteContext();
     const filters = useSearch({ from: "/admin/users" });
-    const { q } = filters;
-    const deferredFilters = useDeferredValue(filters);
-    const { q: displayedQ, sort: displayedSort, dir: displayedDir } = deferredFilters;
-    const { data: users = [] } = useSuspenseQuery({
-        ...usersQueryOptions(deferredFilters),
+    const q = useDeferredValue(filters.q);
+    const sort = useDeferredValue(filters.sort);
+    const dir = useDeferredValue(filters.dir);
+    const { data: users } = useSuspenseQuery({
+        ...userQueries.list({ q, sort, dir }),
         select: selectAdminUsers,
     });
     const navigate = useNavigate({ from: "/admin/users" });
     const [createOpen, setCreateOpen] = useState(false);
-    const normalizedQ = displayedQ?.trim();
+    const normalizedQ = q?.trim();
 
     const toggleSort = (field: SortField) => {
         navigate({
@@ -85,7 +85,7 @@ export const UsersPage = () => {
             <div className="p-6">
                 {!(users.length === 0 && !normalizedQ) && (
                     <div className="mb-4 flex items-center gap-3">
-                        <AdminSearchInput value={q} onChange={setSearch} placeholder="Search users..." />
+                        <AdminSearchInput value={filters.q} onChange={setSearch} placeholder="Search users..." />
                     </div>
                 )}
                 {users.length === 0 && !normalizedQ ? (
@@ -110,32 +110,32 @@ export const UsersPage = () => {
                             <thead>
                                 <tr>
                                     <UsersSortHeader
-                                        sort={displayedSort}
-                                        dir={displayedDir}
+                                        sort={sort}
+                                        dir={dir}
                                         onSort={toggleSort}
                                         field="name"
                                         label="User"
                                         width="30%"
                                     />
                                     <UsersSortHeader
-                                        sort={displayedSort}
-                                        dir={displayedDir}
+                                        sort={sort}
+                                        dir={dir}
                                         onSort={toggleSort}
                                         field="email"
                                         label="Email"
                                         width="28%"
                                     />
                                     <UsersSortHeader
-                                        sort={displayedSort}
-                                        dir={displayedDir}
+                                        sort={sort}
+                                        dir={dir}
                                         onSort={toggleSort}
                                         field="role"
                                         label="Role"
                                         width="14%"
                                     />
                                     <UsersSortHeader
-                                        sort={displayedSort}
-                                        dir={displayedDir}
+                                        sort={sort}
+                                        dir={dir}
                                         onSort={toggleSort}
                                         field="lastLogin"
                                         label="Last Login"

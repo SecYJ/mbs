@@ -15,8 +15,6 @@ export const getRouter = () => {
         defaultPreload: "intent",
         defaultPreloadStaleTime: 0,
         defaultPendingComponent: AppPending,
-        defaultPendingMs: 0,
-        defaultPendingMinMs: 700,
         parseSearch: parseSearchWith((value) => {
             const trimmed = value.trim();
             const looksLikeJson = trimmed.startsWith("{") || trimmed.startsWith("[") || trimmed.startsWith('"');

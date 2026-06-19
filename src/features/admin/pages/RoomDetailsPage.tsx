@@ -11,7 +11,7 @@ import { StatusToggle } from "@/features/admin/components/StatusToggle";
 import { useDeleteRoom } from "@/features/admin/hooks/useDeleteRoom";
 import { useUpdateRoom } from "@/features/admin/hooks/useUpdateRoom";
 import { roomsSearchDefaults } from "@/features/admin/schema/rooms-search.schema";
-import { roomQueryOptions, type RoomQueryData } from "@/features/admin/services/rooms/queries";
+import { roomQueries, type RoomQueryData } from "@/features/admin/services/rooms/queries";
 import type { Room } from "@/features/admin/types";
 import { isSuperAdminRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ export const RoomDetailsPage = () => {
     const { roomId } = useParams({ from: "/admin/rooms_/$roomId" });
     const canDeleteRoom = isSuperAdminRole(user.role);
     const { data: room } = useSuspenseQuery({
-        ...roomQueryOptions(roomId),
+        ...roomQueries.detail(roomId),
         select: selectRoomDetails,
     });
 

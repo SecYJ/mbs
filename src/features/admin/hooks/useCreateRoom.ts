@@ -5,13 +5,14 @@ import { useForm } from "react-hook-form";
 
 import { createRoomSchema } from "@/features/admin/schema/room.schema";
 import { createRoomFn } from "@/features/admin/services/rooms/fns";
-import { useRouter } from "@tanstack/react-router";
+import { useRoomsCreateStore } from "@/features/admin/stores/RoomsCreateStore";
+import { toast } from "sonner";
+import { useShallow } from "zustand/shallow";
+import { roomQueries } from "@/features/admin/services/rooms/queries";
 
-type Options = {
-    onSuccess?: () => void;
-};
+export const useCreateRoom = () => {
+    const [open, { setOpen }] = useRoomsCreateStore(useShallow((s) => [s.open, s.actions]));
 
-export const useCreateRoom = ({ onSuccess }: Options = {}) => {
     const form = useForm({
         resolver: zodResolver(createRoomSchema),
         defaultValues: {
@@ -23,15 +24,16 @@ export const useCreateRoom = ({ onSuccess }: Options = {}) => {
         },
     });
 
-    const router = useRouter();
     const createRoom = useServerFn(createRoomFn);
 
     const { mutate: submitCreateRoom, isPending } = useMutation({
         mutationFn: createRoom,
-        onSuccess: () => {
+        onSuccess: (_1, _2, _3, context) => {
+            toast.success("Room created");
             form.reset();
-            onSuccess?.();
-            router.invalidate();
+            setOpen(false);
+
+            context.client.invalidateQueries({ queryKey: roomQueries.lists() });
         },
         onError: (error) => {
             form.setError("root", { message: error.message ?? "Failed to create room" });
@@ -42,5 +44,11 @@ export const useCreateRoom = ({ onSuccess }: Options = {}) => {
         submitCreateRoom({ data: values });
     });
 
-    return { form, onSubmit, isPending };
+    const handleOpenChange = (nextOpen: boolean) => {
+        if (isPending && !nextOpen) return;
+        setOpen(nextOpen);
+        if (!nextOpen) form.reset();
+    };
+
+    return { form, onSubmit, isPending, handleOpenChange, open };
 };

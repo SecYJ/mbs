@@ -1,12 +1,10 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
 import { CalendarDays, Check } from "lucide-react";
 import { FormProvider } from "react-hook-form";
 
 import { adminBadgeClasses, adminConfirmClasses, adminInputClasses } from "@/features/admin/admin-classes";
 import { EmptyState } from "@/features/admin/components/EmptyState";
-import { useAdminBookingFilters } from "@/features/admin/hooks/useAdminBookingFilters";
-import { useAdminBookingsPage } from "@/features/admin/hooks/useAdminBookingsPage";
-import { adminBookingsQueryOptions, type AdminBookingStatus } from "@/features/admin/services/bookings/queries";
+import type { useAdminBookingsPage } from "@/features/admin/hooks/useAdminBookingsPage";
+import type { AdminBookingStatus } from "@/features/admin/services/bookings/queries";
 import { cn } from "@/lib/utils";
 
 const STATUS_STYLES: Record<AdminBookingStatus, { bg: string; color: string; label: string }> = {
@@ -16,12 +14,26 @@ const STATUS_STYLES: Record<AdminBookingStatus, { bg: string; color: string; lab
     cancelled: { bg: "var(--a-danger-subtle)", color: "var(--a-danger)", label: "Cancelled" },
 };
 
-export const AdminBookingsTable = () => {
-    const { deferredFilters } = useAdminBookingFilters();
-    const {
-        data: { bookings },
-    } = useSuspenseQuery(adminBookingsQueryOptions(deferredFilters));
+type AdminBookingsTableProps = Pick<
+    ReturnType<typeof useAdminBookingsPage>,
+    | "beginCancellation"
+    | "bookings"
+    | "cancellationFields"
+    | "form"
+    | "cancellingBookingId"
+    | "dismissCancellation"
+    | "submitCancellation"
+>;
 
+export const AdminBookingsTable = ({
+    beginCancellation,
+    bookings,
+    cancellationFields,
+    form,
+    cancellingBookingId,
+    dismissCancellation,
+    submitCancellation,
+}: AdminBookingsTableProps) => {
     if (bookings.length === 0) {
         return (
             <EmptyState
@@ -32,29 +44,9 @@ export const AdminBookingsTable = () => {
         );
     }
 
-    return <AdminBookingsDataTable />;
-};
-
-const AdminBookingsDataTable = () => {
-    const {
-        beginCancellation,
-        cancellationFields,
-        cancellationForm,
-        cancellingBookingId,
-        dismissCancellation,
-        filteredBookings,
-        submitCancellation,
-    } = useAdminBookingsPage();
-
     return (
-        <FormProvider {...cancellationForm}>
-            <div
-                className="overflow-hidden rounded-xl border"
-                style={{
-                    borderColor: "var(--a-border-hover)",
-                    background: "var(--a-surface-0)",
-                }}
-            >
+        <FormProvider {...form}>
+            <div className="overflow-hidden rounded-xl border border-(--a-border-hover) bg-(--a-surface-0)">
                 <table className="admin-table">
                     <thead>
                         <tr>
@@ -69,7 +61,7 @@ const AdminBookingsDataTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredBookings.map((booking) => {
+                        {bookings.map((booking) => {
                             const st = STATUS_STYLES[booking.status];
                             const cancellationIndex = cancellationFields.findIndex(
                                 (cancellation) => cancellation.bookingId === booking.id,
@@ -116,7 +108,7 @@ const AdminBookingsDataTable = () => {
                                                     placeholder="Cancellation reason..."
                                                     aria-label="Cancellation reason"
                                                     disabled={isSubmittingCancellation}
-                                                    {...cancellationForm.register(
+                                                    {...form.register(
                                                         `cancellations.${cancellationIndex}.reason` as const,
                                                     )}
                                                     onKeyDown={(e) => {

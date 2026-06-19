@@ -6,18 +6,18 @@ import { getRoomFn, getRoomsFn } from "@/features/admin/services/rooms/fns";
 export type RoomQueryData = Awaited<ReturnType<typeof getRoomFn>>;
 export type RoomsQueryData = Awaited<ReturnType<typeof getRoomsFn>>;
 
-export const roomsListQueryKey = ["admin", "rooms", "list"] as const;
-
-export const roomQueryOptions = (roomId: string) => {
-    return queryOptions({
-        queryKey: ["admin", "rooms", "detail", roomId],
-        queryFn: () => getRoomFn({ data: { roomId } }),
-    });
-};
-
-export const roomsQueryOptions = (filters?: RoomsSearch) => {
-    return queryOptions({
-        queryKey: [...roomsListQueryKey, filters],
-        queryFn: () => getRoomsFn({ data: filters ?? {} }),
-    });
+export const roomQueries = {
+    all: () => ["admin", "rooms"],
+    lists: () => [...roomQueries.all(), "list"],
+    list: (filters?: RoomsSearch) =>
+        queryOptions({
+            queryKey: [...roomQueries.lists(), filters],
+            queryFn: () => getRoomsFn({ data: filters ?? {} }),
+        }),
+    details: () => [...roomQueries.all(), "detail"],
+    detail: (roomId: string) =>
+        queryOptions({
+            queryKey: [...roomQueries.details(), roomId],
+            queryFn: () => getRoomFn({ data: { roomId } }),
+        }),
 };

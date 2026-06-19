@@ -4,8 +4,9 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { roomsSearchDefaults } from "@/features/admin/schema/rooms-search.schema";
+import { adminBookingQueries } from "@/features/admin/services/bookings/queries";
 import { deleteRoomFn } from "@/features/admin/services/rooms/fns";
-import { roomQueryOptions, roomsListQueryKey } from "@/features/admin/services/rooms/queries";
+import { roomQueries } from "@/features/admin/services/rooms/queries";
 import { bookingCalendarQueryOptions, myBookingsQueryKey } from "@/features/bookings/services/queries";
 import { notificationsQueryKey } from "@/features/notifications/services/queries";
 
@@ -23,9 +24,9 @@ export const useDeleteRoom = ({ roomId }: Options) => {
         mutationFn: deleteRoomServerFn,
         onSuccess: async () => {
             await Promise.all([
-                queryClient.removeQueries(roomQueryOptions(roomId)),
-                queryClient.invalidateQueries({ queryKey: roomsListQueryKey }),
-                queryClient.invalidateQueries({ queryKey: ["admin", "bookings"] }),
+                queryClient.removeQueries(roomQueries.detail(roomId)),
+                queryClient.invalidateQueries({ queryKey: roomQueries.lists() }),
+                queryClient.invalidateQueries({ queryKey: adminBookingQueries.all() }),
                 queryClient.invalidateQueries(bookingCalendarQueryOptions()),
                 queryClient.invalidateQueries({ queryKey: myBookingsQueryKey }),
                 queryClient.invalidateQueries({ queryKey: notificationsQueryKey }),

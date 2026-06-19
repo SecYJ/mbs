@@ -7,11 +7,7 @@ const Route = getRouteApi("/admin/rooms");
 
 export const RoomCollectionViewToggleButton = ({ view }: { view: "grid" | "list" }) => {
     const navigate = Route.useNavigate();
-    const isActiveView = Route.useSearch({
-        select(s) {
-            return s?.q === view;
-        },
-    });
+    const isActiveView = Route.useSearch({ select: (s) => (s?.view ? s.view : "grid") === view });
 
     return (
         <button

@@ -1,5 +1,3 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
-import { getRouteApi } from "@tanstack/react-router";
 import { Filter } from "lucide-react";
 
 import { adminSelectClasses } from "@/features/admin/admin-classes";
@@ -7,31 +5,31 @@ import { AdminBookingStats } from "@/features/admin/components/AdminBookingStats
 import { AdminBookingsTable } from "@/features/admin/components/AdminBookingsTable";
 import { AdminHeader } from "@/features/admin/components/AdminHeader";
 import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
-import { useAdminBookingFilters } from "@/features/admin/hooks/useAdminBookingFilters";
-import { adminBookingsQueryOptions, type AdminBookingFilters } from "@/features/admin/services/bookings/queries";
-
-const Route = getRouteApi("/admin/bookings");
+import { useAdminBookingsPage } from "@/features/admin/hooks/useAdminBookingsPage";
+import type { AdminBookingFilters } from "@/features/admin/services/bookings/queries";
 
 export const BookingsPage = () => {
-    const { filters, deferredFilters, isFiltering } = useAdminBookingFilters();
-    const navigate = Route.useNavigate();
     const {
-        data: { rooms },
-    } = useSuspenseQuery(adminBookingsQueryOptions(deferredFilters));
-
-    const updateSearch = (next: Partial<AdminBookingFilters>) => {
-        navigate({
-            search: (prev) => ({ ...prev, ...next }),
-            replace: true,
-        });
-    };
+        beginCancellation,
+        bookings,
+        bookingStats,
+        cancellationFields,
+        form,
+        cancellingBookingId,
+        dismissCancellation,
+        filters,
+        isFiltering,
+        rooms,
+        submitCancellation,
+        updateSearch,
+    } = useAdminBookingsPage();
 
     return (
         <div>
             <AdminHeader title="All Bookings" />
 
             <div className="p-6">
-                <AdminBookingStats />
+                <AdminBookingStats {...bookingStats} />
 
                 <div
                     className="mb-4 flex items-center gap-3 rounded-lg px-4 py-2.5"
@@ -84,7 +82,15 @@ export const BookingsPage = () => {
                 </div>
 
                 <div className={isFiltering ? "opacity-60 transition-opacity" : "transition-opacity"}>
-                    <AdminBookingsTable />
+                    <AdminBookingsTable
+                        beginCancellation={beginCancellation}
+                        bookings={bookings}
+                        cancellationFields={cancellationFields}
+                        form={form}
+                        cancellingBookingId={cancellingBookingId}
+                        dismissCancellation={dismissCancellation}
+                        submitCancellation={submitCancellation}
+                    />
                 </div>
             </div>
         </div>

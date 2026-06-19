@@ -2,7 +2,7 @@ import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 
 import { AdminPending } from "@/features/admin/components/AdminPending";
 import { BookingsPage } from "@/features/admin/pages/BookingsPage";
-import { adminBookingStatsQueryOptions, adminBookingsQueryOptions } from "@/features/admin/services/bookings/queries";
+import { adminBookingQueries } from "@/features/admin/services/bookings/queries";
 import {
     ADMIN_BOOKING_SEARCH_DEFAULTS,
     adminBookingsSearchSchema,
@@ -15,8 +15,8 @@ export const Route = createFileRoute("/admin/bookings")({
     },
     loaderDeps: (loaderDeps) => loaderDeps.search,
     loader: ({ context: { queryClient }, deps }) => {
-        queryClient.ensureQueryData(adminBookingsQueryOptions(deps));
-        queryClient.ensureQueryData(adminBookingStatsQueryOptions());
+        queryClient.ensureQueryData(adminBookingQueries.list(deps));
+        queryClient.ensureQueryData(adminBookingQueries.stats());
     },
     component: BookingsPage,
     pendingComponent: AdminPending,
