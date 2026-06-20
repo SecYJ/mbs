@@ -2,17 +2,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 import { createRoomSchema } from "@/features/admin/schema/room.schema";
 import { createRoomFn } from "@/features/admin/services/rooms/fns";
-import { useRoomsCreateStore } from "@/features/admin/stores/RoomsCreateStore";
-import { toast } from "sonner";
-import { useShallow } from "zustand/shallow";
 import { roomQueries } from "@/features/admin/services/rooms/queries";
 
-export const useCreateRoom = () => {
-    const [open, { setOpen }] = useRoomsCreateStore(useShallow((s) => [s.open, s.actions]));
+type UseCreateRoomOptions = {
+    onOpenChange: (open: boolean) => void;
+};
 
+export const useCreateRoom = ({ onOpenChange }: UseCreateRoomOptions) => {
     const form = useForm({
         resolver: zodResolver(createRoomSchema),
         defaultValues: {
@@ -31,7 +31,7 @@ export const useCreateRoom = () => {
         onSuccess: (_1, _2, _3, context) => {
             toast.success("Room created");
             form.reset();
-            setOpen(false);
+            onOpenChange(false);
 
             context.client.invalidateQueries({ queryKey: roomQueries.lists() });
         },
@@ -46,9 +46,9 @@ export const useCreateRoom = () => {
 
     const handleOpenChange = (nextOpen: boolean) => {
         if (isPending && !nextOpen) return;
-        setOpen(nextOpen);
+        onOpenChange(nextOpen);
         if (!nextOpen) form.reset();
     };
 
-    return { form, onSubmit, isPending, handleOpenChange, open };
+    return { form, onSubmit, isPending, handleOpenChange };
 };

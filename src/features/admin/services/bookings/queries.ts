@@ -2,7 +2,7 @@ import { queryOptions } from "@tanstack/react-query";
 
 import { getAdminBookingStatsFn, getAdminBookingsFn } from "@/features/admin/services/bookings/fns";
 
-export type AdminBookingStatus = "upcoming" | "in-progress" | "completed" | "cancelled";
+type AdminBookingStatus = "upcoming" | "in-progress" | "completed" | "cancelled";
 
 export type AdminBookingFilters = {
     q: string;

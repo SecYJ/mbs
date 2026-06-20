@@ -5,9 +5,8 @@ import { Controller, FormStateSubscribe } from "react-hook-form";
 import { useState } from "react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { adminInputClasses } from "@/features/admin/admin-classes";
+import { adminInputClasses, adminToggleClasses } from "@/features/admin/admin-classes";
 import { EmptyState } from "@/features/admin/components/EmptyState";
-import { StatusToggle } from "@/features/admin/components/StatusToggle";
 import { useDeleteRoom } from "@/features/admin/hooks/useDeleteRoom";
 import { useUpdateRoom } from "@/features/admin/hooks/useUpdateRoom";
 import { roomsSearchDefaults } from "@/features/admin/schema/rooms-search.schema";
@@ -360,7 +359,15 @@ const RoomDetailsEditor = ({ room }: { room: Room }) => {
                                 Disable to hide from booking flows.
                             </p>
                         </div>
-                        <StatusToggle checked={field.value} onChange={field.onChange} label="Room availability" />
+                        <button
+                            type="button"
+                            role="switch"
+                            aria-checked={field.value}
+                            aria-label="Room availability"
+                            className={adminToggleClasses}
+                            data-state={field.value ? "on" : "off"}
+                            onClick={() => field.onChange(!field.value)}
+                        />
                     </div>
                 )}
             />

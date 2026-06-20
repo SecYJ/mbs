@@ -3,37 +3,27 @@ import { FormProvider } from "react-hook-form";
 
 import { adminBadgeClasses, adminConfirmClasses, adminInputClasses } from "@/features/admin/admin-classes";
 import { EmptyState } from "@/features/admin/components/EmptyState";
-import type { useAdminBookingsPage } from "@/features/admin/hooks/useAdminBookingsPage";
-import type { AdminBookingStatus } from "@/features/admin/services/bookings/queries";
+import { useAdminBookingsPage } from "@/features/admin/hooks/useAdminBookingsPage";
 import { cn } from "@/lib/utils";
 
-const STATUS_STYLES: Record<AdminBookingStatus, { bg: string; color: string; label: string }> = {
+const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
     upcoming: { bg: "var(--a-info-subtle)", color: "var(--a-info)", label: "Upcoming" },
     "in-progress": { bg: "var(--a-accent-subtle)", color: "var(--a-accent)", label: "In Progress" },
     completed: { bg: "var(--a-surface-2)", color: "var(--a-text-muted)", label: "Completed" },
     cancelled: { bg: "var(--a-danger-subtle)", color: "var(--a-danger)", label: "Cancelled" },
 };
 
-type AdminBookingsTableProps = Pick<
-    ReturnType<typeof useAdminBookingsPage>,
-    | "beginCancellation"
-    | "bookings"
-    | "cancellationFields"
-    | "form"
-    | "cancellingBookingId"
-    | "dismissCancellation"
-    | "submitCancellation"
->;
+export const AdminBookingsTable = () => {
+    const {
+        beginCancellation,
+        bookings,
+        cancellationFields,
+        form,
+        cancellingBookingId,
+        dismissCancellation,
+        submitCancellation,
+    } = useAdminBookingsPage();
 
-export const AdminBookingsTable = ({
-    beginCancellation,
-    bookings,
-    cancellationFields,
-    form,
-    cancellingBookingId,
-    dismissCancellation,
-    submitCancellation,
-}: AdminBookingsTableProps) => {
     if (bookings.length === 0) {
         return (
             <EmptyState
@@ -111,12 +101,6 @@ export const AdminBookingsTable = ({
                                                     {...form.register(
                                                         `cancellations.${cancellationIndex}.reason` as const,
                                                     )}
-                                                    onKeyDown={(e) => {
-                                                        if (e.key === "Enter") submitCancellation(booking);
-                                                        if (e.key === "Escape" && !isSubmittingCancellation) {
-                                                            dismissCancellation(booking.id);
-                                                        }
-                                                    }}
                                                 />
                                                 <div className="flex items-center gap-1.5">
                                                     <button

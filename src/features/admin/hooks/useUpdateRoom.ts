@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -20,7 +20,6 @@ type Defaults = {
 };
 
 export const useUpdateRoom = (defaults: Defaults) => {
-    const queryClient = useQueryClient();
     const router = useRouter();
     const updateRoom = useServerFn(updateRoomFn);
     const form = useForm({
@@ -30,10 +29,10 @@ export const useUpdateRoom = (defaults: Defaults) => {
 
     const { mutate: submit, isPending } = useMutation({
         mutationFn: updateRoom,
-        onSuccess: async (_data, variables) => {
+        onSuccess: async (_1, variables, _3, context) => {
             await Promise.all([
-                queryClient.invalidateQueries(roomQueries.detail(variables.data.roomId)),
-                queryClient.invalidateQueries(bookingCalendarQueryOptions()),
+                context.client.invalidateQueries(roomQueries.detail(variables.data.roomId)),
+                context.client.invalidateQueries(bookingCalendarQueryOptions()),
             ]);
 
             router.invalidate();

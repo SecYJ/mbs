@@ -30,10 +30,8 @@
 - Keep route files thin: route config, search validation, loaders, and the imported feature page only.
 - Feature folders should own their `components/`, `hooks/`, `schemas/`, `services/` and `utils/` when those concerns exist.
 - Prefer `schemas/` over a singular `schema/` folder.
-- Move workflow and data-model logic into feature hooks so JSX components do not become bloated.
 - Name components by business responsibility, not UI shape. Prefer names like `BookingRoomFilters`, `RoomBookingSchedule`, or `BookingReservationEditor` over generic names like `Drawer`, `Dialog`, `Shell`, or `Panel`.
 - Keep components focused on one responsibility. Do not mix business logic and presentational layout when a hook or child component can own that concern clearly.
-- For nested workflows, pass close/success callbacks to the component that owns the business action. For example, if a form submission should close a drawer, pass `onClose` to the form/workflow component and let that component close after successful submit.
 
 ## Dev Server
 

@@ -1,14 +1,14 @@
 import { Building2, CalendarDays, TrendingUp } from "lucide-react";
 
 import { adminStatCardClasses } from "@/features/admin/admin-classes";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { adminBookingQueries } from "@/features/admin/services/bookings/queries";
 
-type Props = {
-    popularRoom: string;
-    todayCount: number;
-    weekCount: number;
-};
+export const AdminBookingStats = () => {
+    const {
+        data: { popularRoom, todayCount, weekCount },
+    } = useSuspenseQuery(adminBookingQueries.stats());
 
-export const AdminBookingStats = ({ popularRoom, todayCount, weekCount }: Props) => {
     return (
         <div className="mb-6 grid grid-cols-3 gap-4">
             <div className={adminStatCardClasses}>

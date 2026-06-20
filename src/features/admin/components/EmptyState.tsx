@@ -10,7 +10,7 @@ export const EmptyState = ({ icon: Icon, title, description }: EmptyStateProps) 
     return (
         <div className="flex flex-col items-center justify-center py-20">
             <div className="relative mb-6 size-28">
-                <svg viewBox="0 0 120 120" className="size-full" style={{ color: "var(--a-text-muted)" }} aria-hidden>
+                <svg viewBox="0 0 120 120" className="size-full text-(--a-text-muted)" aria-hidden>
                     <rect
                         x="18"
                         y="18"
@@ -41,7 +41,7 @@ export const EmptyState = ({ icon: Icon, title, description }: EmptyStateProps) 
                     <circle cx="60" cy="60" r="22" fill="none" stroke="currentColor" strokeWidth="0.6" opacity="0.1" />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <Icon className="size-8" strokeWidth={1.2} style={{ color: "var(--a-text-muted)" }} />
+                    <Icon className="size-8 text-(--a-text-muted)" strokeWidth={1.2} />
                 </div>
             </div>
 

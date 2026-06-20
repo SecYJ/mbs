@@ -7,36 +7,14 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { cancelAdminBookingFn } from "@/features/admin/services/bookings/fns";
-import {
-    adminBookingQueries,
-    type AdminBookingFilters,
-    type AdminBookingStatus,
-    type AdminBookingsQueryData,
-} from "@/features/admin/services/bookings/queries";
+import { adminBookingQueries, type AdminBookingsQueryData } from "@/features/admin/services/bookings/queries";
 import { isSuperAdminRole } from "@/lib/roles";
 
-type AdminBookingSearchUpdate = Partial<AdminBookingFilters>;
-
 type AdminBookingCancellationFormValues = {
-    cancellations: Array<{
+    cancellations: {
         bookingId: string;
         reason: string;
-    }>;
-};
-
-type AdminBooking = {
-    id: string;
-    title: string;
-    room: string;
-    bookedBy: string;
-    userId: string;
-    canCancel: boolean;
-    attendees: number;
-    date: string;
-    time: string;
-    startTime: string;
-    endTime: string;
-    status: AdminBookingStatus;
+    }[];
 };
 
 const getBookingStatus = ({ endTime, startTime, status }: { endTime: string; startTime: string; status: string }) => {
@@ -58,8 +36,8 @@ const formatBookingTime = (startTime: string, endTime: string) => {
     return `${format(start, "HH:mm")} – ${format(end, "HH:mm")}`;
 };
 
-const selectAdminBookings = (data: AdminBookingsQueryData) => ({
-    bookings: data.bookings.map<AdminBooking>((row) => ({
+const selectAdminBookings = (data: AdminBookingsQueryData) =>
+    data.bookings.map((row) => ({
         id: row.id,
         title: row.title,
         room: row.room,
@@ -72,15 +50,12 @@ const selectAdminBookings = (data: AdminBookingsQueryData) => ({
         startTime: row.startTime,
         endTime: row.endTime,
         status: getBookingStatus(row),
-    })),
-    rooms: data.rooms,
-});
+    }));
 
 const Route = getRouteApi("/admin/bookings");
 
 export const useAdminBookingsPage = () => {
     const filters = Route.useSearch();
-    const navigate = Route.useNavigate();
 
     const q = useDeferredValue(filters.q);
     const room = useDeferredValue(filters.room);
@@ -90,13 +65,8 @@ export const useAdminBookingsPage = () => {
     const cancelAdminBooking = useServerFn(cancelAdminBookingFn);
 
     const bookingsQueryOptions = adminBookingQueries.list(deferredFilters);
-    const bookingStatsQueryOptions = adminBookingQueries.stats();
 
-    const {
-        data: { bookings, rooms },
-    } = useSuspenseQuery({ ...bookingsQueryOptions, select: selectAdminBookings });
-
-    const { data: bookingStats } = useSuspenseQuery(bookingStatsQueryOptions);
+    const { data: bookings } = useSuspenseQuery({ ...bookingsQueryOptions, select: selectAdminBookings });
 
     const form = useForm<AdminBookingCancellationFormValues>({
         defaultValues: { cancellations: [] },
@@ -134,13 +104,6 @@ export const useAdminBookingsPage = () => {
         },
     });
 
-    const updateSearch = (next: AdminBookingSearchUpdate) => {
-        navigate({
-            search: (prev) => ({ ...prev, ...next }),
-            replace: true,
-        });
-    };
-
     const beginCancellation = (bookingId: string) => {
         if (getCancellationIndex(bookingId) === -1) {
             append({ bookingId, reason: "" });
@@ -163,7 +126,7 @@ export const useAdminBookingsPage = () => {
                 onSuccess: async (_1, _2, _3, context) => {
                     await Promise.all([
                         context.client.invalidateQueries(bookingsQueryOptions),
-                        context.client.invalidateQueries(bookingStatsQueryOptions),
+                        context.client.invalidateQueries(adminBookingQueries.stats()),
                     ]);
                     toast.error(`"${booking.title}" cancelled`);
                     removeCancellation(booking.id);
@@ -179,11 +142,6 @@ export const useAdminBookingsPage = () => {
         cancellingBookingId: isCancelling ? cancellingVariables?.data.bookingId : null,
         dismissCancellation: removeCancellation,
         bookings,
-        bookingStats,
-        filters,
-        isFiltering: filters.q !== q || filters.room !== room || filters.status !== status,
-        rooms,
         submitCancellation,
-        updateSearch,
     };
 };
