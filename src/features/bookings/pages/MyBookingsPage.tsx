@@ -381,7 +381,6 @@ const BookingCancellationForm = ({
                 event.preventDefault();
                 onSubmitCancel();
             }}
-            noValidate
             className="mt-5 space-y-3 border border-red-300/30 bg-red-500/10 p-4"
         >
             <div>

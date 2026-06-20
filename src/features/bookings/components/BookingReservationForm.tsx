@@ -51,7 +51,6 @@ export const BookingReservationForm = ({
 
             <form
                 onSubmit={reservationForm.submitReservation}
-                noValidate
                 className="mt-4 space-y-6 border-t border-(--hairline) pt-6"
             >
                 <div className="space-y-2">
