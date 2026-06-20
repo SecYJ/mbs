@@ -13,7 +13,6 @@ export const RegisterForm = () => {
     return (
         <form
             onSubmit={onSubmit}
-            noValidate
             className="mt-10 space-y-7"
             style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
         >

@@ -14,7 +14,6 @@ export const LoginForm = () => {
     return (
         <form
             onSubmit={onSubmit}
-            noValidate
             className="mt-12 space-y-8"
             style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
         >

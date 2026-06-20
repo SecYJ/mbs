@@ -4,10 +4,12 @@ import { PasswordResetSection } from "@/features/settings/components/PasswordRes
 import { playNotificationSound } from "@/features/settings/notification-sound";
 import { cn } from "@/lib/utils";
 import { usePersistentClientStore } from "@/stores/persistent-client-store";
+import { useShallow } from "zustand/shallow";
 
 export const SettingsPage = () => {
-    const soundEnabled = usePersistentClientStore((state) => state.userPreferences.soundEnabled);
-    const updateUserPreferences = usePersistentClientStore((state) => state.actions.updateUserPreferences);
+    const [soundEnabled, { updateUserPreferences }] = usePersistentClientStore(
+        useShallow((s) => [s.userPreferences.soundEnabled, s.actions]),
+    );
 
     const handleSoundToggle = () => {
         updateUserPreferences((current) => ({

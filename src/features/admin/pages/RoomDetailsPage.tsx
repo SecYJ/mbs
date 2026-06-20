@@ -235,7 +235,7 @@ const RoomDetailsEditor = ({ room }: { room: Room }) => {
     });
 
     return (
-        <form onSubmit={onSubmit} noValidate className="rounded-lg border border-(--a-border) bg-(--a-surface-1) p-4">
+        <form onSubmit={onSubmit} className="rounded-lg border border-(--a-border) bg-(--a-surface-1) p-4">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto_auto]">
                 <Controller
                     control={form.control}

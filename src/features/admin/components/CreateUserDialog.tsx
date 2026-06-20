@@ -36,7 +36,6 @@ export const CreateUserDialog = ({ canCreateSuperAdmin, open, onOpenChange }: Cr
             >
                 <form
                     onSubmit={onSubmit}
-                    noValidate
                     autoComplete="off"
                     className="overflow-hidden rounded-xl border border-(--a-border-hover) bg-(--a-surface-0) text-(--a-text) shadow-2xl"
                 >
