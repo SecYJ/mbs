@@ -24,8 +24,13 @@ const sortItems: Array<{ label: string; value: NonNullable<RoomsSearch["sort"]> 
 const Route = getRouteApi("/admin/rooms");
 
 export const RoomCollectionToolbar = ({ resultCount }: { resultCount: number }) => {
-    const search = Route.useSearch();
     const navigate = Route.useNavigate();
+    const search = Route.useSearch({
+        select: (s) => ({
+            status: s.status ?? "all",
+            sort: s.sort ?? "recent",
+        }),
+    });
 
     const updateSearch = (next: Partial<RoomsSearch>) => {
         navigate({
@@ -47,13 +52,13 @@ export const RoomCollectionToolbar = ({ resultCount }: { resultCount: number }) 
                 <RoomCollectionSearchInput />
                 <RoomCollectionSelect
                     label="Status"
-                    value={search.status ?? "all"}
+                    value={search.status}
                     items={statusItems}
                     onValueChange={(status) => updateSearch({ status })}
                 />
                 <RoomCollectionSelect
                     label="Sort rooms"
-                    value={search.sort ?? "recent"}
+                    value={search.sort}
                     items={sortItems}
                     onValueChange={(sort) => updateSearch({ sort })}
                 />

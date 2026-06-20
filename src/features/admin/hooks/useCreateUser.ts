@@ -1,17 +1,17 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useForm } from "react-hook-form";
 
 import { createUserSchema } from "@/features/admin/schema/user.schema";
 import { createUserFn } from "@/features/admin/services/users/fns";
-import { usersQueryKey } from "@/features/admin/services/users/queries";
+import { userQueries } from "@/features/admin/services/users/queries";
 
 type Options = {
     onSuccess?: () => void;
 };
 
-export const useCreateUser = ({ onSuccess }: Options = {}) => {
+export const useCreateUser = ({ onSuccess }: Options) => {
     const form = useForm({
         resolver: zodResolver(createUserSchema),
         defaultValues: {
@@ -23,13 +23,12 @@ export const useCreateUser = ({ onSuccess }: Options = {}) => {
         },
     });
 
-    const queryClient = useQueryClient();
     const createUser = useServerFn(createUserFn);
 
     const { mutate: submitCreateUser, isPending } = useMutation({
         mutationFn: createUser,
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: usersQueryKey });
+        onSuccess: (_1, _2, _3, context) => {
+            context.client.invalidateQueries({ queryKey: userQueries.lists() });
             form.reset();
             onSuccess?.();
         },

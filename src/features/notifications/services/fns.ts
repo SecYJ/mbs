@@ -31,8 +31,8 @@ export const getNotificationsFn = createServerFn({ method: "GET" })
                 },
             })
             .from(notifications)
-            .innerJoin(bookings, eq(bookings.bookingId, notifications.bookingId))
-            .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
+            .leftJoin(bookings, eq(bookings.bookingId, notifications.bookingId))
+            .leftJoin(rooms, eq(rooms.roomId, bookings.roomId))
             .where(and(eq(notifications.userId, userId), statusFilter))
             .orderBy(desc(notifications.createdAt));
 
@@ -50,12 +50,14 @@ export const getNotificationsFn = createServerFn({ method: "GET" })
             message: row.notification.message,
             status: row.notification.status,
             createdAt: toIso(row.notification.createdAt),
-            booking: {
-                id: row.booking.id,
-                title: row.booking.title,
-                startTime: toIso(row.booking.startTime),
-                endTime: toIso(row.booking.endTime),
-            },
+            booking: row.booking
+                ? {
+                      id: row.booking.id,
+                      title: row.booking.title,
+                      startTime: toIso(row.booking.startTime),
+                      endTime: toIso(row.booking.endTime),
+                  }
+                : null,
             room: row.room,
         }));
 

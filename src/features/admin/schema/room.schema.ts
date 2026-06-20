@@ -18,3 +18,7 @@ export const createRoomSchema = z.object({
 export const updateRoomSchema = createRoomSchema.extend({
     roomId: z.uuid("Select a valid room"),
 });
+
+export const deleteRoomSchema = z.object({
+    roomId: z.uuid("Select a valid room"),
+});

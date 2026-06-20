@@ -1,0 +1,1 @@
+ALTER TABLE "notifications" ALTER COLUMN "booking_id" DROP NOT NULL;

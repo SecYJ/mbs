@@ -10,15 +10,16 @@ import { AdminSearchInput } from "@/features/admin/components/AdminSearchInput";
 import { CreateUserDialog } from "@/features/admin/components/CreateUserDialog";
 import { EmptyState } from "@/features/admin/components/EmptyState";
 import { usersSearchDefaults } from "@/features/admin/schema/users-search.schema";
-import { usersQueryOptions } from "@/features/admin/services/users/queries";
+import { userQueries } from "@/features/admin/services/users/queries";
 import type { AdminUser } from "@/features/admin/types";
 import { isSuperAdminRole, USER_ROLE_LABELS, type UserRole } from "@/lib/roles";
-
-const adminRoute = getRouteApi("/admin");
+import { cn } from "@/lib/utils";
 
 type SortField = "name" | "email" | "role" | "lastLogin";
 type SortDirection = "asc" | "desc";
 type AdminUserRow = Omit<AdminUser, "lastLogin"> & { createdAt: string };
+
+const Route = getRouteApi("/admin");
 
 const selectAdminUsers = (rows: AdminUserRow[]) =>
     rows.map((row) => ({
@@ -32,18 +33,18 @@ const selectAdminUsers = (rows: AdminUserRow[]) =>
     }));
 
 export const UsersPage = () => {
-    const { user: currentUser } = adminRoute.useRouteContext();
+    const { user: currentUser } = Route.useRouteContext();
     const filters = useSearch({ from: "/admin/users" });
-    const { q } = filters;
-    const deferredFilters = useDeferredValue(filters);
-    const { q: displayedQ, sort: displayedSort, dir: displayedDir } = deferredFilters;
-    const { data: users = [] } = useSuspenseQuery({
-        ...usersQueryOptions(deferredFilters),
+    const q = useDeferredValue(filters.q);
+    const sort = useDeferredValue(filters.sort);
+    const dir = useDeferredValue(filters.dir);
+    const { data: users } = useSuspenseQuery({
+        ...userQueries.list({ q, sort, dir }),
         select: selectAdminUsers,
     });
     const navigate = useNavigate({ from: "/admin/users" });
     const [createOpen, setCreateOpen] = useState(false);
-    const normalizedQ = displayedQ?.trim();
+    const normalizedQ = q?.trim();
 
     const toggleSort = (field: SortField) => {
         navigate({
@@ -85,7 +86,7 @@ export const UsersPage = () => {
             <div className="p-6">
                 {!(users.length === 0 && !normalizedQ) && (
                     <div className="mb-4 flex items-center gap-3">
-                        <AdminSearchInput value={q} onChange={setSearch} placeholder="Search users..." />
+                        <AdminSearchInput value={filters.q} onChange={setSearch} placeholder="Search users..." />
                     </div>
                 )}
                 {users.length === 0 && !normalizedQ ? (
@@ -95,51 +96,43 @@ export const UsersPage = () => {
                         description="Users who register for the booking system will appear here."
                     />
                 ) : users.length === 0 ? (
-                    <p className="py-12 text-center text-sm" style={{ color: "var(--a-text-muted)" }}>
-                        No users match "{normalizedQ}"
-                    </p>
+                    <p className="py-12 text-center text-sm text-(--a-text-muted)">No users match "{normalizedQ}"</p>
                 ) : (
-                    <div
-                        className="overflow-hidden rounded-xl border"
-                        style={{
-                            borderColor: "var(--a-border-hover)",
-                            background: "var(--a-surface-0)",
-                        }}
-                    >
+                    <div className="overflow-hidden rounded-xl border-(--a-border-hover) bg-(--a-surface-0)">
                         <table className="admin-table">
                             <thead>
                                 <tr>
                                     <UsersSortHeader
-                                        sort={displayedSort}
-                                        dir={displayedDir}
+                                        sort={sort}
+                                        dir={dir}
                                         onSort={toggleSort}
                                         field="name"
                                         label="User"
-                                        width="30%"
+                                        className="w-[30%]"
                                     />
                                     <UsersSortHeader
-                                        sort={displayedSort}
-                                        dir={displayedDir}
+                                        sort={sort}
+                                        dir={dir}
                                         onSort={toggleSort}
                                         field="email"
                                         label="Email"
-                                        width="28%"
+                                        className="w-[28%]"
                                     />
                                     <UsersSortHeader
-                                        sort={displayedSort}
-                                        dir={displayedDir}
+                                        sort={sort}
+                                        dir={dir}
                                         onSort={toggleSort}
                                         field="role"
                                         label="Role"
-                                        width="14%"
+                                        className="w-[14%]"
                                     />
                                     <UsersSortHeader
-                                        sort={displayedSort}
-                                        dir={displayedDir}
+                                        sort={sort}
+                                        dir={dir}
                                         onSort={toggleSort}
                                         field="lastLogin"
                                         label="Last Login"
-                                        width="28%"
+                                        className="w-[28%]"
                                     />
                                 </tr>
                             </thead>
@@ -162,23 +155,16 @@ export const UsersPage = () => {
                                                             .join("")}
                                                     </div>
                                                 )}
-                                                <span className="font-medium" style={{ color: "var(--a-text)" }}>
-                                                    {user.name}
-                                                </span>
+                                                <span className="font-medium text-(--a-text)">{user.name}</span>
                                             </div>
                                         </td>
-                                        <td style={{ color: "var(--a-text-secondary)" }}>{user.email}</td>
+                                        <td className="text-(--a-text-secondary)">{user.email}</td>
                                         <td>
-                                            <span
-                                                className={adminBadgeClasses}
-                                                style={getUserRoleBadgeStyle(user.role)}
-                                            >
+                                            <span className={getUserRoleBadgeClasses(user.role)}>
                                                 {USER_ROLE_LABELS[user.role]}
                                             </span>
                                         </td>
-                                        <td className="tabular-nums" style={{ color: "var(--a-text-muted)" }}>
-                                            {user.lastLogin}
-                                        </td>
+                                        <td className="tabular-nums text-(--a-text-muted)">{user.lastLogin}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -190,48 +176,36 @@ export const UsersPage = () => {
     );
 };
 
-const getUserRoleBadgeStyle = (role: UserRole) => {
+const getUserRoleBadgeClasses = (role: UserRole) => {
     if (role === "super_admin") {
-        return {
-            background: "color-mix(in srgb, var(--a-accent) 22%, transparent)",
-            color: "var(--a-accent)",
-            border: "1px solid var(--a-accent-border)",
-        };
+        return cn(adminBadgeClasses, "border border-(--a-accent-border) bg-(--a-accent)/22 text-(--a-accent)");
     }
 
     if (role === "admin") {
-        return {
-            background: "var(--a-accent-subtle)",
-            color: "var(--a-accent)",
-            border: "1px solid var(--a-accent-border)",
-        };
+        return cn(adminBadgeClasses, "border border-(--a-accent-border) bg-(--a-accent-subtle) text-(--a-accent)");
     }
 
-    return {
-        background: "var(--a-surface-2)",
-        color: "var(--a-text-secondary)",
-        border: "1px solid var(--a-border)",
-    };
+    return cn(adminBadgeClasses, "border border-(--a-border) bg-(--a-surface-2) text-(--a-text-secondary)");
 };
 
 const UsersSortHeader = ({
     field,
     label,
-    width,
+    className,
     sort,
     dir,
     onSort,
 }: {
     field: SortField;
     label: string;
-    width: string;
+    className: string;
     sort?: SortField;
     dir?: SortDirection;
     onSort: (field: SortField) => void;
 }) => (
     <th
         data-sortable
-        style={{ width }}
+        className={className}
         aria-sort={sort === field && dir ? (dir === "asc" ? "ascending" : "descending") : "none"}
     >
         <button
@@ -241,9 +215,7 @@ const UsersSortHeader = ({
         >
             {label}
             {sort === field && dir ? (
-                <span className="ml-1 text-[0.5rem]" style={{ color: "var(--a-accent)" }}>
-                    {dir === "asc" ? "▲" : "▼"}
-                </span>
+                <span className="ml-1 text-[0.5rem] text-(--a-accent)">{dir === "asc" ? "▲" : "▼"}</span>
             ) : null}
         </button>
     </th>

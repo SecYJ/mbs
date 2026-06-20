@@ -1,31 +1,18 @@
-import { Controller, FormStateSubscribe } from "react-hook-form";
 import { Building2, Clock, MapPin, UsersRound } from "lucide-react";
 import type { ReactNode } from "react";
-import { toast } from "sonner";
+import { Controller, FormStateSubscribe } from "react-hook-form";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { adminInputClasses } from "@/features/admin/admin-classes";
-import { StatusToggle } from "@/features/admin/components/StatusToggle";
-import { useRoomsCreateStore } from "@/features/admin/stores/RoomsCreateStore";
+import { adminInputClasses, adminToggleClasses } from "@/features/admin/admin-classes";
 import { useCreateRoom } from "@/features/admin/hooks/useCreateRoom";
 
-export const CreateRoomDialog = () => {
-    const open = useRoomsCreateStore((s) => s.open);
-    const { setOpen } = useRoomsCreateStore((s) => s.actions);
+type CreateRoomDialogProps = {
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+};
 
-    const { form, onSubmit, isPending } = useCreateRoom({
-        onSuccess: () => {
-            toast.success("Room created");
-            form.reset();
-            setOpen(false);
-        },
-    });
-
-    const handleOpenChange = (nextOpen: boolean) => {
-        if (isPending && !nextOpen) return;
-        setOpen(nextOpen);
-        if (!nextOpen) form.reset();
-    };
+export const CreateRoomDialog = ({ open, onOpenChange }: CreateRoomDialogProps) => {
+    const { form, onSubmit, isPending, handleOpenChange } = useCreateRoom({ onOpenChange });
 
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -35,7 +22,6 @@ export const CreateRoomDialog = () => {
             >
                 <form
                     onSubmit={onSubmit}
-                    noValidate
                     className="overflow-hidden rounded-xl border border-(--a-border-hover) bg-(--a-surface-0) text-(--a-text) shadow-2xl"
                 >
                     <div className="flex items-center gap-3 border-b border-(--a-border) px-5 py-4">
@@ -47,6 +33,7 @@ export const CreateRoomDialog = () => {
                         >
                             <Building2 className="size-4 text-white" strokeWidth={2.2} />
                         </div>
+
                         <div className="min-w-0">
                             <DialogTitle className="text-[0.9375rem] font-bold tracking-tight text-(--a-text)">
                                 New Room
@@ -167,10 +154,14 @@ export const CreateRoomDialog = () => {
                                             Disable to hide from booking flows.
                                         </p>
                                     </div>
-                                    <StatusToggle
-                                        checked={field.value}
-                                        onChange={field.onChange}
-                                        label="Room availability"
+                                    <button
+                                        type="button"
+                                        role="switch"
+                                        aria-checked={field.value}
+                                        aria-label="Room availability"
+                                        className={adminToggleClasses}
+                                        data-state={field.value ? "on" : "off"}
+                                        onClick={() => field.onChange(!field.value)}
                                     />
                                 </div>
                             )}

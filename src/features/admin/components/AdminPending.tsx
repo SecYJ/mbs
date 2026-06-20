@@ -5,9 +5,9 @@ const statTones = [
     { background: "var(--a-accent-subtle)", border: "1px solid var(--a-accent-border)" },
     { background: "var(--a-info-subtle)", border: "1px solid rgba(83,155,245,0.2)" },
     { background: "var(--a-success-subtle)", border: "1px solid rgba(52,211,153,0.2)" },
-] as const;
+];
 
-const tableColumns = ["12%", "10%", "20%", "14%", "14%", "8%", "10%", "12%"] as const;
+const tableColumns = ["12%", "10%", "20%", "14%", "14%", "8%", "10%", "12%"];
 
 const STATUS_COLUMN = 6;
 

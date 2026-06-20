@@ -1,50 +1,89 @@
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
+import { getRouteApi } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
+import { format } from "date-fns";
+import { useDeferredValue } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-import { useAdminBookingFilters } from "@/features/admin/hooks/useAdminBookingFilters";
 import { cancelAdminBookingFn } from "@/features/admin/services/bookings/fns";
-import {
-    adminBookingStatsQueryOptions,
-    adminBookingsQueryOptions,
-    type AdminBookingFilters,
-} from "@/features/admin/services/bookings/queries";
-
-type AdminBookingSearchUpdate = Partial<AdminBookingFilters>;
+import { adminBookingQueries, type AdminBookingsQueryData } from "@/features/admin/services/bookings/queries";
+import { isSuperAdminRole } from "@/lib/roles";
 
 type AdminBookingCancellationFormValues = {
-    cancellations: Array<{
+    cancellations: {
         bookingId: string;
         reason: string;
-    }>;
+    }[];
 };
 
+const getBookingStatus = ({ endTime, startTime, status }: { endTime: string; startTime: string; status: string }) => {
+    if (status === "cancelled") return "cancelled";
+
+    const now = Date.now();
+    const start = new Date(startTime).getTime();
+    const end = new Date(endTime).getTime();
+
+    if (now < start) return "upcoming";
+    if (now < end) return "in-progress";
+    return "completed";
+};
+
+const formatBookingTime = (startTime: string, endTime: string) => {
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+
+    return `${format(start, "HH:mm")} – ${format(end, "HH:mm")}`;
+};
+
+const selectAdminBookings = (data: AdminBookingsQueryData) =>
+    data.bookings.map((row) => ({
+        id: row.id,
+        title: row.title,
+        room: row.room,
+        bookedBy: row.bookedBy,
+        userId: row.userId,
+        canCancel: row.userId === data.currentUserId || isSuperAdminRole(data.currentUserRole),
+        attendees: row.attendees,
+        date: format(new Date(row.startTime), "yyyy-MM-dd"),
+        time: formatBookingTime(row.startTime, row.endTime),
+        startTime: row.startTime,
+        endTime: row.endTime,
+        status: getBookingStatus(row),
+    }));
+
+const Route = getRouteApi("/admin/bookings");
+
 export const useAdminBookingsPage = () => {
-    const { filters, deferredFilters } = useAdminBookingFilters();
-    const navigate = useNavigate({ from: "/admin/bookings" });
-    const queryClient = useQueryClient();
+    const filters = Route.useSearch();
+
+    const q = useDeferredValue(filters.q);
+    const room = useDeferredValue(filters.room);
+    const status = useDeferredValue(filters.status);
+    const deferredFilters = { q, room, status };
+
     const cancelAdminBooking = useServerFn(cancelAdminBookingFn);
-    const bookingsQueryOptions = adminBookingsQueryOptions(deferredFilters);
-    const bookingStatsQueryOptions = adminBookingStatsQueryOptions();
-    const {
-        data: { bookings, rooms },
-    } = useSuspenseQuery(bookingsQueryOptions);
-    const cancellationForm = useForm<AdminBookingCancellationFormValues>({
+
+    const bookingsQueryOptions = adminBookingQueries.list(deferredFilters);
+
+    const { data: bookings } = useSuspenseQuery({ ...bookingsQueryOptions, select: selectAdminBookings });
+
+    const form = useForm<AdminBookingCancellationFormValues>({
         defaultValues: { cancellations: [] },
     });
+
     const {
         append,
         fields: cancellationFields,
         remove,
     } = useFieldArray({
-        control: cancellationForm.control,
+        control: form.control,
         name: "cancellations",
     });
 
-    const getCancellationIndex = (bookingId: string) =>
-        cancellationForm.getValues("cancellations").findIndex((cancellation) => cancellation.bookingId === bookingId);
+    const getCancellationIndex = (bookingId: string) => {
+        return form.getValues("cancellations").findIndex((cancellation) => cancellation.bookingId === bookingId);
+    };
 
     const removeCancellation = (bookingId: string) => {
         const cancellationIndex = getCancellationIndex(bookingId);
@@ -65,13 +104,6 @@ export const useAdminBookingsPage = () => {
         },
     });
 
-    const updateSearch = (next: AdminBookingSearchUpdate) => {
-        navigate({
-            search: (prev) => ({ ...prev, ...next }),
-            replace: true,
-        });
-    };
-
     const beginCancellation = (bookingId: string) => {
         if (getCancellationIndex(bookingId) === -1) {
             append({ bookingId, reason: "" });
@@ -87,14 +119,14 @@ export const useAdminBookingsPage = () => {
             {
                 data: {
                     bookingId: booking.id,
-                    cancelReason: cancellationForm.getValues(`cancellations.${cancellationIndex}.reason`),
+                    cancelReason: form.getValues(`cancellations.${cancellationIndex}.reason`),
                 },
             },
             {
-                onSuccess: async () => {
+                onSuccess: async (_1, _2, _3, context) => {
                     await Promise.all([
-                        queryClient.invalidateQueries(bookingsQueryOptions),
-                        queryClient.invalidateQueries(bookingStatsQueryOptions),
+                        context.client.invalidateQueries(bookingsQueryOptions),
+                        context.client.invalidateQueries(adminBookingQueries.stats()),
                     ]);
                     toast.error(`"${booking.title}" cancelled`);
                     removeCancellation(booking.id);
@@ -106,16 +138,10 @@ export const useAdminBookingsPage = () => {
     return {
         beginCancellation,
         cancellationFields,
-        cancellationForm,
+        form,
         cancellingBookingId: isCancelling ? cancellingVariables?.data.bookingId : null,
         dismissCancellation: removeCancellation,
-        filteredBookings: bookings,
-        isCancelling,
-        roomFilter: filters.room,
-        rooms,
-        search: filters.q,
-        statusFilter: filters.status,
+        bookings,
         submitCancellation,
-        updateSearch,
     };
 };

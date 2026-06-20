@@ -3,16 +3,14 @@ import { z } from "zod";
 
 import { AdminPending } from "@/features/admin/components/AdminPending";
 import { RoomDetailsPage } from "@/features/admin/pages/RoomDetailsPage";
-import { roomQueryOptions } from "@/features/admin/services/rooms/queries";
-
-const roomParamsSchema = z.object({
-    roomId: z.uuid(),
-});
+import { roomQueries } from "@/features/admin/services/rooms/queries";
 
 export const Route = createFileRoute("/admin/rooms_/$roomId")({
-    params: roomParamsSchema,
+    params: z.object({
+        roomId: z.uuid(),
+    }),
     loader: ({ context: { queryClient }, params }) => {
-        queryClient.ensureQueryData(roomQueryOptions(params.roomId));
+        queryClient.ensureQueryData(roomQueries.detail(params.roomId));
     },
     component: RoomDetailsPage,
     pendingComponent: AdminPending,

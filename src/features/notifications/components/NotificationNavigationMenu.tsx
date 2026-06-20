@@ -213,17 +213,8 @@ const NotificationPreviewList = ({
 
     return (
         <div className="divide-y divide-(--hairline)">
-            {previewNotifications.map((notification) => (
-                <Link
-                    key={notification.id}
-                    to="/bookings/$bookingId"
-                    params={{ bookingId: notification.bookingId }}
-                    onClick={() => selectNotification(notification)}
-                    className="block w-full cursor-pointer px-4 py-3 text-left no-underline transition-colors hover:bg-(--surface-02)"
-                    aria-label={
-                        notification.status === "unread" ? "Open booking and mark notification as read" : "Open booking"
-                    }
-                >
+            {previewNotifications.map((notification) => {
+                const notificationContent = (
                     <div className="flex items-start gap-3">
                         <span
                             className={cn(
@@ -233,14 +224,45 @@ const NotificationPreviewList = ({
                         />
                         <div className="min-w-0">
                             <p className="line-clamp-2 text-sm leading-5 text-(--bone)">{notification.message}</p>
-                            <p className="mt-1 truncate text-xs text-(--bone-muted)">{notification.booking.title}</p>
+                            <p className="mt-1 truncate text-xs text-(--bone-muted)">
+                                {notification.booking?.title ?? "System notification"}
+                            </p>
                             <p className="mt-1 text-[0.66rem] text-(--bone-dim)">
                                 {formatNotificationDateTime(notification.createdAt)}
                             </p>
                         </div>
                     </div>
-                </Link>
-            ))}
+                );
+
+                return notification.bookingId ? (
+                    <Link
+                        key={notification.id}
+                        to="/bookings/$bookingId"
+                        params={{ bookingId: notification.bookingId }}
+                        onClick={() => selectNotification(notification)}
+                        className="block w-full cursor-pointer px-4 py-3 text-left no-underline transition-colors hover:bg-(--surface-02)"
+                        aria-label={
+                            notification.status === "unread"
+                                ? "Open booking and mark notification as read"
+                                : "Open booking"
+                        }
+                    >
+                        {notificationContent}
+                    </Link>
+                ) : (
+                    <button
+                        key={notification.id}
+                        type="button"
+                        onClick={() => selectNotification(notification)}
+                        className="block w-full cursor-pointer px-4 py-3 text-left transition-colors hover:bg-(--surface-02)"
+                        aria-label={
+                            notification.status === "unread" ? "Mark notification as read" : "Read notification"
+                        }
+                    >
+                        {notificationContent}
+                    </button>
+                );
+            })}
         </div>
     );
 };

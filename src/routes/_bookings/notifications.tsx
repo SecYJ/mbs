@@ -124,19 +124,9 @@ function NotificationsPage() {
                 </section>
             ) : (
                 <section className="divide-y divide-(--hairline) border-y border-(--hairline)">
-                    {notifications.map((notification) => (
-                        <article
-                            key={notification.id}
-                            className="grid gap-4 px-1 py-5 md:grid-cols-[1fr_auto] md:items-center"
-                        >
-                            <Link
-                                to="/bookings/$bookingId"
-                                params={{ bookingId: notification.bookingId }}
-                                onClick={() => {
-                                    if (notification.status === "unread") markAsRead(notification.id);
-                                }}
-                                className="flex gap-4 text-(--bone) no-underline transition-colors hover:text-(--gold)"
-                            >
+                    {notifications.map((notification) => {
+                        const notificationContent = (
+                            <>
                                 <div className="mt-1 flex size-10 shrink-0 items-center justify-center border border-(--hairline) text-(--gold)">
                                     {notification.status === "read" ? (
                                         <CheckCircle2 className="size-4" strokeWidth={1.4} />
@@ -158,40 +148,72 @@ function NotificationsPage() {
                                             {STATUS_LABEL[notification.status]}
                                         </Badge>
                                     </div>
-                                    <p className="mt-1 text-sm text-(--bone-muted)">{notification.booking.title}</p>
-                                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-(--bone-dim)">
-                                        <span className="inline-flex items-center gap-2">
-                                            <CalendarDays className="size-3.5" strokeWidth={1.4} />
-                                            {formatNotificationDate(notification.booking.startTime)}
-                                        </span>
-                                        <span>
-                                            {formatNotificationTime(notification.booking.startTime)} -{" "}
-                                            {formatNotificationTime(notification.booking.endTime)}
-                                        </span>
-                                        <span>
-                                            {notification.room.name}, {notification.room.location}
-                                        </span>
-                                    </div>
+                                    {notification.booking ? (
+                                        <>
+                                            <p className="mt-1 text-sm text-(--bone-muted)">
+                                                {notification.booking.title}
+                                            </p>
+                                            <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-(--bone-dim)">
+                                                <span className="inline-flex items-center gap-2">
+                                                    <CalendarDays className="size-3.5" strokeWidth={1.4} />
+                                                    {formatNotificationDate(notification.booking.startTime)}
+                                                </span>
+                                                <span>
+                                                    {formatNotificationTime(notification.booking.startTime)} -{" "}
+                                                    {formatNotificationTime(notification.booking.endTime)}
+                                                </span>
+                                                {notification.room ? (
+                                                    <span>
+                                                        {notification.room.name}, {notification.room.location}
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <p className="mt-1 text-sm text-(--bone-muted)">System notification</p>
+                                    )}
                                 </div>
-                            </Link>
-                            <div className="flex flex-col items-start gap-3 pl-14 md:items-end md:pl-0">
-                                <time dateTime={notification.createdAt} className="text-xs text-(--bone-dim)">
-                                    {formatNotificationDateTime(notification.createdAt)}
-                                </time>
-                                {notification.status === "unread" ? (
-                                    <button
-                                        type="button"
-                                        onClick={() => markAsRead(notification.id)}
-                                        disabled={isMarkingRead}
-                                        className="inline-flex cursor-pointer items-center gap-2 border border-(--hairline) px-3 py-2 text-[0.62rem] font-semibold tracking-[0.2em] text-(--bone-dim) uppercase transition-colors hover:border-(--hairline-strong) hover:text-(--bone) disabled:cursor-not-allowed disabled:opacity-40"
+                            </>
+                        );
+
+                        return (
+                            <article
+                                key={notification.id}
+                                className="grid gap-4 px-1 py-5 md:grid-cols-[1fr_auto] md:items-center"
+                            >
+                                {notification.bookingId ? (
+                                    <Link
+                                        to="/bookings/$bookingId"
+                                        params={{ bookingId: notification.bookingId }}
+                                        onClick={() => {
+                                            if (notification.status === "unread") markAsRead(notification.id);
+                                        }}
+                                        className="flex gap-4 text-(--bone) no-underline transition-colors hover:text-(--gold)"
                                     >
-                                        <CheckCheck className="size-3.5" strokeWidth={1.4} />
-                                        <span>Mark read</span>
-                                    </button>
-                                ) : null}
-                            </div>
-                        </article>
-                    ))}
+                                        {notificationContent}
+                                    </Link>
+                                ) : (
+                                    <div className="flex gap-4 text-(--bone)">{notificationContent}</div>
+                                )}
+                                <div className="flex flex-col items-start gap-3 pl-14 md:items-end md:pl-0">
+                                    <time dateTime={notification.createdAt} className="text-xs text-(--bone-dim)">
+                                        {formatNotificationDateTime(notification.createdAt)}
+                                    </time>
+                                    {notification.status === "unread" ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => markAsRead(notification.id)}
+                                            disabled={isMarkingRead}
+                                            className="inline-flex cursor-pointer items-center gap-2 border border-(--hairline) px-3 py-2 text-[0.62rem] font-semibold tracking-[0.2em] text-(--bone-dim) uppercase transition-colors hover:border-(--hairline-strong) hover:text-(--bone) disabled:cursor-not-allowed disabled:opacity-40"
+                                        >
+                                            <CheckCheck className="size-3.5" strokeWidth={1.4} />
+                                            <span>Mark read</span>
+                                        </button>
+                                    ) : null}
+                                </div>
+                            </article>
+                        );
+                    })}
                 </section>
             )}
         </div>
