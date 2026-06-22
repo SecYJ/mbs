@@ -22,6 +22,7 @@ export const BookingDetailsPage = () => {
         organizer,
         pageLabel,
         responseCounts,
+        responseTotal,
         room,
         roomSummary,
         rsvpError,
@@ -115,7 +116,7 @@ export const BookingDetailsPage = () => {
                             <div className="flex items-center gap-2 text-xs text-(--bone-dim)">
                                 <Users className="size-4" strokeWidth={1.4} />
                                 <span className="tabular-num">
-                                    {responseCounts.accepted}/{attendees.length}
+                                    {responseCounts.accepted}/{responseTotal}
                                 </span>
                             </div>
                         </div>
@@ -153,7 +154,6 @@ export const BookingDetailsPage = () => {
                                         name={attendee.name}
                                         email={attendee.email}
                                         status={attendee.status}
-                                        current={attendee.current}
                                     />
                                 ))
                             )}

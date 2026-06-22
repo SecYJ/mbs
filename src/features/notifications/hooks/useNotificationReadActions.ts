@@ -3,11 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 
 import { markAllNotificationsReadFn, markNotificationReadFn } from "@/features/notifications/services/fns";
 import { type NotificationFilter } from "@/features/notifications/schemas/notificationSchema";
-import {
-    notificationsQueryKey,
-    notificationsQueryOptions,
-    type NotificationsData,
-} from "@/features/notifications/services/queries";
+import { notificationQueries, type NotificationsData } from "@/features/notifications/services/queries";
 import { produce } from "immer";
 
 export const useNotificationReadActions = (filter: NotificationFilter) => {
@@ -17,13 +13,13 @@ export const useNotificationReadActions = (filter: NotificationFilter) => {
     const markNotificationReadMutation = useMutation({
         mutationFn: markNotificationReadServer,
         onMutate: async ({ data }, context) => {
-            await context.client.cancelQueries(notificationsQueryOptions(filter));
+            await context.client.cancelQueries(notificationQueries.list(filter));
 
-            const previousNotifications = context.client.getQueryData(notificationsQueryOptions(filter).queryKey);
+            const previousNotifications = context.client.getQueryData(notificationQueries.list(filter).queryKey);
 
             if (previousNotifications) {
                 context.client.setQueryData(
-                    notificationsQueryOptions(filter).queryKey,
+                    notificationQueries.list(filter).queryKey,
                     produce(previousNotifications, (draft) => {
                         draft.unreadCount -= 1;
 
@@ -43,25 +39,25 @@ export const useNotificationReadActions = (filter: NotificationFilter) => {
         onSettled: (_data, error, _variables, onMutateResult, context) => {
             if (error && onMutateResult?.previousNotifications) {
                 context.client.setQueryData<NotificationsData>(
-                    notificationsQueryOptions(filter).queryKey,
+                    notificationQueries.list(filter).queryKey,
                     onMutateResult.previousNotifications,
                 );
             }
 
-            return context.client.invalidateQueries({ queryKey: notificationsQueryKey });
+            return context.client.invalidateQueries({ queryKey: notificationQueries.all() });
         },
     });
 
     const markAllNotificationsReadMutation = useMutation({
         mutationFn: markAllNotificationsReadServer,
         onMutate: async (_variables, context) => {
-            await context.client.cancelQueries({ queryKey: notificationsQueryKey });
+            await context.client.cancelQueries({ queryKey: notificationQueries.all() });
 
             const previousNotifications = context.client.getQueriesData<NotificationsData>({
-                queryKey: notificationsQueryKey,
+                queryKey: notificationQueries.all(),
             });
 
-            context.client.setQueriesData<NotificationsData>({ queryKey: notificationsQueryKey }, (data) =>
+            context.client.setQueriesData<NotificationsData>({ queryKey: notificationQueries.all() }, (data) =>
                 data
                     ? produce(data, (draft) => {
                           draft.unreadCount = 0;
@@ -82,7 +78,7 @@ export const useNotificationReadActions = (filter: NotificationFilter) => {
                 });
             }
 
-            return context.client.invalidateQueries({ queryKey: notificationsQueryKey });
+            return context.client.invalidateQueries({ queryKey: notificationQueries.all() });
         },
     });
 

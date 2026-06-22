@@ -15,8 +15,7 @@ export const ForgotPasswordForm = () => {
         return (
             <section
                 aria-live="polite"
-                className="mt-12 space-y-8"
-                style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 0ms both" }}
+                className="mt-12 space-y-8 animate-fade-up animation-duration-800 [animation-delay:0ms]"
             >
                 <div className="flex items-start gap-4 border-l border-(--gold) pl-5">
                     <div className="inline-flex size-9 shrink-0 items-center justify-center border border-(--hairline-strong) text-(--gold)">
@@ -59,8 +58,7 @@ export const ForgotPasswordForm = () => {
     return (
         <form
             onSubmit={onSubmit}
-            className="mt-12 space-y-8"
-            style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
+            className="mt-12 space-y-8 animate-fade-up animation-duration-800 [animation-delay:400ms]"
         >
             <Controller
                 control={form.control}

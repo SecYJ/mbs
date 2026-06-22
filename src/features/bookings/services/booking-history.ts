@@ -57,6 +57,7 @@ export const getBookingHistoryItem = ({
     const currentUserAttendee = currentUserId
         ? (attendees.find((attendee) => attendee.id === currentUserId) ?? null)
         : null;
+    const visibleAttendees = currentUserId ? attendees.filter((attendee) => attendee.id !== currentUserId) : attendees;
 
     return {
         id: booking.id,
@@ -71,7 +72,7 @@ export const getBookingHistoryItem = ({
         room,
         organizer,
         cancelledBy,
-        attendees,
+        attendees: visibleAttendees,
         currentUserAttendance: currentUserAttendee ? { status: currentUserAttendee.status ?? "pending" } : null,
     };
 };

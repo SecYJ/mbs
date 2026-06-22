@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, count, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { db } from "@/db";
+import { getDb } from "@/db/server";
 import { bookings, notifications, rooms } from "@/db/schema";
 import { notificationFilterSchema } from "@/features/notifications/schemas/notificationSchema";
 import { authenticatedUserMiddleware } from "@/middleware/auth";
@@ -13,6 +13,7 @@ export const getNotificationsFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
     .validator(z.object({ filter: notificationFilterSchema.optional() }))
     .handler(async ({ context, data }) => {
+        const db = await getDb();
         const userId = context.session.user.id;
         const statusFilter = data.filter === "unread" ? eq(notifications.status, "unread") : undefined;
 
@@ -76,6 +77,7 @@ export const markNotificationReadFn = createServerFn({ method: "POST" })
         }),
     )
     .handler(async ({ context, data }) => {
+        const db = await getDb();
         const [updatedNotification] = await db
             .update(notifications)
             .set({ status: "read" })
@@ -94,6 +96,7 @@ export const markNotificationReadFn = createServerFn({ method: "POST" })
 export const markAllNotificationsReadFn = createServerFn({ method: "POST" })
     .middleware([authenticatedUserMiddleware])
     .handler(async ({ context }) => {
+        const db = await getDb();
         const updatedNotifications = await db
             .update(notifications)
             .set({ status: "read" })

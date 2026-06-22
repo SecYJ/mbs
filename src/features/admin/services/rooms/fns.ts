@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, asc, desc, eq, ilike, inArray, or, type SQL } from "drizzle-orm";
 import { z } from "zod";
 
-import { db } from "@/db";
+import { getDb } from "@/db/server";
 import { attendees, bookings, equipment, notifications, roomFacilities, roomEquipment, rooms } from "@/db/schema";
 import { createRoomSchema, deleteRoomSchema, updateRoomSchema } from "@/features/admin/schema/room.schema";
 import { roomsSearchSchema, type RoomsSearch } from "@/features/admin/schema/rooms-search.schema";
@@ -53,6 +53,7 @@ const getDeletedRoomBookingMessage = (booking: DeletedRoomBookingNotification) =
 export const getRoomsFn = createServerFn({ method: "GET" })
     .validator(roomsSearchSchema)
     .handler(async ({ data }) => {
+        const db = await getDb();
         await requireAdminUser();
 
         const search = data.q?.trim();
@@ -110,6 +111,7 @@ export const getRoomsFn = createServerFn({ method: "GET" })
 export const getRoomFn = createServerFn({ method: "GET" })
     .validator(z.object({ roomId: z.uuid() }))
     .handler(async ({ data }) => {
+        const db = await getDb();
         await requireAdminUser();
 
         const rows = await db
@@ -147,6 +149,7 @@ export const getRoomFn = createServerFn({ method: "GET" })
 export const createRoomFn = createServerFn({ method: "POST" })
     .validator(createRoomSchema)
     .handler(async ({ data }) => {
+        const db = await getDb();
         await requireAdminUser();
 
         const [room] = await db.insert(rooms).values(data).returning();
@@ -157,6 +160,7 @@ export const createRoomFn = createServerFn({ method: "POST" })
 export const updateRoomFn = createServerFn({ method: "POST" })
     .validator(updateRoomSchema)
     .handler(async ({ data }) => {
+        const db = await getDb();
         await requireAdminUser();
 
         const [room] = await db
@@ -180,6 +184,7 @@ export const updateRoomFn = createServerFn({ method: "POST" })
 export const deleteRoomFn = createServerFn({ method: "POST" })
     .validator(deleteRoomSchema)
     .handler(async ({ data }) => {
+        const db = await getDb();
         const session = await requireAdminUser();
 
         if (!isSuperAdminRole(session.user.role)) {

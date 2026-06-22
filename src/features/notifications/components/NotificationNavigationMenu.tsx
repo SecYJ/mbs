@@ -108,10 +108,7 @@ const NotificationMenuTrigger = ({ unreadBadgeLabel, unreadCount }: Notification
     >
         <Bell className="size-4" strokeWidth={1.4} />
         {unreadCount > 0 ? (
-            <span
-                className="absolute -top-1 -right-1 min-w-4 rounded-full border border-black bg-(--signal) px-1 text-center text-[0.55rem] leading-4 font-bold text-black"
-                style={{ animation: "signal-pulse 900ms ease-in-out infinite" }}
-            >
+            <span className="absolute -top-1 -right-1 min-w-4 animate-signal-pulse rounded-full border border-black bg-(--signal) px-1 text-center text-[0.55rem] leading-4 font-bold text-black">
                 {unreadBadgeLabel}
             </span>
         ) : null}

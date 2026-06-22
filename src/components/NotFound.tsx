@@ -24,24 +24,17 @@ export const NotFound = () => {
                 {/* Margin rule — centered at 50%, standing in for the ledger's spine */}
                 <div
                     aria-hidden
-                    className="hairline-draw-in pointer-events-none absolute top-0 bottom-0 left-1/2 w-px bg-(--hairline)"
-                    style={{ animationDelay: "300ms" }}
+                    className="hairline-draw-in pointer-events-none absolute top-0 bottom-0 left-1/2 w-px bg-(--hairline) [animation-delay:300ms]"
                 />
 
                 {/* Top-left: closing bracket + errata mark */}
-                <div
-                    className="absolute left-14 top-14 flex items-start gap-3"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
-                >
+                <div className="absolute left-14 top-14 flex items-start gap-3 animate-fade-up animation-duration-700 [animation-delay:100ms]">
                     <span className="font-['Fraunces'] text-[22px] leading-none text-(--gold)">&#9492;</span>
                     <span className="eyebrow text-(--gold) mt-1">Errata &middot; Unbound Folio</span>
                 </div>
 
                 {/* Top-right: oversized appendix call-number */}
-                <div
-                    className="absolute right-14 top-12 flex flex-col items-end gap-2"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 200ms both" }}
-                >
+                <div className="absolute right-14 top-12 flex flex-col items-end gap-2 animate-fade-up animation-duration-700 [animation-delay:200ms]">
                     <span className="eyebrow">Appendix</span>
                     <span className="tabular-num text-[1.75rem] leading-none tracking-[0.12em] text-(--bone)">
                         404<span className="text-(--bone-dim)"> / &infin;</span>
@@ -50,25 +43,16 @@ export const NotFound = () => {
 
                 {/* Editorial statement — anchored bottom */}
                 <div className="relative z-10 mt-auto flex w-full flex-col px-20 pb-20">
-                    <p
-                        className="eyebrow text-(--gold) mb-14"
-                        style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 300ms both" }}
-                    >
+                    <p className="eyebrow text-(--gold) mb-14 animate-fade-up animation-duration-800 [animation-delay:300ms]">
                         Meridian &middot; Folio Not Found
                     </p>
 
-                    <h2
-                        className="display-italic text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone)"
-                        style={{ animation: "fade-up 900ms cubic-bezier(0.16,1,0.3,1) 450ms both" }}
-                    >
+                    <h2 className="display-italic text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone) animate-fade-up animation-duration-900 [animation-delay:450ms]">
                         Not in
                         <br />
                         the ledger.
                     </h2>
-                    <h2
-                        className="display-italic mt-4 pl-[18%] text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone-dim)"
-                        style={{ animation: "fade-up 900ms cubic-bezier(0.16,1,0.3,1) 650ms both" }}
-                    >
+                    <h2 className="display-italic mt-4 pl-[18%] text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone-dim) animate-fade-up animation-duration-900 [animation-delay:650ms]">
                         Nothing
                         <br />
                         reserved here.
@@ -77,24 +61,17 @@ export const NotFound = () => {
                     {/* Hairline rule below the statement */}
                     <div
                         aria-hidden
-                        className="hairline-draw-in mt-14 h-px w-48 bg-(--hairline-strong)"
-                        style={{ animationDelay: "900ms" }}
+                        className="hairline-draw-in mt-14 h-px w-48 bg-(--hairline-strong) [animation-delay:900ms]"
                     />
 
-                    <p
-                        className="mt-6 max-w-[44ch] text-[0.88rem] leading-relaxed text-(--bone-muted)"
-                        style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 1000ms both" }}
-                    >
+                    <p className="mt-6 max-w-[44ch] text-[0.88rem] leading-relaxed text-(--bone-muted) animate-fade-up animation-duration-800 [animation-delay:1000ms]">
                         The page you sought was never bound into this edition &mdash; perhaps a mistyped address,
                         perhaps a folio since withdrawn. The ledger continues just beyond.
                     </p>
                 </div>
 
                 {/* Bottom-left: missing-folio stamp */}
-                <div
-                    className="absolute bottom-14 left-14 flex items-center gap-3"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
-                >
+                <div className="absolute bottom-14 left-14 flex items-center gap-3 animate-fade-up animation-duration-700 [animation-delay:900ms]">
                     <span className="eyebrow">Folio</span>
                     <span className="tabular-num text-[0.7rem] tracking-[0.2em] text-(--bone-muted)">
                         Missing &middot; {year}
@@ -103,10 +80,7 @@ export const NotFound = () => {
 
                 {/* Bottom-right: the void frame — a hollow hairline square where
 				    the folio mark would have been. Unique ornament to 404. */}
-                <div
-                    className="absolute bottom-14 right-14 flex items-center gap-4"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
-                >
+                <div className="absolute bottom-14 right-14 flex items-center gap-4 animate-fade-up animation-duration-700 [animation-delay:900ms]">
                     <span className="eyebrow">Mark</span>
                     <div
                         aria-hidden
@@ -123,19 +97,13 @@ export const NotFound = () => {
 			════════════════════════════════════════════ */}
             <main className="relative flex w-full flex-col justify-center bg-[#050505] px-8 sm:px-14 lg:w-[42%] lg:px-16 xl:px-20">
                 {/* Mobile: compact top ornament mirroring the canvas mark */}
-                <div
-                    className="absolute left-8 top-8 flex items-center gap-3 lg:hidden"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
-                >
+                <div className="absolute left-8 top-8 flex items-center gap-3 lg:hidden animate-fade-up animation-duration-700 [animation-delay:100ms]">
                     <span className="font-['Fraunces'] text-[18px] leading-none text-(--gold)">&#9492;</span>
                     <span className="eyebrow text-(--gold)">Errata &middot; 404</span>
                 </div>
 
                 {/* Mobile: show the tabular 404 when the canvas is hidden */}
-                <div
-                    className="absolute right-8 top-8 flex flex-col items-end gap-1 lg:hidden"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 200ms both" }}
-                >
+                <div className="absolute right-8 top-8 flex flex-col items-end gap-1 lg:hidden animate-fade-up animation-duration-700 [animation-delay:200ms]">
                     <span className="eyebrow">Appendix</span>
                     <span className="tabular-num text-[1.1rem] leading-none tracking-[0.12em] text-(--bone)">
                         404<span className="text-(--bone-dim)"> / &infin;</span>
@@ -144,10 +112,7 @@ export const NotFound = () => {
 
                 <div className="relative mx-auto w-full max-w-100 py-20">
                     {/* Monogram — matched with the app's sign-in and register voice */}
-                    <div
-                        className="mb-16 flex items-center gap-4"
-                        style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 150ms both" }}
-                    >
+                    <div className="mb-16 flex items-center gap-4 animate-fade-up animation-duration-700 [animation-delay:150ms]">
                         <div className="inline-flex size-11 items-center justify-center border border-(--gold)">
                             <span className="display-italic text-[1.35rem] leading-none text-(--gold)">M</span>
                         </div>
@@ -160,7 +125,7 @@ export const NotFound = () => {
                     </div>
 
                     {/* Heading */}
-                    <div style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 250ms both" }}>
+                    <div className="animate-fade-up animation-duration-800 [animation-delay:250ms]">
                         <p className="eyebrow text-(--gold)">Error &middot; 404</p>
                         <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
                             Page not found.
@@ -174,8 +139,7 @@ export const NotFound = () => {
                     {/* Directory — editorial list of ways back */}
                     <nav
                         aria-label="Return navigation"
-                        className="mt-12"
-                        style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
+                        className="mt-12 animate-fade-up animation-duration-800 [animation-delay:400ms]"
                     >
                         <p className="eyebrow mb-5">Step back to</p>
                         <ul className="divide-y divide-(--hairline) border-y border-(--hairline)">
@@ -191,7 +155,7 @@ export const NotFound = () => {
                     </nav>
 
                     {/* Primary CTA — inverted bone, per §5 */}
-                    <div className="mt-10" style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 600ms both" }}>
+                    <div className="mt-10 animate-fade-up animation-duration-800 [animation-delay:600ms]">
                         <Link
                             to="/"
                             className="group relative flex h-12 w-full items-center justify-center gap-3 border border-(--bone) bg-(--bone) text-[0.72rem] font-semibold tracking-[0.3em] uppercase text-black no-underline transition-all duration-300 hover:bg-white hover:border-white hover:tracking-[0.34em]"
@@ -206,10 +170,7 @@ export const NotFound = () => {
                 </div>
 
                 {/* Footer — tabular colophon matches login/register */}
-                <div
-                    className="absolute bottom-6 left-0 right-0 flex items-center justify-between px-8 sm:px-14 lg:px-16 xl:px-20"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
-                >
+                <div className="absolute bottom-6 left-0 right-0 flex items-center justify-between px-8 sm:px-14 lg:px-16 xl:px-20 animate-fade-up animation-duration-700 [animation-delay:900ms]">
                     <span className="tabular-num text-[0.62rem] tracking-[0.2em] text-(--bone-faint)">
                         &copy; {year}
                     </span>

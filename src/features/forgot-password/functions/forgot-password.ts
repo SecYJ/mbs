@@ -4,9 +4,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { sql } from "drizzle-orm";
 
-import { db } from "@/db";
+import { getDb, type Database } from "@/db/server";
+import { getAuth } from "@/lib/auth-server";
 import { rateLimit } from "@/db/schema";
-import { auth } from "@/lib/auth";
 import { forgotPasswordSchema } from "@/features/forgot-password/schema/forgot-password.schema";
 import { RESET_PASSWORD_COOLDOWN_MS } from "@/constants/password-reset";
 
@@ -34,13 +34,13 @@ const getRateLimitKeys = (email: string, request: Request) => {
     return keys;
 };
 
-const enforcePasswordResetCooldown = async (email: string, request: Request) => {
+const enforcePasswordResetCooldown = async (database: Database, email: string, request: Request) => {
     const keys = getRateLimitKeys(email, request);
     const now = Date.now();
     const windowStart = now - RESET_PASSWORD_COOLDOWN_MS;
 
     // Share better-auth's rateLimit table, with app-owned prefixed keys for password-reset email/IP cooldowns.
-    await db.transaction(async (tx) => {
+    await database.transaction(async (tx) => {
         for (const key of keys) {
             const claimed = await tx
                 .insert(rateLimit)
@@ -93,9 +93,10 @@ const getPasswordResetErrorMessage = async (response: Response) => {
 export const requestPasswordResetFn = createServerFn({ method: "POST" })
     .validator(forgotPasswordSchema)
     .handler(async ({ data }) => {
+        const [auth, db] = await Promise.all([getAuth(), getDb()]);
         const request = getRequest();
 
-        await enforcePasswordResetCooldown(data.email, request);
+        await enforcePasswordResetCooldown(db, data.email, request);
 
         const response = await auth.handler(createPasswordResetRequest(data.email, request));
 

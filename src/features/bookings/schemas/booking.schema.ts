@@ -1,13 +1,11 @@
 import { z } from "zod";
 
-import { PAST_BOOKING_START_MESSAGE } from "@/features/bookings/booking.constants";
-
 export const createBookingSchema = z
     .object({
         title: z.string().trim().min(1, "Meeting title is required").max(160, "Meeting title is too long"),
-        roomId: z.string().uuid("Select a valid room"),
-        startTime: z.string().datetime("Select a valid start time"),
-        endTime: z.string().datetime("Select a valid end time"),
+        roomId: z.uuid("Select a valid room"),
+        startTime: z.iso.datetime("Select a valid start time"),
+        endTime: z.iso.datetime("Select a valid end time"),
         description: z.string().trim().max(1000, "Description is too long").optional(),
         attendeeIds: z.array(z.string()).default([]),
     })
@@ -19,7 +17,7 @@ export const createBookingSchema = z
             ctx.addIssue({
                 code: "custom",
                 path: ["startTime"],
-                message: PAST_BOOKING_START_MESSAGE,
+                message: "Start time must be in the future",
             });
         }
 

@@ -1,11 +1,31 @@
 import { cn } from "@/lib/utils";
 
 const roomTracks = [
-    { id: "AUR", label: "Aurora", accentClassName: "bg-(--room-aurora)", delay: "0ms" },
-    { id: "HOR", label: "Horizon", accentClassName: "bg-(--room-horizon)", delay: "140ms" },
-    { id: "NIM", label: "Nimbus", accentClassName: "bg-(--room-nimbus)", delay: "280ms" },
-    { id: "SUM", label: "Summit", accentClassName: "bg-(--room-summit)", delay: "420ms" },
-    { id: "CAS", label: "Cascade", accentClassName: "bg-(--room-cascade)", delay: "560ms" },
+    { id: "AUR", label: "Aurora", accentClassName: "bg-(--room-aurora)", delayClassName: "[animation-delay:0ms]" },
+    {
+        id: "HOR",
+        label: "Horizon",
+        accentClassName: "bg-(--room-horizon)",
+        delayClassName: "[animation-delay:140ms]",
+    },
+    {
+        id: "NIM",
+        label: "Nimbus",
+        accentClassName: "bg-(--room-nimbus)",
+        delayClassName: "[animation-delay:280ms]",
+    },
+    {
+        id: "SUM",
+        label: "Summit",
+        accentClassName: "bg-(--room-summit)",
+        delayClassName: "[animation-delay:420ms]",
+    },
+    {
+        id: "CAS",
+        label: "Cascade",
+        accentClassName: "bg-(--room-cascade)",
+        delayClassName: "[animation-delay:560ms]",
+    },
 ] as const;
 
 const timelineSlots = ["08", "10", "12", "14", "16", "18"] as const;
@@ -52,8 +72,10 @@ export const AppPending = () => {
                         {roomTracks.map((room) => (
                             <div
                                 key={room.id}
-                                className="grid min-h-16 grid-cols-[3.75rem_1fr] sm:grid-cols-[5.5rem_1fr]"
-                                style={{ animation: `fade-up 620ms cubic-bezier(0.16,1,0.3,1) ${room.delay} both` }}
+                                className={cn(
+                                    "grid min-h-16 animate-fade-up grid-cols-[3.75rem_1fr] animation-duration-620 sm:grid-cols-[5.5rem_1fr]",
+                                    room.delayClassName,
+                                )}
                             >
                                 <div className="flex flex-col justify-center border-r border-(--hairline) px-3 sm:px-4">
                                     <span className="tabular-num text-xs font-medium text-(--bone)">{room.id}</span>
@@ -66,8 +88,11 @@ export const AppPending = () => {
                                         <span key={slot} className="border-r border-(--hairline) last:border-r-0" />
                                     ))}
                                     <span
-                                        className={cn("pending-reservation-bar", room.accentClassName)}
-                                        style={{ animationDelay: room.delay }}
+                                        className={cn(
+                                            "pending-reservation-bar",
+                                            room.accentClassName,
+                                            room.delayClassName,
+                                        )}
                                     />
                                 </div>
                             </div>

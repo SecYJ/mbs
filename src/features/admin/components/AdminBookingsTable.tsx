@@ -6,11 +6,11 @@ import { EmptyState } from "@/features/admin/components/EmptyState";
 import { useAdminBookingsPage } from "@/features/admin/hooks/useAdminBookingsPage";
 import { cn } from "@/lib/utils";
 
-const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-    upcoming: { bg: "var(--a-info-subtle)", color: "var(--a-info)", label: "Upcoming" },
-    "in-progress": { bg: "var(--a-accent-subtle)", color: "var(--a-accent)", label: "In Progress" },
-    completed: { bg: "var(--a-surface-2)", color: "var(--a-text-muted)", label: "Completed" },
-    cancelled: { bg: "var(--a-danger-subtle)", color: "var(--a-danger)", label: "Cancelled" },
+const STATUS_STYLES: Record<string, { className: string; label: string }> = {
+    upcoming: { className: "bg-(--a-info-subtle) text-(--a-info)", label: "Upcoming" },
+    "in-progress": { className: "bg-(--a-accent-subtle) text-(--a-accent)", label: "In Progress" },
+    completed: { className: "bg-(--a-surface-2) text-(--a-text-muted)", label: "Completed" },
+    cancelled: { className: "bg-(--a-danger-subtle) text-(--a-danger)", label: "Cancelled" },
 };
 
 export const AdminBookingsTable = () => {
@@ -40,14 +40,14 @@ export const AdminBookingsTable = () => {
                 <table className="admin-table">
                     <thead>
                         <tr>
-                            <th style={{ width: "12%" }}>Date</th>
-                            <th style={{ width: "10%" }}>Time</th>
-                            <th style={{ width: "20%" }}>Title</th>
-                            <th style={{ width: "14%" }}>Room</th>
-                            <th style={{ width: "14%" }}>Booked By</th>
-                            <th style={{ width: "8%" }}>Attendees</th>
-                            <th style={{ width: "10%" }}>Status</th>
-                            <th style={{ width: "12%" }}>Actions</th>
+                            <th className="w-[12%]">Date</th>
+                            <th className="w-1/10">Time</th>
+                            <th className="w-1/5">Title</th>
+                            <th className="w-[14%]">Room</th>
+                            <th className="w-[14%]">Booked By</th>
+                            <th className="w-[8%]">Attendees</th>
+                            <th className="w-1/10">Status</th>
+                            <th className="w-[12%]">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -63,32 +63,16 @@ export const AdminBookingsTable = () => {
 
                             return (
                                 <tr key={booking.id}>
-                                    <td className="tabular-nums" style={{ color: "var(--a-text-secondary)" }}>
-                                        {booking.date}
-                                    </td>
-                                    <td className="tabular-nums" style={{ color: "var(--a-text-secondary)" }}>
-                                        {booking.time}
-                                    </td>
+                                    <td className="text-(--a-text-secondary) tabular-nums">{booking.date}</td>
+                                    <td className="text-(--a-text-secondary) tabular-nums">{booking.time}</td>
                                     <td>
-                                        <span className="font-medium" style={{ color: "var(--a-text)" }}>
-                                            {booking.title}
-                                        </span>
+                                        <span className="font-medium text-(--a-text)">{booking.title}</span>
                                     </td>
-                                    <td style={{ color: "var(--a-text-secondary)" }}>{booking.room}</td>
-                                    <td style={{ color: "var(--a-text-secondary)" }}>{booking.bookedBy}</td>
-                                    <td className="tabular-nums" style={{ color: "var(--a-text-muted)" }}>
-                                        {booking.attendees}
-                                    </td>
+                                    <td className="text-(--a-text-secondary)">{booking.room}</td>
+                                    <td className="text-(--a-text-secondary)">{booking.bookedBy}</td>
+                                    <td className="text-(--a-text-muted) tabular-nums">{booking.attendees}</td>
                                     <td>
-                                        <span
-                                            className={adminBadgeClasses}
-                                            style={{
-                                                background: st.bg,
-                                                color: st.color,
-                                            }}
-                                        >
-                                            {st.label}
-                                        </span>
+                                        <span className={cn(adminBadgeClasses, st.className)}>{st.label}</span>
                                     </td>
                                     <td>
                                         {isCancellingBooking ? (
@@ -107,11 +91,7 @@ export const AdminBookingsTable = () => {
                                                         type="button"
                                                         onClick={() => submitCancellation(booking)}
                                                         disabled={isSubmittingCancellation}
-                                                        className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[0.6875rem] font-medium transition-colors disabled:opacity-60"
-                                                        style={{
-                                                            background: "var(--a-danger-subtle)",
-                                                            color: "var(--a-danger)",
-                                                        }}
+                                                        className="inline-flex items-center gap-1 rounded-md bg-(--a-danger-subtle) px-2 py-1 text-[0.6875rem] font-medium text-(--a-danger) transition-colors disabled:opacity-60"
                                                     >
                                                         <Check className="size-3" />
                                                         {isSubmittingCancellation ? "Cancelling..." : "Cancel booking"}
@@ -122,10 +102,7 @@ export const AdminBookingsTable = () => {
                                                         onClick={() => {
                                                             dismissCancellation(booking.id);
                                                         }}
-                                                        className="rounded-md px-2 py-1 text-[0.6875rem] font-medium disabled:opacity-60"
-                                                        style={{
-                                                            color: "var(--a-text-muted)",
-                                                        }}
+                                                        className="rounded-md px-2 py-1 text-[0.6875rem] font-medium text-(--a-text-muted) disabled:opacity-60"
                                                     >
                                                         Dismiss
                                                     </button>
@@ -143,11 +120,9 @@ export const AdminBookingsTable = () => {
                                                     }}
                                                     className={cn(
                                                         "text-[0.75rem] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45",
+                                                        cannotCancel ? "text-(--a-text-muted)" : "text-(--a-danger)",
                                                         !cannotCancel && "hover:underline",
                                                     )}
-                                                    style={{
-                                                        color: cannotCancel ? "var(--a-text-muted)" : "var(--a-danger)",
-                                                    }}
                                                 >
                                                     Cancel
                                                 </button>

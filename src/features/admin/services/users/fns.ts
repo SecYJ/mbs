@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { asc, desc, eq, or, sql } from "drizzle-orm";
 import { uuidv7 } from "uuidv7";
 
-import { db } from "@/db";
+import { getDb } from "@/db/server";
 import { account, session, user } from "@/db/schema";
 import { createUserServerSchema } from "@/features/admin/schema/user.schema";
 import { usersSearchSchema, type UsersSearch } from "@/features/admin/schema/users-search.schema";
@@ -37,6 +37,7 @@ const getUsersOrderBy = ({ sort, dir }: Pick<UsersSearch, "sort" | "dir">) => {
 export const getUsersFn = createServerFn({ method: "GET" })
     .validator(usersSearchSchema)
     .handler(async ({ data }) => {
+        const db = await getDb();
         await requireAdminUser();
 
         const search = data.q;
@@ -74,6 +75,7 @@ export const getUsersFn = createServerFn({ method: "GET" })
 export const createUserFn = createServerFn({ method: "POST" })
     .validator(createUserServerSchema)
     .handler(async ({ data }) => {
+        const db = await getDb();
         const currentSession = await requireAdminUser();
 
         if (data.role === "super_admin" && !isSuperAdminRole(currentSession.user.role)) {

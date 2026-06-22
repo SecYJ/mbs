@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, gt, ilike, lte, or, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { db } from "@/db";
+import { getDb } from "@/db/server";
 import { attendees, bookings, notifications, rooms, user } from "@/db/schema";
 import { cancelBookingSchema } from "@/features/bookings/schemas/booking.schema";
 import { getBookingCancellationNotificationValues } from "@/features/bookings/services/booking-notifications";
@@ -31,6 +31,7 @@ const getStatusCondition = (status: z.infer<typeof adminBookingsFilterSchema>["s
 export const getAdminBookingsFn = createServerFn({ method: "GET" })
     .validator(adminBookingsFilterSchema)
     .handler(async ({ data }) => {
+        const db = await getDb();
         const session = await requireAdminUser();
 
         const now = new Date();
@@ -93,6 +94,7 @@ export const getAdminBookingsFn = createServerFn({ method: "GET" })
     });
 
 export const getAdminBookingStatsFn = createServerFn({ method: "GET" }).handler(async () => {
+    const db = await getDb();
     await requireAdminUser();
 
     const now = new Date();
@@ -133,6 +135,7 @@ export const getAdminBookingStatsFn = createServerFn({ method: "GET" }).handler(
 export const cancelAdminBookingFn = createServerFn({ method: "POST" })
     .validator(cancelBookingSchema)
     .handler(async ({ data }) => {
+        const db = await getDb();
         const session = await requireAdminUser();
         const [booking] = await db
             .select({

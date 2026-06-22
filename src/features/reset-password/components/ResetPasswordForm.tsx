@@ -24,10 +24,7 @@ const ValidResetForm = ({ token }: { token: string }) => {
 
     return (
         <>
-            <div
-                className="mt-14 text-center"
-                style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 320ms both" }}
-            >
+            <div className="mt-14 text-center animate-fade-up animation-duration-800 [animation-delay:320ms]">
                 <p className="eyebrow text-(--gold)">Issue a new passphrase</p>
                 <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
                     Set the cipher.
@@ -40,8 +37,7 @@ const ValidResetForm = ({ token }: { token: string }) => {
 
             <form
                 onSubmit={onSubmit}
-                className="mt-12 space-y-7"
-                style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
+                className="mt-12 space-y-7 animate-fade-up animation-duration-800 [animation-delay:400ms]"
             >
                 <PasswordInput
                     label="New Passphrase"
@@ -103,11 +99,7 @@ const InvalidLinkState = ({ reason }: { reason: string | undefined }) => {
     const isExpired = reason === "INVALID_TOKEN" || reason === "TOKEN_EXPIRED";
 
     return (
-        <section
-            className="mt-14"
-            aria-live="polite"
-            style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 320ms both" }}
-        >
+        <section className="mt-14 animate-fade-up animation-duration-800 [animation-delay:320ms]" aria-live="polite">
             <div className="text-center">
                 <p className="eyebrow text-(--gold)">Recovery link</p>
                 <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">

@@ -20,7 +20,6 @@ export const useLogin = () => {
     const router = useRouter();
     const loginFn = useServerFn(loginUserFn);
 
-    // react-doctor-disable-next-line react-doctor/query-mutation-missing-invalidation -- Login invalidates the router context before navigation.
     const { mutate: submitLogin, isPending } = useMutation({
         mutationFn: loginFn,
         onSuccess: async () => {

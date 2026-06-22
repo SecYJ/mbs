@@ -1,12 +1,13 @@
 import { createContext, use, useState, type ReactNode } from "react";
-import type { DatesSetArg, EventInput } from "@fullcalendar/core";
+import type { DatesSetArg } from "@fullcalendar/core";
 import type FullCalendar from "@fullcalendar/react";
 import { createStore, useStore } from "zustand";
 
+import type { BookingCalendarEvent } from "@/features/bookings/services/queries";
 import type {
-    BookingReservationDialogState,
-    BookingReservationInitialDetails,
-} from "@/features/bookings/components/booking-reservation-editor.types";
+    ReservationDialogState,
+    ReservationInitialDetails,
+} from "@/features/bookings/types/reservation-editor.types";
 
 type BookingCalendarVisibleRange = {
     activeEnd: Date;
@@ -15,20 +16,16 @@ type BookingCalendarVisibleRange = {
 };
 
 type BookingCalendarState = {
-    activeReservationDialog: BookingReservationDialogState | null;
+    activeReservationDialog: ReservationDialogState | null;
     calendar: FullCalendar | null;
     visibleRange: BookingCalendarVisibleRange | null;
     actions: {
-        closeReservationDialog: () => void;
-        openExistingReservation: (event: EventInput) => void;
-        openNewReservation: (initialDetails?: BookingReservationInitialDetails) => void;
-        setReservationEditing: (isEditing: boolean) => void;
-        goNext: () => void;
-        goPrev: () => void;
-        goToday: () => void;
+        closeReservation: () => void;
+        openExistingReservation: (event: BookingCalendarEvent) => void;
+        openNewReservation: (initialDetails?: ReservationInitialDetails) => void;
+        onReservationEditing: (isEditing: boolean) => void;
         setCalendar: (calendar: FullCalendar | null) => void;
         setVisibleRange: (arg: DatesSetArg) => void;
-        changeView: (viewName: string) => void;
     };
 };
 
@@ -38,7 +35,7 @@ const createScopedStore = () =>
         calendar: null,
         visibleRange: null,
         actions: {
-            closeReservationDialog: () => {
+            closeReservation: () => {
                 set({ activeReservationDialog: null });
             },
             openExistingReservation: (event) => {
@@ -47,14 +44,11 @@ const createScopedStore = () =>
             openNewReservation: (initialDetails) => {
                 set({ activeReservationDialog: { mode: "create", initialDetails } });
             },
-            setReservationEditing: (isEditing) => {
+            onReservationEditing: (isEditing) => {
                 const dialog = get().activeReservationDialog;
                 if (dialog?.mode !== "view") return;
                 set({ activeReservationDialog: { ...dialog, isEditing } });
             },
-            goNext: () => get().calendar?.getApi().next(),
-            goPrev: () => get().calendar?.getApi().prev(),
-            goToday: () => get().calendar?.getApi().today(),
             setCalendar: (calendar) => {
                 if (get().calendar === calendar) return;
                 set({ calendar });
@@ -68,7 +62,6 @@ const createScopedStore = () =>
                     },
                 });
             },
-            changeView: (viewName) => get().calendar?.getApi().changeView(viewName),
         },
     }));
 

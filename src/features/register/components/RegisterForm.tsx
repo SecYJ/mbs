@@ -13,8 +13,7 @@ export const RegisterForm = () => {
     return (
         <form
             onSubmit={onSubmit}
-            className="mt-10 space-y-7"
-            style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 400ms both" }}
+            className="mt-10 space-y-7 animate-fade-up animation-duration-800 [animation-delay:400ms]"
         >
             <div className="space-y-3">
                 <Label htmlFor="name" className="eyebrow block">
@@ -82,24 +81,14 @@ export const RegisterForm = () => {
                 By requesting a suite, you accept the{" "}
                 <Link
                     to="/"
-                    className="text-(--bone-muted) no-underline transition-colors hover:text-(--gold)"
-                    style={{
-                        textUnderlineOffset: "3px",
-                        textDecoration: "underline",
-                        textDecorationColor: "rgba(255,255,255,0.12)",
-                    }}
+                    className="text-(--bone-muted) underline decoration-white/12 underline-offset-3 transition-colors hover:text-(--gold)"
                 >
                     house rules
                 </Link>{" "}
                 and our{" "}
                 <Link
                     to="/"
-                    className="text-(--bone-muted) no-underline transition-colors hover:text-(--gold)"
-                    style={{
-                        textUnderlineOffset: "3px",
-                        textDecoration: "underline",
-                        textDecorationColor: "rgba(255,255,255,0.12)",
-                    }}
+                    className="text-(--bone-muted) underline decoration-white/12 underline-offset-3 transition-colors hover:text-(--gold)"
                 >
                     discretion clause
                 </Link>

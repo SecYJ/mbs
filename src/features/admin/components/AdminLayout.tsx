@@ -1,5 +1,6 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Toaster } from "@/components/ui/sonner";
+import { useCrossTabSignOutSync } from "@/features/account/hooks/useCrossTabSignOutSync";
 import { adminNavItems } from "@/features/admin/constants/navigation";
 import { useSignOut } from "@/features/account/hooks/useSignOut";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ const navItemClasses =
     "relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-[0.8125rem] font-medium text-(--a-text-secondary) no-underline transition-[color,background-color,justify-content] duration-150 hover:bg-(--a-surface-2) hover:text-(--a-text) data-[status=active]:bg-(--a-accent-subtle) data-[status=active]:font-semibold data-[status=active]:text-(--a-accent) [&[data-status=active]_svg]:text-(--a-accent) group-data-collapsed:justify-center group-data-collapsed:gap-0 group-data-collapsed:p-2";
 
 export const AdminLayout = () => {
+    useCrossTabSignOutSync();
+
     const [collapsed, onCollapsedChange] = useReducer((s) => !s, false);
     const sidebarWidth = collapsed ? 72 : 240;
     const sidebarToggle = <AdminSidebarToggle collapsed={collapsed} onToggle={onCollapsedChange} />;

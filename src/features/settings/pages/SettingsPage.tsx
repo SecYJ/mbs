@@ -25,7 +25,7 @@ export const SettingsPage = () => {
     };
 
     return (
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-8">
+        <div className="mx-auto w-full max-w-5xl space-y-8">
             <header className="flex flex-col gap-5 border-b border-(--hairline) pb-7 md:flex-row md:items-end md:justify-between">
                 <div>
                     <p className="eyebrow text-(--gold)">PREFERENCES</p>

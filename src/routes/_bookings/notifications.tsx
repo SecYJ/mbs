@@ -11,7 +11,7 @@ import {
     formatNotificationDateTime,
     formatNotificationTime,
 } from "@/features/notifications/utils/notificationFormat";
-import { notificationsQueryOptions } from "@/features/notifications/services/queries";
+import { notificationQueries } from "@/features/notifications/services/queries";
 import { cn } from "@/lib/utils";
 import {
     NOTIFICATION_DEFAULT_FILTER,
@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_bookings/notifications")({
     },
     loaderDeps: (deps) => deps.search,
     loader: ({ context: { queryClient }, deps }) => {
-        queryClient.ensureQueryData(notificationsQueryOptions(deps.filter));
+        queryClient.ensureQueryData(notificationQueries.list(deps.filter));
     },
     component: NotificationsPage,
 });
@@ -43,7 +43,7 @@ function NotificationsPage() {
 
     const {
         data: { items: notifications, totalCount, unreadCount },
-    } = useSuspenseQuery(notificationsQueryOptions(filter));
+    } = useSuspenseQuery(notificationQueries.list(filter));
 
     const { markAsRead, markAllAsRead, isMarkingRead, isMarkingAllRead } = useNotificationReadActions(
         filter ?? NOTIFICATION_DEFAULT_FILTER.filter,
