@@ -1,10 +1,10 @@
 import { adminSkeletonClasses } from "@/features/admin/admin-classes";
 import { cn } from "@/lib/utils";
 
-const statTones = [
-    { background: "var(--a-accent-subtle)", border: "1px solid var(--a-accent-border)" },
-    { background: "var(--a-info-subtle)", border: "1px solid rgba(83,155,245,0.2)" },
-    { background: "var(--a-success-subtle)", border: "1px solid rgba(52,211,153,0.2)" },
+const statToneClasses = [
+    "border border-(--a-accent-border) bg-(--a-accent-subtle)",
+    "border border-[rgba(83,155,245,0.2)] bg-(--a-info-subtle)",
+    "border border-[rgba(52,211,153,0.2)] bg-(--a-success-subtle)",
 ];
 
 const tableColumns = ["12%", "10%", "20%", "14%", "14%", "8%", "10%", "12%"];
@@ -19,9 +19,21 @@ const tableRows = [
     ["60%", "80%", "84%", "62%", "74%", "46%", "", "58%"],
     ["70%", "72%", "76%", "70%", "58%", "40%", "", "58%"],
     ["64%", "78%", "68%", "74%", "72%", "34%", "", "58%"],
-] as const;
+];
 
-const fadeUpClasses = "animate-[fade-up_480ms_cubic-bezier(0.16,1,0.3,1)_both]";
+const statAnimationDelayClasses = ["[animation-delay:0ms]", "[animation-delay:70ms]", "[animation-delay:140ms]"];
+
+const rowAnimationDelayClasses = [
+    "[animation-delay:260ms]",
+    "[animation-delay:320ms]",
+    "[animation-delay:380ms]",
+    "[animation-delay:440ms]",
+    "[animation-delay:500ms]",
+    "[animation-delay:560ms]",
+    "[animation-delay:620ms]",
+];
+
+const fadeUpClasses = "animate-fade-up animation-duration-480";
 
 export const AdminPending = () => {
     return (
@@ -39,17 +51,17 @@ export const AdminPending = () => {
 
             <div className="p-6">
                 <div className="mb-6 grid grid-cols-3 gap-4">
-                    {statTones.map((tone, index) => (
+                    {statToneClasses.map((toneClassName, index) => (
                         <div
-                            key={tone.background}
+                            key={toneClassName}
                             className={cn(
                                 fadeUpClasses,
                                 "rounded-xl border border-(--a-border) bg-(--a-surface-0) p-4",
+                                statAnimationDelayClasses[index],
                             )}
-                            style={{ animationDelay: `${index * 70}ms` }}
                         >
                             <div className="flex items-center gap-3">
-                                <div className="size-9 shrink-0 rounded-lg" style={tone} />
+                                <div className={cn("size-9 shrink-0 rounded-lg", toneClassName)} />
                                 <div className="min-w-0 flex-1 space-y-2">
                                     <div className={cn(adminSkeletonClasses, "h-4 w-12")} />
                                     <div className={cn(adminSkeletonClasses, "h-2.5 w-24")} />
@@ -62,9 +74,8 @@ export const AdminPending = () => {
                 <div
                     className={cn(
                         fadeUpClasses,
-                        "mb-4 flex items-center gap-3 rounded-lg border border-(--a-border) bg-(--a-surface-0) px-4 py-3",
+                        "mb-4 flex items-center gap-3 rounded-lg border border-(--a-border) bg-(--a-surface-0) px-4 py-3 [animation-delay:140ms]",
                     )}
-                    style={{ animationDelay: "140ms" }}
                 >
                     <div className={cn(adminSkeletonClasses, "h-3 w-48")} />
                     <div className="ml-auto flex items-center gap-3">
@@ -76,15 +87,14 @@ export const AdminPending = () => {
                 <div
                     className={cn(
                         fadeUpClasses,
-                        "overflow-hidden rounded-xl border border-(--a-border-hover) bg-(--a-surface-0)",
+                        "overflow-hidden rounded-xl border border-(--a-border-hover) bg-(--a-surface-0) [animation-delay:200ms]",
                     )}
-                    style={{ animationDelay: "200ms" }}
                 >
                     <table className="admin-table">
                         <thead>
                             <tr>
                                 {tableColumns.map((width, columnIndex) => (
-                                    <th key={columnIndex} style={{ width }}>
+                                    <th key={columnIndex} aria-hidden="true" style={{ width }}>
                                         <div className={cn(adminSkeletonClasses, "h-2 w-3/5 max-w-16")} />
                                     </th>
                                 ))}
@@ -94,8 +104,10 @@ export const AdminPending = () => {
                             {tableRows.map((row, rowIndex) => (
                                 <tr
                                     key={rowIndex}
-                                    className="animate-[fade-up_420ms_cubic-bezier(0.16,1,0.3,1)_both]"
-                                    style={{ animationDelay: `${260 + rowIndex * 60}ms` }}
+                                    className={cn(
+                                        "animate-fade-up animation-duration-420",
+                                        rowAnimationDelayClasses[rowIndex],
+                                    )}
                                 >
                                     {row.map((width, columnIndex) => (
                                         <td key={columnIndex}>

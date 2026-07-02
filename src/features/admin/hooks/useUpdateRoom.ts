@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { updateRoomSchema } from "@/features/admin/schema/room.schema";
 import { updateRoomFn } from "@/features/admin/services/rooms/fns";
 import { roomQueries } from "@/features/admin/services/rooms/queries";
-import { bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { bookingCalendarQueries } from "@/features/bookings/services/queries";
 import { useRouter } from "@tanstack/react-router";
 
 type Defaults = {
@@ -32,7 +32,7 @@ export const useUpdateRoom = (defaults: Defaults) => {
         onSuccess: async (_1, variables, _3, context) => {
             await Promise.all([
                 context.client.invalidateQueries(roomQueries.detail(variables.data.roomId)),
-                context.client.invalidateQueries(bookingCalendarQueryOptions()),
+                context.client.invalidateQueries(bookingCalendarQueries.data()),
             ]);
 
             router.invalidate();

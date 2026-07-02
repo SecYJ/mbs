@@ -1,15 +1,19 @@
-import { Link } from "@tanstack/react-router";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { getRouteApi, Link } from "@tanstack/react-router";
 import { ArrowLeft, Plus } from "lucide-react";
 
-import { BookingReservationEditorDialog } from "@/features/bookings/components/BookingReservationEditorDialog";
-import { RoomBookingEquipment } from "@/features/bookings/components/RoomBookingEquipment";
-import { RoomBookingNextOpening } from "@/features/bookings/components/RoomBookingNextOpening";
-import { RoomBookingSchedule } from "@/features/bookings/components/RoomBookingSchedule";
-import { RoomBookingSummary } from "@/features/bookings/components/RoomBookingSummary";
-import { useRoomBookingDayModel } from "@/features/bookings/hooks/useRoomBookingDayModel";
-import type { BookingCalendarEvent } from "@/features/bookings/services/queries";
+import { ReservationEditorDialog } from "@/features/bookings/components/reservation/ReservationEditorDialog";
+import { Equipment } from "@/features/bookings/components/room-day/Equipment";
+import { NextOpening } from "@/features/bookings/components/room-day/NextOpening";
+import { Schedule } from "@/features/bookings/components/room-day/Schedule";
+import { RoomDaySummary } from "@/features/bookings/components/room-day/RoomDaySummary";
+import { BookingCalendarEventsProvider } from "@/features/bookings/contexts/BookingCalendarEventsContext";
+import { useRoomDayModel } from "@/features/bookings/hooks/room-day/useRoomDayModel";
+import { bookingCalendarQueries, type BookingCalendarEvent } from "@/features/bookings/services/queries";
 import { BookingCalendarStoreProvider, useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
-import { cn } from "@/lib/utils";
+import { useDeferredValue } from "react";
+
+const Route = getRouteApi("/_bookings/rooms/$roomId");
 
 export const RoomBookingDayPage = () => (
     <BookingCalendarStoreProvider>
@@ -18,9 +22,25 @@ export const RoomBookingDayPage = () => (
 );
 
 const RoomBookingDayPageContent = () => {
-    const { openNewReservation, openExistingReservation } = useBookingCalendarStore((state) => state.actions);
+    const { roomId } = Route.useParams();
+    const { date } = Route.useSearch();
 
-    const { bookableSlot, goToDate, room, segments, selectedDate } = useRoomBookingDayModel();
+    const deferredDate = useDeferredValue(date);
+
+    const { data: calendarEvents } = useSuspenseQuery(
+        bookingCalendarQueries.roomDayEvents({ roomId, date: deferredDate }),
+    );
+
+    return (
+        <BookingCalendarEventsProvider events={calendarEvents}>
+            <RoomBookingDayPageInner />
+        </BookingCalendarEventsProvider>
+    );
+};
+
+const RoomBookingDayPageInner = () => {
+    const { openNewReservation, openExistingReservation } = useBookingCalendarStore((state) => state.actions);
+    const { bookableSlot, goToDate, room, segments, selectedDate } = useRoomDayModel();
 
     if (!room) {
         return (
@@ -45,7 +65,7 @@ const RoomBookingDayPageContent = () => {
         );
     }
 
-    const openBookingReservationEditor = (slot: { start: Date; end: Date }) => {
+    const openReservationEditor = (slot: { start: Date; end: Date }) => {
         openNewReservation({ roomId: room.id, start: slot.start, end: slot.end });
     };
 
@@ -76,15 +96,8 @@ const RoomBookingDayPageContent = () => {
                     <div>
                         <div className="flex flex-wrap items-center gap-3">
                             <p className="eyebrow text-(--gold)">Room Day Detail</p>
-                            <span
-                                className={cn(
-                                    "inline-flex border px-2.5 py-1 text-[0.62rem] font-semibold tracking-[0.18em] uppercase",
-                                    room.available
-                                        ? "border-(--signal)/40 bg-(--signal)/10 text-(--signal)"
-                                        : "border-red-300/40 bg-red-500/10 text-red-100",
-                                )}
-                            >
-                                {room.available ? "Available" : "Unavailable"}
+                            <span className="inline-flex border border-(--signal)/40 bg-(--signal)/10 px-2.5 py-1 text-[0.62rem] font-semibold tracking-[0.18em] text-(--signal) uppercase">
+                                Available
                             </span>
                         </div>
                         <h1 className="display-italic mt-3 text-4xl leading-none font-normal text-(--bone) md:text-5xl">
@@ -98,7 +111,7 @@ const RoomBookingDayPageContent = () => {
 
                     <button
                         type="button"
-                        onClick={() => bookableSlot && openBookingReservationEditor(bookableSlot)}
+                        onClick={() => bookableSlot && openReservationEditor(bookableSlot)}
                         disabled={!bookableSlot}
                         className="inline-flex min-h-12 cursor-pointer items-center justify-center gap-3 border border-(--bone) bg-(--bone) px-5 text-[0.66rem] font-semibold tracking-[0.24em] text-black uppercase transition-all hover:bg-white disabled:cursor-not-allowed disabled:border-(--hairline) disabled:bg-transparent disabled:text-(--bone-dim)"
                     >
@@ -107,25 +120,24 @@ const RoomBookingDayPageContent = () => {
                     </button>
                 </header>
 
-                <RoomBookingSummary />
+                <RoomDaySummary />
 
                 <section className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_360px]">
                     <div className="space-y-7">
-                        <RoomBookingSchedule
-                            onBook={openBookingReservationEditor}
+                        <Schedule
+                            onBook={openReservationEditor}
                             onDateChange={goToDate}
                             onOpenBooking={openEventDialog}
-                            roomAvailable={room.available}
                             segments={segments}
                             selectedDate={selectedDate}
                         />
-                        <RoomBookingNextOpening bookableSlot={bookableSlot} />
+                        <NextOpening bookableSlot={bookableSlot} />
                     </div>
-                    <RoomBookingEquipment room={room} />
+                    <Equipment room={room} />
                 </section>
             </div>
 
-            <BookingReservationEditorDialog />
+            <ReservationEditorDialog />
         </>
     );
 };

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useNotificationReadActions } from "@/features/notifications/hooks/useNotificationReadActions";
 import { type NotificationFilter } from "@/features/notifications/schemas/notificationSchema";
 import {
-    notificationsQueryOptions,
+    notificationQueries,
     type NotificationItem,
     type NotificationsData,
 } from "@/features/notifications/services/queries";
@@ -28,7 +28,7 @@ export const useNotificationNavigationMenu = () => {
     const {
         data: { totalCount, unreadCount, previewNotifications },
     } = useSuspenseQuery({
-        ...notificationsQueryOptions(notificationFilter),
+        ...notificationQueries.list(notificationFilter),
         select: selectNotificationMenu,
     });
     const { markAsRead, markAllAsRead, isMarkingAllRead } = useNotificationReadActions(notificationFilter);
@@ -41,7 +41,7 @@ export const useNotificationNavigationMenu = () => {
     };
 
     const prefetchNotifications = (filter: NotificationFilter) => {
-        void queryClient.ensureQueryData(notificationsQueryOptions(filter));
+        void queryClient.ensureQueryData(notificationQueries.list(filter));
     };
 
     const closeMenu = () => setVisibleFilter(null);

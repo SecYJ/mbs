@@ -4,15 +4,9 @@ import { BookingCalendarPage } from "@/features/bookings/pages/BookingCalendarPa
 import {
     bookingCalendarSearchDefaults,
     bookingCalendarSearchSchema,
-    getBookingCalendarViewRange,
 } from "@/features/bookings/schemas/booking-calendar-search.schema";
-import {
-    bookingCalendarEventsQueryOptions,
-    bookingCalendarQueryOptions,
-    bookingCalendarRoomCatalogQueryOptions,
-    bookingCalendarRoomsQueryOptions,
-    bookingCalendarSummaryQueryOptions,
-} from "@/features/bookings/services/queries";
+import { bookingCalendarQueries } from "@/features/bookings/services/queries";
+import { getBookingCalendarSearchRange } from "@/features/bookings/utils/date-formatter";
 
 export const Route = createFileRoute("/_bookings/bookings")({
     validateSearch: bookingCalendarSearchSchema,
@@ -30,13 +24,13 @@ export const Route = createFileRoute("/_bookings/bookings")({
     loader: ({ context: { queryClient }, deps: { view, capacity, equipment, location } }) => {
         const filters = { capacity, equipment, location };
 
-        queryClient.ensureQueryData(bookingCalendarQueryOptions());
-        queryClient.ensureQueryData(bookingCalendarRoomCatalogQueryOptions());
-        queryClient.ensureQueryData(bookingCalendarRoomsQueryOptions(filters));
+        queryClient.ensureQueryData(bookingCalendarQueries.data());
+        queryClient.ensureQueryData(bookingCalendarQueries.roomCatalog());
+        queryClient.ensureQueryData(bookingCalendarQueries.rooms(filters));
         queryClient.ensureQueryData(
-            bookingCalendarEventsQueryOptions({ ...getBookingCalendarViewRange(view, new Date()), filters }),
+            bookingCalendarQueries.events({ ...getBookingCalendarSearchRange({ view }), filters }),
         );
-        queryClient.ensureQueryData(bookingCalendarSummaryQueryOptions());
+        queryClient.ensureQueryData(bookingCalendarQueries.summary());
     },
     component: BookingCalendarPage,
 });

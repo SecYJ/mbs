@@ -4,7 +4,7 @@
  * The admin surface is mostly Tailwind utilities. This file holds only what Tailwind v4 cannot
  * express inline: the design-token CSS variables scoped to .admin-shell, the ::-webkit-scrollbar
  * pseudo-elements, the .admin-table descendant cascade (kept to avoid duplicating utility chains
- * across every <th>/<td>/<tr>), and the @keyframes that power admin-confirm / admin-expand
+ * across every <th>/<td>/<tr>), and the @keyframes that power admin-confirm / pending
  * utility animations defined in admin-classes.ts.
  */
 
@@ -36,23 +36,6 @@
     --a-danger-subtle: var(--danger-subtle);
     --a-info: var(--info);
     --a-info-subtle: var(--info-subtle);
-
-    /* Equipment badge palette */
-    --a-eq-blue: #7cb8ff;
-    --a-eq-blue-bg: rgba(96, 165, 250, 0.13);
-    --a-eq-blue-border: rgba(96, 165, 250, 0.28);
-    --a-eq-violet: #b4a0ff;
-    --a-eq-violet-bg: rgba(167, 139, 250, 0.13);
-    --a-eq-violet-border: rgba(167, 139, 250, 0.28);
-    --a-eq-emerald: #5ee8b0;
-    --a-eq-emerald-bg: rgba(52, 211, 153, 0.13);
-    --a-eq-emerald-border: rgba(52, 211, 153, 0.28);
-    --a-eq-cyan: #4ee4f5;
-    --a-eq-cyan-bg: rgba(34, 211, 238, 0.13);
-    --a-eq-cyan-border: rgba(34, 211, 238, 0.28);
-    --a-eq-rose: #ffa0af;
-    --a-eq-rose-bg: rgba(251, 113, 133, 0.13);
-    --a-eq-rose-border: rgba(251, 113, 133, 0.28);
 
     font-family: "Inter Tight", "Manrope", system-ui, sans-serif;
     background: var(--a-bg);
@@ -148,17 +131,6 @@
     to {
         opacity: 1;
         transform: scale(1);
-    }
-}
-
-@keyframes admin-expand {
-    from {
-        opacity: 0;
-        max-height: 0;
-    }
-    to {
-        opacity: 1;
-        max-height: 500px;
     }
 }
 

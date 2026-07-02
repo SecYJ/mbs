@@ -7,6 +7,7 @@ import { type ReactNode } from "react";
 import { NotFound } from "@/components/NotFound";
 import { PersistentClientStoreHydrator } from "@/stores/PersistentClientStoreHydrator";
 import appCss from "@/styles.css?url";
+import { DefaultError } from "@/components/DefaultError";
 
 type MyRouterContext = {
     queryClient: QueryClient;
@@ -45,6 +46,19 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         ],
         links: [
             {
+                rel: "preconnect",
+                href: "https://fonts.googleapis.com",
+            },
+            {
+                rel: "preconnect",
+                href: "https://fonts.gstatic.com",
+                crossOrigin: "anonymous",
+            },
+            {
+                rel: "stylesheet",
+                href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,700&family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap",
+            },
+            {
                 rel: "stylesheet",
                 href: appCss,
             },
@@ -52,4 +66,5 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
     }),
     shellComponent: RootDocument,
     notFoundComponent: NotFound,
+    errorComponent: DefaultError,
 });

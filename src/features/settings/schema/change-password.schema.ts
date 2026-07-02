@@ -5,7 +5,6 @@ export const changePasswordSchema = z
         currentPassword: z.string().min(1, "Enter your current passphrase"),
         newPassword: z.string().min(8, "Passphrase must be at least 8 characters"),
         confirmNewPassword: z.string().min(1, "Please confirm your new passphrase"),
-        revokeOtherSessions: z.boolean(),
     })
     .refine((data) => data.newPassword !== data.currentPassword, {
         path: ["newPassword"],

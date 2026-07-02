@@ -1,28 +1,35 @@
-import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect, stripSearchParams } from "@tanstack/react-router";
 
+import { RoomNotFound } from "@/features/bookings/components/room-day/RoomNotFound";
 import { RoomBookingDayPage } from "@/features/bookings/pages/RoomBookingDayPage";
-import {
-    getRoomBookingDayRange,
-    parseRoomBookingDateKey,
-    roomBookingSearchDefaults,
-    roomBookingSearchSchema,
-} from "@/features/bookings/schemas/room-booking-search.schema";
-import { bookingCalendarEventsQueryOptions, bookingCalendarQueryOptions } from "@/features/bookings/services/queries";
+import { bookingCalendarQueries } from "@/features/bookings/services/queries";
+import z from "zod";
 
 export const Route = createFileRoute("/_bookings/rooms/$roomId")({
-    validateSearch: roomBookingSearchSchema,
+    validateSearch: z.object({
+        date: z.iso.date().optional().catch(undefined),
+        bookingId: z.uuid().optional().catch(undefined),
+    }),
     search: {
-        middlewares: [stripSearchParams(roomBookingSearchDefaults)],
+        middlewares: [stripSearchParams({ bookingId: undefined, date: undefined })],
+    },
+    beforeLoad: async ({ context: { queryClient }, params: { roomId } }) => {
+        const room = await queryClient.ensureQueryData(bookingCalendarQueries.room(roomId));
+
+        if (!room) {
+            throw notFound();
+        }
+
+        if (!room.available) {
+            throw redirect({ to: "/bookings" });
+        }
     },
     loaderDeps: (deps) => deps.search,
     loader: ({ context: { queryClient }, params: { roomId }, deps: { date } }) => {
-        queryClient.ensureQueryData(bookingCalendarQueryOptions());
-        queryClient.ensureQueryData(
-            bookingCalendarEventsQueryOptions({
-                ...getRoomBookingDayRange(parseRoomBookingDateKey(date)),
-                roomId,
-            }),
-        );
+        // Warms the reservation editor dialog (room switcher + attendee users).
+        queryClient.ensureQueryData(bookingCalendarQueries.data());
+        queryClient.ensureQueryData(bookingCalendarQueries.roomDayEvents({ roomId, date }));
     },
     component: RoomBookingDayPage,
+    notFoundComponent: RoomNotFound,
 });

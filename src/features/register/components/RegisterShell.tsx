@@ -21,46 +21,30 @@ export const RegisterShell = ({ children }: Props) => {
             <aside className="relative hidden overflow-hidden bg-[#050505] lg:flex lg:w-[58%]">
                 <div
                     aria-hidden
-                    className="hairline-draw-in pointer-events-none absolute top-0 bottom-0 left-24 w-px bg-(--hairline)"
-                    style={{ animationDelay: "300ms" }}
+                    className="hairline-draw-in pointer-events-none absolute top-0 bottom-0 left-24 w-px bg-(--hairline) [animation-delay:300ms]"
                 />
 
-                <div
-                    className="absolute right-14 top-14 flex items-start gap-3"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
-                >
+                <div className="absolute right-14 top-14 flex items-start gap-3 animate-fade-up animation-duration-700 [animation-delay:100ms]">
                     <span className="eyebrow text-(--gold) mt-1">Admission · Meridian</span>
                     <span className="font-['Fraunces'] text-[22px] leading-none text-(--gold)">&#9488;</span>
                 </div>
 
-                <div
-                    className="absolute left-32 top-14 flex items-center gap-3"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 200ms both" }}
-                >
+                <div className="absolute left-32 top-14 flex items-center gap-3 animate-fade-up animation-duration-700 [animation-delay:200ms]">
                     <span className="eyebrow">Chapter</span>
                     <span className="tabular-num text-[0.7rem] tracking-[0.2em] text-(--bone-muted)">II / III</span>
                 </div>
 
                 <div className="relative z-10 mt-auto flex w-full flex-col px-20 pb-20">
-                    <p
-                        className="eyebrow text-(--gold) mb-14"
-                        style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 300ms both" }}
-                    >
+                    <p className="eyebrow text-(--gold) mb-14 animate-fade-up animation-duration-800 [animation-delay:300ms]">
                         Meridian &middot; Request an Account
                     </p>
 
-                    <h2
-                        className="display-italic pl-[22%] text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone)"
-                        style={{ animation: "fade-up 900ms cubic-bezier(0.16,1,0.3,1) 450ms both" }}
-                    >
+                    <h2 className="display-italic pl-[22%] text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone) animate-fade-up animation-duration-900 [animation-delay:450ms]">
                         Compose
                         <br />
                         the ledger.
                     </h2>
-                    <h2
-                        className="display-italic mt-4 text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone-dim)"
-                        style={{ animation: "fade-up 900ms cubic-bezier(0.16,1,0.3,1) 650ms both" }}
-                    >
+                    <h2 className="display-italic mt-4 text-[clamp(3.5rem,7vw,6rem)] leading-[0.9] tracking-[-0.02em] text-(--bone-dim) animate-fade-up animation-duration-900 [animation-delay:650ms]">
                         Keep
                         <br />
                         the hours.
@@ -68,22 +52,15 @@ export const RegisterShell = ({ children }: Props) => {
 
                     <div
                         aria-hidden
-                        className="hairline-draw-in mt-14 h-px w-48 bg-(--hairline-strong)"
-                        style={{ animationDelay: "900ms" }}
+                        className="hairline-draw-in mt-14 h-px w-48 bg-(--hairline-strong) [animation-delay:900ms]"
                     />
 
-                    <p
-                        className="mt-6 max-w-[44ch] text-[0.88rem] leading-relaxed text-(--bone-muted)"
-                        style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 1000ms both" }}
-                    >
+                    <p className="mt-6 max-w-[44ch] text-[0.88rem] leading-relaxed text-(--bone-muted) animate-fade-up animation-duration-800 [animation-delay:1000ms]">
                         A quiet enrolment &mdash; your credentials are the only key you&rsquo;ll need to the suite.
                     </p>
                 </div>
 
-                <div
-                    className="absolute bottom-14 left-32 flex items-center gap-3"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
-                >
+                <div className="absolute bottom-14 left-32 flex items-center gap-3 animate-fade-up animation-duration-700 [animation-delay:900ms]">
                     <span className="eyebrow">Folio</span>
                     <span className="tabular-num text-[0.7rem] tracking-[0.2em] text-(--bone-muted)">
                         002 &middot; {year}
@@ -92,19 +69,13 @@ export const RegisterShell = ({ children }: Props) => {
             </aside>
 
             <main className="relative flex w-full flex-col justify-center bg-[#050505] px-8 sm:px-14 lg:w-[42%] lg:px-16 xl:px-20">
-                <div
-                    className="absolute left-8 top-8 flex items-center gap-3 lg:hidden"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 100ms both" }}
-                >
+                <div className="absolute left-8 top-8 flex items-center gap-3 lg:hidden animate-fade-up animation-duration-700 [animation-delay:100ms]">
                     <span className="font-['Fraunces'] text-[18px] leading-none text-(--gold)">&#9488;</span>
                     <span className="eyebrow text-(--gold)">Admission · Meridian</span>
                 </div>
 
                 <div className="relative mx-auto w-full max-w-100 py-20">
-                    <div
-                        className="mb-14 flex items-center gap-4"
-                        style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 150ms both" }}
-                    >
+                    <div className="mb-14 flex items-center gap-4 animate-fade-up animation-duration-700 [animation-delay:150ms]">
                         <div className="inline-flex size-11 items-center justify-center border border-(--gold)">
                             <span className="display-italic text-[1.35rem] leading-none text-(--gold)">M</span>
                         </div>
@@ -116,7 +87,7 @@ export const RegisterShell = ({ children }: Props) => {
                         </div>
                     </div>
 
-                    <div style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 250ms both" }}>
+                    <div className="animate-fade-up animation-duration-800 [animation-delay:250ms]">
                         <p className="eyebrow text-(--gold)">Request your suite</p>
                         <h1 className="mt-3 display-italic text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
                             A new ledger.
@@ -128,7 +99,7 @@ export const RegisterShell = ({ children }: Props) => {
 
                     {children}
 
-                    <div className="mt-10" style={{ animation: "fade-up 800ms cubic-bezier(0.16,1,0.3,1) 600ms both" }}>
+                    <div className="mt-10 animate-fade-up animation-duration-800 [animation-delay:600ms]">
                         <div className="flex items-center gap-4">
                             <div aria-hidden className="h-px flex-1 bg-(--hairline)" />
                             <span className="eyebrow">Or</span>
@@ -138,12 +109,7 @@ export const RegisterShell = ({ children }: Props) => {
                             Already enrolled?{" "}
                             <Link
                                 to="/login"
-                                className="font-medium text-(--gold) no-underline transition-colors hover:text-(--bone)"
-                                style={{
-                                    textUnderlineOffset: "4px",
-                                    textDecoration: "underline",
-                                    textDecorationColor: "rgba(220,196,160,0.3)",
-                                }}
+                                className="font-medium text-(--gold) underline decoration-[rgba(220,196,160,0.3)] underline-offset-4 transition-colors hover:text-(--bone)"
                             >
                                 Return to sign-in
                             </Link>
@@ -151,10 +117,7 @@ export const RegisterShell = ({ children }: Props) => {
                     </div>
                 </div>
 
-                <div
-                    className="absolute bottom-6 left-0 right-0 flex items-center justify-between px-8 sm:px-14 lg:px-16 xl:px-20"
-                    style={{ animation: "fade-up 700ms cubic-bezier(0.16,1,0.3,1) 900ms both" }}
-                >
+                <div className="absolute bottom-6 left-0 right-0 flex items-center justify-between px-8 sm:px-14 lg:px-16 xl:px-20 animate-fade-up animation-duration-700 [animation-delay:900ms]">
                     <span className="tabular-num text-[0.62rem] tracking-[0.2em] text-(--bone-faint)">
                         &copy; {year}
                     </span>

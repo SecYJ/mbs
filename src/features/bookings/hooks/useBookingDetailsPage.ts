@@ -1,11 +1,11 @@
-import { useMutation, useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { compareAsc, format, formatDuration, intervalToDuration } from "date-fns";
 
 import { rsvpBookingInviteFn } from "@/features/bookings/services/fns";
-import { bookingCalendarQueryOptions, bookingDetailsQueryOptions } from "@/features/bookings/services/queries";
-import { notificationsQueryKey } from "@/features/notifications/services/queries";
+import { bookingCalendarQueries } from "@/features/bookings/services/queries";
+import { notificationQueries } from "@/features/notifications/services/queries";
 
 type BookingStateInput = {
     start: string;
@@ -45,23 +45,26 @@ const getBookingState = (booking: BookingStateInput) => {
 
 export const useBookingDetailsPage = () => {
     const { bookingId } = useParams({ from: "/_bookings/bookings_/$bookingId" });
-    const { data } = useSuspenseQuery(bookingDetailsQueryOptions(bookingId));
-    const queryClient = useQueryClient();
+    const { data } = useSuspenseQuery(bookingCalendarQueries.detail(bookingId));
     const rsvpBookingInvite = useServerFn(rsvpBookingInviteFn);
 
     const rsvpMutation = useMutation({
         mutationFn: rsvpBookingInvite,
-        onSuccess: async () => {
-            await Promise.all([
-                queryClient.invalidateQueries(bookingDetailsQueryOptions(bookingId)),
-                queryClient.invalidateQueries(bookingCalendarQueryOptions()),
-                queryClient.invalidateQueries({ queryKey: notificationsQueryKey }),
+        onSuccess: (_1, _2, _3, context) => {
+            return Promise.all([
+                context.client.invalidateQueries(bookingCalendarQueries.detail(bookingId)),
+                context.client.invalidateQueries(bookingCalendarQueries.data()),
+                context.client.invalidateQueries({ queryKey: notificationQueries.all() }),
             ]);
         },
     });
 
     const attendanceStatus = data.currentUserAttendance?.status ?? null;
-    const responseCounts = data.attendees.reduce(
+    const attendeeResponses = data.currentUserAttendance
+        ? [...data.attendees, data.currentUserAttendance]
+        : data.attendees;
+
+    const responseCounts = attendeeResponses.reduce(
         (counts, attendee) => {
             counts[attendee.status] += 1;
             return counts;
@@ -72,10 +75,12 @@ export const useBookingDetailsPage = () => {
             pending: 0,
         },
     );
+
     const bookingDuration =
         formatDuration(intervalToDuration({ start: data.booking.start, end: data.booking.end }), {
             format: ["hours", "minutes"],
         }) || "0 minutes";
+
     const cancellation =
         data.booking.status === "cancelled"
             ? {
@@ -97,10 +102,7 @@ export const useBookingDetailsPage = () => {
 
     return {
         acceptInvite: () => respondToInvite("accepted"),
-        attendees: data.attendees.map((attendee) => ({
-            ...attendee,
-            current: attendee.id === data.currentUserId,
-        })),
+        attendees: data.attendees,
         attendanceStatus,
         booking: data.booking,
         bookingDate: format(data.booking.start, "EEEE, MMMM d, yyyy"),
@@ -115,6 +117,7 @@ export const useBookingDetailsPage = () => {
         organizer: data.organizer,
         pageLabel: data.currentUserAttendance ? "Booking Invite" : "Booking Details",
         responseCounts,
+        responseTotal: attendeeResponses.length,
         room: data.room,
         roomSummary: `${data.room.location} - ${data.room.capacity} people`,
         rsvpError,

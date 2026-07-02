@@ -1,118 +1,112 @@
 import { queryOptions } from "@tanstack/react-query";
-import { format } from "date-fns";
 
-import type { MyBookingGroup } from "@/features/bookings/my-bookings.constants";
 import {
     getBookingCalendarDataFn,
     getBookingCalendarEventsFn,
     getBookingCalendarRoomCatalogFn,
     getBookingCalendarRoomsFn,
-    getBookingCalendarSummaryFn,
     getBookingDetailsFn,
-    getMyBookingsDataFn,
-    getMyBookingsStatsFn,
+    getBookingRoomFn,
+    getCalendarSummaryFn,
 } from "@/features/bookings/services/fns";
+import { getRoomBookingDayRange, parseRoomBookingDateKey } from "@/features/bookings/utils/date-formatter";
 
 export type BookingCalendarData = Awaited<ReturnType<typeof getBookingCalendarDataFn>>;
 export type BookingCalendarEvents = Awaited<ReturnType<typeof getBookingCalendarEventsFn>>;
 export type BookingCalendarEvent = BookingCalendarEvents[number];
 export type BookingCalendarRooms = Awaited<ReturnType<typeof getBookingCalendarRoomsFn>>;
 export type BookingCalendarRoomCatalog = Awaited<ReturnType<typeof getBookingCalendarRoomCatalogFn>>;
-export type BookingCalendarSummary = Awaited<ReturnType<typeof getBookingCalendarSummaryFn>>;
+export type CalendarSummary = Awaited<ReturnType<typeof getCalendarSummaryFn>>;
 
-export type BookingRoomFilters = {
+export type RoomFilters = {
     capacity: number;
     equipment: string[];
     location: string[];
 };
 
 export type BookingCalendarEventsScope = {
-    start: Date;
-    end: Date;
+    rangeStart: string;
+    rangeEnd: string;
     roomId?: string;
-    filters?: BookingRoomFilters;
+    filters?: RoomFilters;
 };
 
 // Sorted copies keep the query key stable regardless of the order the user
 // toggled the filter options in.
-const normalizeRoomFilters = ({ capacity, equipment, location }: BookingRoomFilters) => ({
+const normalizeRoomFilters = ({ capacity, equipment, location }: RoomFilters) => ({
     capacity,
     equipment: equipment.toSorted(),
     location: location.toSorted(),
 });
 
-type MyBookingsFilters = {
-    group: MyBookingGroup;
-    q: string;
-};
+const normalizeBookingCalendarEventsScope = ({
+    rangeStart,
+    rangeEnd,
+    roomId,
+    filters,
+}: BookingCalendarEventsScope) => ({
+    rangeStart,
+    rangeEnd,
+    ...(roomId ? { roomId } : filters ? normalizeRoomFilters(filters) : {}),
+});
 
-export const bookingCalendarQueryOptions = () =>
-    queryOptions({
-        queryKey: ["bookings", "calendar"],
-        queryFn: getBookingCalendarDataFn,
-    });
+export const bookingCalendarQueries = {
+    all: () => ["bookings", "calendar"],
+    data: () => {
+        return queryOptions({
+            queryKey: bookingCalendarQueries.all(),
+            queryFn: getBookingCalendarDataFn,
+        });
+    },
+    eventsKey: () => {
+        return [...bookingCalendarQueries.all(), "events"];
+    },
+    events: (scope: BookingCalendarEventsScope) => {
+        const data = normalizeBookingCalendarEventsScope(scope);
 
-export const bookingCalendarEventsQueryOptions = ({ start, end, roomId, filters }: BookingCalendarEventsScope) => {
-    const data = {
-        rangeStart: start.toISOString(),
-        rangeEnd: end.toISOString(),
-        ...(roomId ? { roomId } : filters ? normalizeRoomFilters(filters) : {}),
-    };
+        return queryOptions({
+            queryKey: [...bookingCalendarQueries.eventsKey(), data],
+            queryFn: () => getBookingCalendarEventsFn({ data }),
+        });
+    },
+    rooms: (filters: RoomFilters) => {
+        const data = normalizeRoomFilters(filters);
 
-    return queryOptions({
-        queryKey: ["bookings", "calendar", "events", data],
-        queryFn: () => getBookingCalendarEventsFn({ data }),
-    });
-};
-
-export const bookingCalendarRoomsQueryOptions = (filters: BookingRoomFilters) => {
-    const data = normalizeRoomFilters(filters);
-
-    return queryOptions({
-        queryKey: ["bookings", "calendar", "rooms", data],
-        queryFn: () => getBookingCalendarRoomsFn({ data }),
-    });
-};
-
-// Nested under ["bookings", "calendar"] so the post-mutation invalidations of
-// that key refresh this catalog too.
-export const bookingCalendarRoomCatalogQueryOptions = () =>
-    queryOptions({
-        queryKey: ["bookings", "calendar", "room-catalog"],
-        queryFn: getBookingCalendarRoomCatalogFn,
-    });
-
-export const bookingCalendarSummaryQueryOptions = () =>
-    queryOptions({
-        queryKey: ["bookings", "calendar", "summary"],
-        queryFn: getBookingCalendarSummaryFn,
-        refetchInterval: 60_000,
-    });
-
-export const myBookingsQueryKey = ["bookings", "my-bookings"] as const;
-
-export const myBookingsQueryOptions = (filters: MyBookingsFilters) =>
-    queryOptions({
-        queryKey: [...myBookingsQueryKey, filters],
-        queryFn: () => getMyBookingsDataFn({ data: filters }),
-        select: (data) => ({
-            ...data,
-            history: data.history.map((booking) => ({
-                ...booking,
-                displayDate: format(new Date(booking.start), "EEE, MMM d, yyyy"),
-                displayTime: `${format(new Date(booking.start), "HH:mm")} - ${format(new Date(booking.end), "HH:mm")}`,
-            })),
+        return queryOptions({
+            queryKey: [...bookingCalendarQueries.all(), "rooms", data],
+            queryFn: () => getBookingCalendarRoomsFn({ data }),
+        });
+    },
+    room: (roomId: string) => {
+        return queryOptions({
+            queryKey: [...bookingCalendarQueries.all(), "room", roomId],
+            queryFn: () => getBookingRoomFn({ data: { roomId } }),
+        });
+    },
+    // Single entry point for the room day page: callers pass the raw `date`
+    // search param and never touch the parse/range helpers themselves.
+    roomDayEvents: ({ roomId, date }: { roomId: string; date: string | undefined }) =>
+        bookingCalendarQueries.events({
+            ...getRoomBookingDayRange(parseRoomBookingDateKey(date)),
+            roomId,
         }),
-    });
-
-export const myBookingsStatsQueryOptions = () =>
-    queryOptions({
-        queryKey: ["bookings", "my-bookings", "stats"],
-        queryFn: getMyBookingsStatsFn,
-    });
-
-export const bookingDetailsQueryOptions = (bookingId: string) =>
-    queryOptions({
-        queryKey: ["bookings", "details", bookingId],
-        queryFn: () => getBookingDetailsFn({ data: { bookingId } }),
-    });
+    roomCatalog: () => {
+        return queryOptions({
+            queryKey: [...bookingCalendarQueries.all(), "room-catalog"],
+            queryFn: getBookingCalendarRoomCatalogFn,
+        });
+    },
+    summary: () => {
+        return queryOptions({
+            queryKey: [...bookingCalendarQueries.all(), "summary"],
+            queryFn: getCalendarSummaryFn,
+            refetchInterval: 60_000,
+        });
+    },
+    detail: (bookingId: string) => {
+        return queryOptions({
+            queryKey: ["bookings", "details", bookingId],
+            queryFn: () => getBookingDetailsFn({ data: { bookingId } }),
+        });
+    },
+};

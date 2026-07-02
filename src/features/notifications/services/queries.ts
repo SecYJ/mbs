@@ -6,10 +6,12 @@ import { getNotificationsFn } from "@/features/notifications/services/fns";
 export type NotificationsData = Awaited<ReturnType<typeof getNotificationsFn>>;
 export type NotificationItem = NotificationsData["items"][number];
 
-export const notificationsQueryKey = ["notifications"] as const;
-
-export const notificationsQueryOptions = (filter?: NotificationFilter) =>
-    queryOptions({
-        queryKey: [...notificationsQueryKey, filter ?? "all"],
-        queryFn: () => getNotificationsFn({ data: { filter } }),
-    });
+export const notificationQueries = {
+    all: () => ["notifications"],
+    list: (filter?: NotificationFilter) => {
+        return queryOptions({
+            queryKey: [...notificationQueries.all(), filter ?? "all"],
+            queryFn: () => getNotificationsFn({ data: { filter } }),
+        });
+    },
+};

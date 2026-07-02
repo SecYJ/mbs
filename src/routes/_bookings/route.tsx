@@ -3,6 +3,7 @@ import { Shield } from "lucide-react";
 
 import { AppPending } from "@/components/AppPending";
 import { AuthenticatedAccountMenu } from "@/features/account/components/AuthenticatedAccountMenu";
+import { useCrossTabSignOutSync } from "@/features/account/hooks/useCrossTabSignOutSync";
 import { NotificationNavigationMenu } from "@/features/notifications/components/NotificationNavigationMenu";
 import { isAdminRole } from "@/lib/roles";
 import { requireAuthenticatedUser } from "@/lib/session";
@@ -22,6 +23,8 @@ const navItems = linkOptions([
 function AppLayout() {
     const { user } = Route.useLoaderData();
     const year = new Date().getFullYear();
+
+    useCrossTabSignOutSync();
 
     return (
         <div className="relative min-h-dvh bg-[#050505] text-(--bone)">

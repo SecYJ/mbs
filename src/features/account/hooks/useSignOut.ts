@@ -1,17 +1,17 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useNavigate, useRouter } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 
 import { authClient } from "@/lib/auth-client";
+import { broadcastSessionSignOut } from "@/lib/session-broadcast";
+import { z } from "zod";
 
-const getSignOutErrorMessage = (error: unknown) => {
-    if (error instanceof Error) return error.message;
-    return "Unable to sign out.";
-};
+const signOutErrorMessage = z
+    .instanceof(Error)
+    .transform((v) => v.message)
+    .catch("Unable to sign out.");
 
 export const useSignOut = () => {
-    const queryClient = useQueryClient();
     const navigate = useNavigate();
-    const router = useRouter();
 
     const {
         mutate: signOut,
@@ -25,13 +25,13 @@ export const useSignOut = () => {
                 throw new Error(signOutError.message ?? "Unable to sign out.");
             }
         },
-        onSuccess: async () => {
-            queryClient.clear();
-            await router.invalidate();
+        onSuccess: async (_data, _variables, _onMutateResult, context) => {
+            broadcastSessionSignOut();
+            context.client.clear();
 
-            navigate({ to: "/login" });
+            navigate({ to: "/login", replace: true });
         },
     });
 
-    return { error: error ? getSignOutErrorMessage(error) : null, isPending, signOut };
+    return { error: error ? signOutErrorMessage.parse(error) : null, isPending, signOut };
 };

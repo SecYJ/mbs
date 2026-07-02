@@ -36,8 +36,10 @@ export const RoomCollectionList = ({ rooms }: { rooms: Room[] }) => (
                     </span>
                     <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
                         <span
-                            className="size-1.5 rounded-full"
-                            style={{ background: room.active ? "var(--a-success)" : "var(--a-text-muted)" }}
+                            className={cn(
+                                "size-1.5 rounded-full",
+                                room.active ? "bg-(--a-success)" : "bg-(--a-text-muted)",
+                            )}
                         />
                         {room.active ? "Available" : "Disabled"}
                     </span>

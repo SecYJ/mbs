@@ -7,8 +7,9 @@ import { roomsSearchDefaults } from "@/features/admin/schema/rooms-search.schema
 import { adminBookingQueries } from "@/features/admin/services/bookings/queries";
 import { deleteRoomFn } from "@/features/admin/services/rooms/fns";
 import { roomQueries } from "@/features/admin/services/rooms/queries";
-import { bookingCalendarQueryOptions, myBookingsQueryKey } from "@/features/bookings/services/queries";
-import { notificationsQueryKey } from "@/features/notifications/services/queries";
+import { bookingCalendarQueries } from "@/features/bookings/services/queries";
+import { myBookingsQueries } from "@/features/my-bookings/services/queries";
+import { notificationQueries } from "@/features/notifications/services/queries";
 
 export const useDeleteRoom = ({ roomId }: { roomId: string }) => {
     const navigate = useNavigate({ from: "/admin/rooms/$roomId" });
@@ -22,9 +23,9 @@ export const useDeleteRoom = ({ roomId }: { roomId: string }) => {
                 context.client.removeQueries(roomQueries.detail(roomId)),
                 context.client.invalidateQueries({ queryKey: roomQueries.lists() }),
                 context.client.invalidateQueries({ queryKey: adminBookingQueries.all() }),
-                context.client.invalidateQueries(bookingCalendarQueryOptions()),
-                context.client.invalidateQueries({ queryKey: myBookingsQueryKey }),
-                context.client.invalidateQueries({ queryKey: notificationsQueryKey }),
+                context.client.invalidateQueries(bookingCalendarQueries.data()),
+                context.client.invalidateQueries({ queryKey: myBookingsQueries.all() }),
+                context.client.invalidateQueries({ queryKey: notificationQueries.all() }),
             ]);
 
             router.invalidate();
