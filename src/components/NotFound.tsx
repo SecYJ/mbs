@@ -1,8 +1,17 @@
-import { Link } from "@tanstack/react-router";
+import { Link, linkOptions } from "@tanstack/react-router";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
+
+const returnLinks = linkOptions([
+    { to: "/notifications", label: "Review", destination: "Notifications", index: "I" },
+    { to: "/my-bookings", label: "Resume", destination: "My bookings", index: "II" },
+    { to: "/settings", label: "Adjust", destination: "Settings", index: "III" },
+]);
+
+const primaryReturnLinks = linkOptions([{ to: "/bookings", label: "Return to the ledger" }]);
 
 export const NotFound = () => {
     const year = new Date().getFullYear();
+    const [primaryReturnLink] = primaryReturnLinks;
 
     return (
         <div className="relative flex min-h-dvh bg-[#050505] text-(--bone)">
@@ -143,24 +152,35 @@ export const NotFound = () => {
                     >
                         <p className="eyebrow mb-5">Step back to</p>
                         <ul className="divide-y divide-(--hairline) border-y border-(--hairline)">
-                            <DirectoryLink to="/" label="Return" destination="The lobby" index="I" />
-                            <DirectoryLink
-                                to="/bookings"
-                                label="Resume"
-                                destination="Today&rsquo;s ledger"
-                                index="II"
-                            />
-                            <DirectoryLink to="/login" label="Re-enter" destination="Your suite" index="III" />
+                            {returnLinks.map((link) => (
+                                <li key={link.to}>
+                                    <Link to={link.to} className="group flex items-center gap-4 py-4 no-underline">
+                                        <span className="tabular-num w-6 text-[0.62rem] tracking-[0.2em] text-(--bone-faint) transition-colors group-hover:text-(--gold)">
+                                            {link.index}
+                                        </span>
+                                        <span className="eyebrow shrink-0 transition-colors group-hover:text-(--gold)">
+                                            {link.label} &middot;
+                                        </span>
+                                        <span className="display-italic flex-1 text-[1.1rem] leading-none text-(--bone) transition-colors group-hover:text-(--gold)">
+                                            {link.destination}
+                                        </span>
+                                        <ArrowUpRight
+                                            className="size-4 text-(--bone-dim) transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-(--gold)"
+                                            strokeWidth={1.4}
+                                        />
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </nav>
 
                     {/* Primary CTA — inverted bone, per §5 */}
                     <div className="mt-10 animate-fade-up animation-duration-800 [animation-delay:600ms]">
                         <Link
-                            to="/"
+                            to={primaryReturnLink.to}
                             className="group relative flex h-12 w-full items-center justify-center gap-3 border border-(--bone) bg-(--bone) text-[0.72rem] font-semibold tracking-[0.3em] uppercase text-black no-underline transition-all duration-300 hover:bg-white hover:border-white hover:tracking-[0.34em]"
                         >
-                            <span>Return to the ledger</span>
+                            <span>{primaryReturnLink.label}</span>
                             <ArrowRight
                                 className="size-4 transition-transform duration-300 group-hover:translate-x-1"
                                 strokeWidth={1.6}
@@ -182,30 +202,3 @@ export const NotFound = () => {
         </div>
     );
 };
-
-type DirectoryLinkProps = {
-    to: string;
-    label: string;
-    destination: string;
-    index: string;
-};
-
-function DirectoryLink({ to, label, destination, index }: DirectoryLinkProps) {
-    return (
-        <li>
-            <Link to={to} className="group flex items-center gap-4 py-4 no-underline">
-                <span className="tabular-num w-6 text-[0.62rem] tracking-[0.2em] text-(--bone-faint) transition-colors group-hover:text-(--gold)">
-                    {index}
-                </span>
-                <span className="eyebrow shrink-0 transition-colors group-hover:text-(--gold)">{label} &middot;</span>
-                <span className="display-italic flex-1 text-[1.1rem] leading-none text-(--bone) transition-colors group-hover:text-(--gold)">
-                    {destination}
-                </span>
-                <ArrowUpRight
-                    className="size-4 text-(--bone-dim) transition-all duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-(--gold)"
-                    strokeWidth={1.4}
-                />
-            </Link>
-        </li>
-    );
-}
