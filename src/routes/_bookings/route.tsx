@@ -9,6 +9,9 @@ import { isAdminRole } from "@/lib/roles";
 import { requireAuthenticatedUser } from "@/lib/session";
 
 export const Route = createFileRoute("/_bookings")({
+    head: () => ({
+        meta: [{ title: "Meridian" }],
+    }),
     beforeLoad: async () => ({ session: await requireAuthenticatedUser() }),
     loader: ({ context }) => context.session,
     component: AppLayout,

@@ -6,6 +6,9 @@ import { myBookingsQueries } from "@/features/my-bookings/services/queries";
 import z from "zod";
 
 export const Route = createFileRoute("/_bookings/my-bookings")({
+    head: () => ({
+        meta: [{ title: "My Bookings | Meridian" }],
+    }),
     validateSearch: z.object({
         group: z.enum(MY_BOOKING_GROUPS).catch("upcoming").optional(),
         q: z.string().catch(myBookingsSearchDefaults.q).prefault(myBookingsSearchDefaults.q),

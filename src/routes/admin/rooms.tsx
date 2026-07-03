@@ -6,6 +6,9 @@ import { roomsSearchDefaults, roomsSearchSchema } from "@/features/admin/schema/
 import { roomQueries } from "@/features/admin/services/rooms/queries";
 
 export const Route = createFileRoute("/admin/rooms")({
+    head: () => ({
+        meta: [{ title: "Admin Rooms | Meridian" }],
+    }),
     validateSearch: roomsSearchSchema,
     search: {
         middlewares: [stripSearchParams(roomsSearchDefaults)],

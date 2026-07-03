@@ -10,8 +10,11 @@ export const Route = createFileRoute("/admin/rooms_/$roomId")({
         roomId: z.uuid(),
     }),
     loader: ({ context: { queryClient }, params }) => {
-        queryClient.ensureQueryData(roomQueries.detail(params.roomId));
+        return queryClient.ensureQueryData(roomQueries.detail(params.roomId));
     },
+    head: ({ loaderData }) => ({
+        meta: [{ title: `${loaderData?.name ?? "Room Details"} | Meridian` }],
+    }),
     component: RoomDetailsPage,
     pendingComponent: AdminPending,
 });

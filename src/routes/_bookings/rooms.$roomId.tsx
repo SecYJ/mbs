@@ -29,7 +29,11 @@ export const Route = createFileRoute("/_bookings/rooms/$roomId")({
         // Warms the reservation editor dialog (room switcher + attendee users).
         queryClient.ensureQueryData(bookingCalendarQueries.data());
         queryClient.ensureQueryData(bookingCalendarQueries.roomDayEvents({ roomId, date }));
+        return queryClient.ensureQueryData(bookingCalendarQueries.room(roomId));
     },
+    head: ({ loaderData }) => ({
+        meta: [{ title: `${loaderData?.title ?? "Room Schedule"} | Meridian` }],
+    }),
     component: RoomBookingDayPage,
     notFoundComponent: RoomNotFound,
 });
