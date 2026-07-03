@@ -9,6 +9,9 @@ import {
 } from "@/features/admin/schema/bookings-search.schema";
 
 export const Route = createFileRoute("/admin/bookings")({
+    head: () => ({
+        meta: [{ title: "Admin Bookings | Meridian" }],
+    }),
     validateSearch: adminBookingsSearchSchema,
     search: {
         middlewares: [stripSearchParams(ADMIN_BOOKING_SEARCH_DEFAULTS)],

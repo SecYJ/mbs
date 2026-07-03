@@ -6,6 +6,9 @@ import { usersSearchDefaults, usersSearchSchema } from "@/features/admin/schema/
 import { userQueries } from "@/features/admin/services/users/queries";
 
 export const Route = createFileRoute("/admin/users")({
+    head: () => ({
+        meta: [{ title: "Admin Users | Meridian" }],
+    }),
     validateSearch: usersSearchSchema,
     search: {
         middlewares: [stripSearchParams(usersSearchDefaults)],

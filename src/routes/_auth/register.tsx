@@ -5,6 +5,9 @@ import { RegisterShell } from "@/features/register/components/RegisterShell";
 import { redirectAuthenticatedUser } from "@/lib/session";
 
 export const Route = createFileRoute("/_auth/register")({
+    head: () => ({
+        meta: [{ title: "Register | Meridian" }],
+    }),
     beforeLoad: redirectAuthenticatedUser,
     component: () => {
         return (

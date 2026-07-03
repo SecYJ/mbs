@@ -6,5 +6,8 @@ import { bookingCalendarQueries } from "@/features/bookings/services/queries";
 export const Route = createFileRoute("/_bookings/bookings_/$bookingId")({
     loader: ({ context: { queryClient }, params }) =>
         queryClient.ensureQueryData(bookingCalendarQueries.detail(params.bookingId)),
+    head: ({ loaderData }) => ({
+        meta: [{ title: `${loaderData?.booking.title ?? "Booking Details"} | Meridian` }],
+    }),
     component: BookingDetailsPage,
 });

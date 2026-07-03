@@ -25,6 +25,9 @@ const STATUS_LABEL = {
 };
 
 export const Route = createFileRoute("/_bookings/notifications")({
+    head: () => ({
+        meta: [{ title: "Notifications | Meridian" }],
+    }),
     validateSearch: z.object({
         filter: notificationFilterSchema.catch("all").optional(),
     }),

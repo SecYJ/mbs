@@ -11,6 +11,9 @@ const resetPasswordSearchSchema = z.object({
 });
 
 export const Route = createFileRoute("/_auth/reset-password")({
+    head: () => ({
+        meta: [{ title: "Reset Password | Meridian" }],
+    }),
     validateSearch: resetPasswordSearchSchema,
     beforeLoad: redirectAuthenticatedUser,
     component: ResetPasswordPage,

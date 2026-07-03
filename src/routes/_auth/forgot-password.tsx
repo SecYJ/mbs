@@ -5,6 +5,9 @@ import { ForgotPasswordShell } from "@/features/forgot-password/components/Forgo
 import { redirectAuthenticatedUser } from "@/lib/session";
 
 export const Route = createFileRoute("/_auth/forgot-password")({
+    head: () => ({
+        meta: [{ title: "Forgot Password | Meridian" }],
+    }),
     beforeLoad: redirectAuthenticatedUser,
     component: () => {
         return (

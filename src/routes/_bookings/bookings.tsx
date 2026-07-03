@@ -9,6 +9,9 @@ import { bookingCalendarQueries } from "@/features/bookings/services/queries";
 import { getBookingCalendarSearchRange } from "@/features/bookings/utils/date-formatter";
 
 export const Route = createFileRoute("/_bookings/bookings")({
+    head: () => ({
+        meta: [{ title: "Bookings | Meridian" }],
+    }),
     validateSearch: bookingCalendarSearchSchema,
     search: {
         middlewares: [
