@@ -7,11 +7,8 @@ const returnLinks = linkOptions([
     { to: "/settings", label: "Adjust", destination: "Settings", index: "III" },
 ]);
 
-const primaryReturnLinks = linkOptions([{ to: "/bookings", label: "Return to the ledger" }]);
-
 export const NotFound = () => {
     const year = new Date().getFullYear();
-    const [primaryReturnLink] = primaryReturnLinks;
 
     return (
         <div className="relative flex min-h-dvh bg-[#050505] text-(--bone)">
@@ -177,10 +174,10 @@ export const NotFound = () => {
                     {/* Primary CTA — inverted bone, per §5 */}
                     <div className="mt-10 animate-fade-up animation-duration-800 [animation-delay:600ms]">
                         <Link
-                            to={primaryReturnLink.to}
+                            to="/bookings"
                             className="group relative flex h-12 w-full items-center justify-center gap-3 border border-(--bone) bg-(--bone) text-[0.72rem] font-semibold tracking-[0.3em] uppercase text-black no-underline transition-all duration-300 hover:bg-white hover:border-white hover:tracking-[0.34em]"
                         >
-                            <span>{primaryReturnLink.label}</span>
+                            <span>Return to the ledger</span>
                             <ArrowRight
                                 className="size-4 transition-transform duration-300 group-hover:translate-x-1"
                                 strokeWidth={1.6}
