@@ -59,6 +59,13 @@ const config = defineConfig({
         printWidth: 120,
         tabWidth: 4,
     },
+    test: {
+        environment: "jsdom",
+        setupFiles: ["./src/test/setup.ts"],
+        typecheck: { enabled: true },
+        watch: false,
+        globals: true,
+    },
     resolve: {
         alias: {
             "pg-native": pgNativeShim,
