@@ -1,0 +1,9 @@
+{
+    "ignorePatterns": ["AGENTS.md", "routeTree.gen.ts", "drizzle/**", "**/dist/**"],
+    "printWidth": 120,
+    "tabWidth": 4,
+    "sortImports": true,
+    "sortTailwindcss": {
+        "functions": ["cn"]
+    }
+}

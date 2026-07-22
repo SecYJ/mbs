@@ -1,7 +1,3 @@
-## Latest Documentation
-
-- Use Context7 to get latest library docs and data.
-
 ## Coding Style
 
 - Use arrow functions instead of function declarations except the page under createFileRoute from tanstack/router.
@@ -17,7 +13,7 @@
 ## Zod
 
 - For Zod schema fallbacks, do not chain `.default()` together with `.catch()`; `.catch()` already covers the fallback cases `.default()` would handle.
--   - **No unused schema types**: Do not create or export an inferred type from a Zod schema (e.g., `z.infer<typeof Schema>`) unless it is actually used somewhere. If the type has no consumers, remove it.
+- - **No unused schema types**: Do not create or export an inferred type from a Zod schema (e.g., `z.infer<typeof Schema>`) unless it is actually used somewhere. If the type has no consumers, remove it.
 
 ## React
 
@@ -32,6 +28,14 @@
 - Prefer `schemas/` over a singular `schema/` folder.
 - Name components by business responsibility, not UI shape. Prefer names like `BookingRoomFilters`, `RoomBookingSchedule`, or `BookingReservationEditor` over generic names like `Drawer`, `Dialog`, `Shell`, or `Panel`.
 - Keep components focused on one responsibility. Do not mix business logic and presentational layout when a hook or child component can own that concern clearly.
+
+## Latest Information
+
+- When current information matters, use Context7 or web search—whichever fits best—and prefer official sources.
+
+## Explanations
+
+- Assume I am a total beginner in backend and databases. Explain those concepts using simple words while keep it short, avoid jargon, and include short, dead-simple examples.
 
 ## Dev Server
 

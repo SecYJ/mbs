@@ -1,0 +1,12 @@
+{
+    "options": { "typeAware": true, "typeCheck": true },
+    "plugins": ["import", "jsx-a11y", "unicorn"],
+    "categories": {
+        "suspicious": "warn"
+    },
+    "settings": {
+        "react": {
+            "version": "19"
+        }
+    }
+}

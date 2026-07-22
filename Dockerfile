@@ -16,11 +16,11 @@ COPY --chown=node:node . .
 
 RUN pnpm install --no-frozen-lockfile
 
-RUN DATABASE_URL=postgresql://username:password@localhost:5432/mbs pnpm build
+RUN DATABASE_URL=postgresql://username:password@localhost:5432/mbs pnpm --filter @mbs/client build
 
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 
 EXPOSE 10000
 
-CMD ["sh", "-c", "pnpm preview --host 0.0.0.0 --port ${PORT:-10000}"]
+CMD ["sh", "-c", "pnpm --filter @mbs/client preview --host 0.0.0.0 --port ${PORT:-10000}"]

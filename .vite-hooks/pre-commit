@@ -1,1 +1,1 @@
-vp staged
+corepack pnpm --filter @mbs/client exec vp staged
