@@ -4,13 +4,14 @@ import express from "express";
 import { env } from "#app/env";
 import { auth } from "#app/lib/auth";
 import { requestLogger } from "#app/middleware/request-logger";
-import { notificationsRouter } from "#app/modules/notifications/notifications.route";
+import { requireAuthenticated } from "#app/middleware/require-authenticated";
+import { notificationRouter } from "#app/modules/notification/notification.route";
 
 const app = express();
 
 app.use(requestLogger);
 
-app.use(`/api/${env.API_VERSION}/notifications`, notificationsRouter);
+app.use(`/api/${env.API_VERSION}/notifications`, requireAuthenticated, notificationRouter);
 
 app.all(`/api/${env.API_VERSION}/auth/*splat`, toNodeHandler(auth));
 

@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { setResponseStatus } from "@tanstack/react-start/server";
 import { asc, desc, eq, or, sql } from "drizzle-orm";
-import { StatusCodes } from "http-status-codes";
+import { status } from "http-status";
 
 import { session, user } from "@/db/schema";
 import { getDb } from "@/db/server";
@@ -71,7 +71,7 @@ export const createUserByAdminFn = createServerFn({ method: "POST" })
         try {
             await getServerApiClient().post("auth/admin/create-user", { json: data }).json();
 
-            setResponseStatus(StatusCodes.CREATED);
+            setResponseStatus(status.CREATED);
         } catch (err) {
             if (err instanceof Error) {
                 throw err;

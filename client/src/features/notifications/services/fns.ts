@@ -1,107 +1,49 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
-import { bookings, notifications, rooms } from "@/db/schema";
-import { getDb } from "@/db/server";
 import { notificationFilterSchema } from "@/features/notifications/schemas/notificationSchema";
-import { authenticatedUserMiddleware } from "@/middleware/auth";
+import { getServerApiClient } from "@/lib/server-api-client";
 
-const toIso = (value: Date | string | null) => (value ? new Date(value).toISOString() : new Date().toISOString());
+type NotificationsResponse = {
+    items: Array<{
+        id: string;
+        bookingId: string | null;
+        message: string;
+        status: "read" | "unread" | "pending";
+        createdAt: string;
+        booking: {
+            id: string;
+            title: string;
+            startTime: string;
+            endTime: string;
+        } | null;
+        room: {
+            name: string;
+            location: string;
+        } | null;
+    }>;
+    totalCount: number;
+    unreadCount: number;
+};
 
 export const getNotificationsFn = createServerFn({ method: "GET" })
-    .middleware([authenticatedUserMiddleware])
     .validator(z.object({ filter: notificationFilterSchema.optional() }))
-    .handler(async ({ context, data }) => {
-        const db = await getDb();
-        const userId = context.session.user.id;
-        const statusFilter = data.filter === "unread" ? eq(notifications.status, "unread") : undefined;
+    .handler(async ({ data }) => {
+        const searchParams = data.filter === "unread" ? { filter: data.filter } : undefined;
 
-        const rows = await db
-            .select({
-                notification: notifications,
-                booking: {
-                    id: bookings.bookingId,
-                    title: bookings.title,
-                    startTime: bookings.startTime,
-                    endTime: bookings.endTime,
-                },
-                room: {
-                    name: rooms.name,
-                    location: rooms.location,
-                },
-            })
-            .from(notifications)
-            .leftJoin(bookings, eq(bookings.bookingId, notifications.bookingId))
-            .leftJoin(rooms, eq(rooms.roomId, bookings.roomId))
-            .where(and(eq(notifications.userId, userId), statusFilter))
-            .orderBy(desc(notifications.createdAt));
-
-        const [counts] = await db
-            .select({
-                totalCount: count(),
-                unreadCount: sql<number>`count(*) filter (where ${notifications.status} = 'unread')`.mapWith(Number),
-            })
-            .from(notifications)
-            .where(eq(notifications.userId, userId));
-
-        const items = rows.map((row) => ({
-            id: row.notification.notificationId,
-            bookingId: row.notification.bookingId,
-            message: row.notification.message,
-            status: row.notification.status,
-            createdAt: toIso(row.notification.createdAt),
-            booking: row.booking
-                ? {
-                      id: row.booking.id,
-                      title: row.booking.title,
-                      startTime: toIso(row.booking.startTime),
-                      endTime: toIso(row.booking.endTime),
-                  }
-                : null,
-            room: row.room,
-        }));
-
-        return {
-            items,
-            totalCount: counts?.totalCount ?? 0,
-            unreadCount: counts?.unreadCount ?? 0,
-        };
+        return getServerApiClient().get("notifications", { searchParams }).json<NotificationsResponse>();
     });
 
 export const markNotificationReadFn = createServerFn({ method: "POST" })
-    .middleware([authenticatedUserMiddleware])
     .validator(
         z.object({
             notificationId: z.uuid(),
         }),
     )
-    .handler(async ({ context, data }) => {
-        const db = await getDb();
-        const [updatedNotification] = await db
-            .update(notifications)
-            .set({ status: "read" })
-            .where(
-                and(
-                    eq(notifications.notificationId, data.notificationId),
-                    eq(notifications.userId, context.session.user.id),
-                    eq(notifications.status, "unread"),
-                ),
-            )
-            .returning({ id: notifications.notificationId });
-
-        return { id: updatedNotification?.id ?? data.notificationId };
+    .handler(async ({ data }) => {
+        await getServerApiClient().patch(`notifications/${data.notificationId}`);
     });
 
-export const markAllNotificationsReadFn = createServerFn({ method: "POST" })
-    .middleware([authenticatedUserMiddleware])
-    .handler(async ({ context }) => {
-        const db = await getDb();
-        const updatedNotifications = await db
-            .update(notifications)
-            .set({ status: "read" })
-            .where(and(eq(notifications.userId, context.session.user.id), eq(notifications.status, "unread")))
-            .returning({ id: notifications.notificationId });
-
-        return { ids: updatedNotifications.map((notification) => notification.id) };
-    });
+export const markAllNotificationsReadFn = createServerFn({ method: "POST" }).handler(async () => {
+    await getServerApiClient().patch("notifications");
+});
