@@ -4,6 +4,7 @@ import ky, { isHTTPError } from "ky";
 import { z } from "zod";
 
 import { env } from "@/env";
+import { ServerApiError } from "@/lib/server-api-error";
 
 const apiErrorSchema = z.object({
     message: z.string().min(1),
@@ -44,10 +45,14 @@ export const getServerApiClient = createServerOnlyFn(() =>
                     if (isHTTPError(error)) {
                         const result = apiErrorSchema.safeParse(error.data);
 
-                        return new Error(result.success ? result.data.message : "The request could not be completed.");
+                        return new ServerApiError(
+                            result.success ? result.data.message : "The request could not be completed.",
+                            error.response.status,
+                            error.data,
+                        );
                     }
 
-                    return new Error("The service is temporarily unavailable.");
+                    return new ServerApiError("The service is temporarily unavailable.", null, null);
                 },
             ],
         },

@@ -6,7 +6,8 @@
         "#app/*": "./src/*.ts"
     },
     "scripts": {
-        "dev": "node --env-file=.env --watch src/index.ts"
+        "dev": "node --env-file=.env --watch src/app.ts",
+        "typecheck": "tsc --noEmit"
     },
     "dependencies": {
         "@t3-oss/env-core": "^0.13.11",

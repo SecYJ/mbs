@@ -28,7 +28,7 @@ export const useLogin = () => {
         },
         onError: (error) => {
             form.setError("root", {
-                message: error instanceof Error ? error.message : "Unable to sign in. Please try again.",
+                message: error.message,
             });
         },
     });

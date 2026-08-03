@@ -89,6 +89,7 @@ const fromAddress = env.RESEND_FROM_EMAIL ?? "Meridian <onboarding@resend.dev>";
 export const auth = betterAuth({
     baseURL: env.SERVER_ORIGIN,
     basePath: `/api/${env.API_VERSION}/auth/`,
+    trustedOrigins: [env.CLIENT_ORIGIN],
     database: drizzleAdapter(db, {
         provider: "pg",
         schema,

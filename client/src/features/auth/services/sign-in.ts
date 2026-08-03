@@ -9,6 +9,4 @@ export const signInFn = createServerFn({ method: "POST" })
         await getServerApiClient().post("auth/sign-in/email", {
             json: data,
         });
-
-        return { success: true };
     });
