@@ -1,30 +1,25 @@
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
-import { useDeferredValue } from "react";
 
 import { EmptyBookings } from "@/features/my-bookings/components/EmptyBookings";
 import { MyBookingsFilterControls } from "@/features/my-bookings/components/MyBookingsFilterControls";
 import { MyBookingsFilteredPage } from "@/features/my-bookings/components/MyBookingsFilteredPage";
-import {
-    myBookingsQueries,
-    type MyBookingsQueryData,
-    type MyBookingsStatsQueryData,
-} from "@/features/my-bookings/services/queries";
+import { type MyBookingsQueryData, type MyBookingsStatsQueryData } from "@/features/my-bookings/services/queries";
 
 const Route = getRouteApi("/_bookings/my-bookings");
 
 export const MyBookingsPageHost = () => {
-    const { group, q } = Route.useSearch();
-    const deferredQ = useDeferredValue(q);
+    const q = Route.useSearch({ select: (search) => search.q });
+    const { myBookingsListQueryOptions, myBookingsStatsQueryOptions } = Route.useRouteContext();
 
     const hasBookings = useSuspenseQueries({
         queries: [
             {
-                ...myBookingsQueries.list({ group, q: deferredQ }),
+                ...myBookingsListQueryOptions,
                 select: (data: MyBookingsQueryData) => data.history.length > 0,
             },
             {
-                ...myBookingsQueries.stats(),
+                ...myBookingsStatsQueryOptions,
                 select: (data: MyBookingsStatsQueryData) => data.ownedCount + data.attendingCount > 0,
             },
         ],

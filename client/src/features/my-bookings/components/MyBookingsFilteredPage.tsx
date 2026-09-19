@@ -1,24 +1,20 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useSearch } from "@tanstack/react-router";
+import { getRouteApi } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { useDeferredValue } from "react";
 
 import { BookingRow } from "@/features/my-bookings/components/BookingRow";
 import { MY_BOOKING_SECTION_META } from "@/features/my-bookings/my-bookings.constants";
-import { myBookingsQueries } from "@/features/my-bookings/services/queries";
+
+const Route = getRouteApi("/_bookings/my-bookings");
 
 export const MyBookingsFilteredPage = () => {
-    const { group, q } = useSearch({
-        from: "/_bookings/my-bookings",
-        select: (s) => ({ ...s, group: s.group ?? "upcoming" }),
-    });
-
-    const deferredQ = useDeferredValue(q);
+    const group = Route.useSearch({ select: (search) => search.group ?? "upcoming" });
+    const { session, myBookingsListQueryOptions } = Route.useRouteContext();
 
     const {
-        data: { currentUserId, currentUserRole, history: bookings },
+        data: { currentUserId, history: bookings },
     } = useSuspenseQuery({
-        ...myBookingsQueries.list({ group, q: deferredQ }),
+        ...myBookingsListQueryOptions,
         select: (data) => ({
             ...data,
             history: data.history.map((booking) => ({
@@ -57,7 +53,7 @@ export const MyBookingsFilteredPage = () => {
                             key={booking.id}
                             booking={booking}
                             currentUserId={currentUserId}
-                            currentUserRole={currentUserRole}
+                            currentUserRole={session.user.role}
                         />
                     ))}
                 </div>

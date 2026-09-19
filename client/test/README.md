@@ -9,7 +9,7 @@ Learn how to test this React app by understanding one layer at a time:
 1. Vitest basics
 2. Testing pure functions
 3. Testing Zod schemas
-4. Testing React components with Testing Library
+4. Testing React components in Vitest Browser Mode
 5. Mocking app boundaries
 6. Testing critical user flows
 
@@ -32,7 +32,7 @@ Learn:
 - `beforeEach`
 - `vi.fn`
 - `vi.mock`
-- async assertions with `await` and `waitFor`
+- async browser assertions with `expect.poll`
 
 Practice:
 
@@ -40,32 +40,31 @@ Practice:
 - Test one function with edge cases.
 - Test one async function with a mocked dependency.
 
-### React Testing Library
+### Vitest Browser Mode
 
 Learn:
 
-- `render`
-- `screen`
-- `getByRole`
-- `getByLabelText`
-- `findByText`
-- `queryByText`
+- rendering React with `createRoot`
+- `page.getByRole`
+- `page.getByLabelText`
+- browser assertion helpers built on `expect.poll`
+- browser `userEvent`
 
 Practice:
 
-- Render a form.
+- Mount a form in Chromium.
 - Find inputs by their labels.
 - Click a button.
 - Assert an error message appears.
 
-### User Event
+### Browser User Event
 
 Learn:
 
 - `userEvent.setup()`
-- `user.type`
+- `user.fill`
 - `user.click`
-- `user.tab`
+- `user.press`
 - `user.clear`
 
 Practice:
@@ -75,11 +74,10 @@ Practice:
 - Submit a valid form.
 - Submit an invalid form.
 
-### Jest DOM Matchers
+### Vitest Browser Matchers
 
 Learn:
 
-- `toBeInTheDocument`
 - `toBeVisible`
 - `toBeDisabled`
 - `toHaveAttribute`
@@ -195,13 +193,13 @@ Mock these in component tests:
 - server functions
 - API calls
 - timers
-- browser APIs missing from jsdom
+- browser APIs provided by Playwright
 
 Avoid mocking these when learning the basics:
 
 - the component being tested
-- Testing Library
-- `userEvent`
+- browser locators
+- browser `userEvent`
 - simple child components unless they make the test noisy
 
 ## When To Use MSW

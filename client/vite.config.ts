@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
@@ -6,9 +7,11 @@ import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
+import { playwright } from "@vitest/browser-playwright";
+import { defineConfig } from "vite";
 import { unstableRolldownAdapter } from "vite-bundle-analyzer";
 import { analyzer } from "vite-bundle-analyzer";
-import { defineConfig } from "vite-plus";
+import { configDefaults } from "vitest/config";
 
 const pgNativeShim = fileURLToPath(new URL("./src/lib/pg-native.ts", import.meta.url));
 const nodePostgresPackages = ["pg", "pg-pool", "pg-native"];
@@ -28,21 +31,48 @@ const clientBundleAnalyzer = {
 };
 
 const config = defineConfig({
-    staged: {
-        "*": ["vp fmt --write --config ../.oxfmtrc.json", "vp check --fix --no-fmt"],
-    },
     test: {
-        environment: "jsdom",
-        setupFiles: ["./src/test/setup.ts"],
-        typecheck: { enabled: true },
-        watch: false,
-        globals: true,
+        projects: [
+            {
+                extends: true,
+                test: {
+                    name: "unit",
+                    globals: true,
+                    include: ["src/**/*.test.ts"],
+                    exclude: [...configDefaults.exclude, "src/**/*.browser.test.tsx"],
+                    environment: "node",
+                },
+            },
+            {
+                extends: true,
+                test: {
+                    name: "browser",
+                    testTimeout: 5000,
+                    globals: true,
+                    include: ["src/**/*.browser.test.tsx"],
+                    browser: {
+                        enabled: true,
+                        provider: playwright({
+                            contextOptions: {
+                                colorScheme: "dark",
+                            },
+                        }),
+                        instances: [
+                            {
+                                browser: "chromium",
+                                setupFiles: ["./vitest.setup.ts"],
+                            },
+                        ],
+                    },
+                },
+            },
+        ],
     },
     resolve: {
         alias: {
+            "@": fileURLToPath(new URL("./src", import.meta.url)),
             "pg-native": pgNativeShim,
         },
-        tsconfigPaths: true,
     },
     optimizeDeps: {
         exclude: nodePostgresPackages,

@@ -1,11 +1,11 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { createMemoryHistory, createRouter, RouterContextProvider } from "@tanstack/react-router";
-import { render, type RenderOptions } from "@testing-library/react";
-import type { ComponentType, ReactElement, ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 
 import { getContext } from "@/integrations/tanstack-query/RootProvider";
 
 import { routeTree } from "../routeTree.gen";
+import { renderInBrowser } from "./render-in-browser";
 
 export const createTestRouterFromFiles = (initialLocation = "/") => {
     const router = createRouter({
@@ -19,14 +19,14 @@ export const createTestRouterFromFiles = (initialLocation = "/") => {
     return router;
 };
 
-type RenderWithFileRoutesOptions = Omit<RenderOptions, "wrapper"> & {
+type RenderWithFileRoutesOptions = {
     initialLocation?: string;
     routerContext?: ReturnType<typeof getContext>;
 };
 
-export const renderWithFileRoutes = (
-    ui: ReactElement,
-    { initialLocation = "/", routerContext = getContext(), ...renderOptions }: RenderWithFileRoutesOptions = {},
+export const renderWithFileRoutes = async (
+    ui: ReactNode,
+    { initialLocation = "/", routerContext = getContext() }: RenderWithFileRoutesOptions = {},
 ) => {
     const router = createRouter({
         routeTree,
@@ -42,8 +42,10 @@ export const renderWithFileRoutes = (
         </QueryClientProvider>
     );
 
+    const cleanup = await renderInBrowser(<Wrapper>{ui}</Wrapper>);
+
     return {
-        ...render(ui, { wrapper: Wrapper, ...renderOptions }),
+        cleanup,
         router,
     };
 };

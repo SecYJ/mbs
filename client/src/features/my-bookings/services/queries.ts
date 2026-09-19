@@ -11,6 +11,12 @@ type MyBookingsFilters = {
 export type MyBookingsQueryData = Awaited<ReturnType<typeof getMyBookingsDataFn>>;
 export type MyBookingsStatsQueryData = Awaited<ReturnType<typeof getMyBookingsStatsFn>>;
 
+const myBookingStatsQueryOptions = () =>
+    queryOptions({
+        queryKey: ["bookings", "my-bookings", "stats"],
+        queryFn: getMyBookingsStatsFn,
+    });
+
 export const myBookingsQueries = {
     all: () => ["bookings", "my-bookings"],
     lists: () => [...myBookingsQueries.all(), "list"],
@@ -20,10 +26,5 @@ export const myBookingsQueries = {
             queryFn: () => getMyBookingsDataFn({ data: filters }),
         });
     },
-    stats: () => {
-        return queryOptions({
-            queryKey: [...myBookingsQueries.all(), "stats"],
-            queryFn: getMyBookingsStatsFn,
-        });
-    },
+    stats: myBookingStatsQueryOptions,
 };

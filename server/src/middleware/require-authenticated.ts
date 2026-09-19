@@ -16,6 +16,7 @@ export const requireAuthenticated: AuthenticatedRequestHandler = async (req, res
     }
 
     res.locals.userId = userSession.user.id;
+    res.locals.userRole = userSession.user.role ?? "user";
 
     next();
 };

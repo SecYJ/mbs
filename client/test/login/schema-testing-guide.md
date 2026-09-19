@@ -122,7 +122,7 @@ Write `login.schema.test.ts` yourself with these tests:
 After each test, run only that file:
 
 ```bash
-vp test run src/features/login/schema/login.schema.test.ts
+pnpm test:run src/features/login/schema/login.schema.test.ts
 ```
 
 ## Review Checklist
@@ -132,7 +132,7 @@ Before moving on, check:
 - Did you import from `vitest`?
 - Did you use `safeParse`?
 - Did each test prove one rule?
-- Did you avoid React Testing Library in this file?
+- Did you keep this test in the plain Vitest unit project?
 - Did you avoid testing implementation details of Zod?
 
 If all answers are yes, this is a good schema test.

@@ -1,13 +1,8 @@
 {
-    "extends": "../tsconfig.base.json",
-    "include": ["**/*.ts", "**/*.tsx", ""],
+    "extends": "./tsconfig.json",
+    "include": ["vitest.setup.ts", "src/**/*.browser.test.tsx", "src/**/*.ts*"],
     "exclude": ["dist", "drizzle"],
     "compilerOptions": {
-        "jsx": "react-jsx",
-        "module": "ESNext",
-        "paths": {
-            "@/*": ["./src/*"]
-        },
         "lib": ["ES2023", "DOM", "DOM.Iterable"],
         "types": ["vite/client", "vitest/globals"],
 

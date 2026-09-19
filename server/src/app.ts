@@ -7,6 +7,7 @@ import { auth } from "#app/lib/auth";
 import { errorHandler } from "#app/middleware/error";
 import { requestLogger } from "#app/middleware/request-logger";
 import { requireAuthenticated } from "#app/middleware/require-authenticated";
+import { myBookingRouter } from "#app/modules/mybooking/mybooking.route";
 import { notificationRouter } from "#app/modules/notification/notification.route";
 
 const app = express();
@@ -14,6 +15,8 @@ const app = express();
 app.use(requestLogger);
 
 app.use(`/api/${env.API_VERSION}/notifications`, requireAuthenticated, notificationRouter);
+
+app.use(`/api/${env.API_VERSION}/mybooking`, requireAuthenticated, myBookingRouter);
 
 app.all(`/api/${env.API_VERSION}/auth/*splat`, toNodeHandler(auth));
 

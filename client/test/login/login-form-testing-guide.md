@@ -205,7 +205,7 @@ type a non-empty passphrase into the passphrase field
 
 Assert the visible values of both inputs.
 
-Remember that `user.type` is asynchronous. Await the interaction.
+Remember that browser interactions are asynchronous. Await the interaction.
 
 ## Exercise 3: Submit Invalid Input
 
@@ -299,7 +299,7 @@ Use only as much help as you need.
 
 ### Hint 1: Test Imports
 
-Look at `PasswordInput.test.tsx`. Your form test will use the same Testing Library, `userEvent`, and Vitest imports, plus mocking utilities from Vitest.
+Look at `PasswordInput.browser.test.tsx`. Your form test will use the same Vitest Browser Mode locators, browser `userEvent`, and Vitest imports, plus mocking utilities from Vitest.
 
 ### Hint 2: Mock The Module, Not The Component
 
@@ -366,13 +366,13 @@ Those are either library behavior, implementation details, or responsibilities o
 Watch mode while learning:
 
 ```bash
-vp test src/features/login/components/LoginForm.test.tsx
+pnpm test src/features/login/components/LoginForm.browser.test.tsx
 ```
 
 One-time run:
 
 ```bash
-vp test run src/features/login/components/LoginForm.test.tsx
+pnpm test:browser src/features/login/components/LoginForm.browser.test.tsx
 ```
 
 Run the test after every small addition. A short feedback loop makes it easier to understand which change caused a failure.

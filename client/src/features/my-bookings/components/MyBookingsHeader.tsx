@@ -1,10 +1,15 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
+import { getRouteApi } from "@tanstack/react-router";
 
-import { myBookingsQueries } from "@/features/my-bookings/services/queries";
 import { cn } from "@/lib/utils";
 
+const Route = getRouteApi("/_bookings/my-bookings");
+
 export const MyBookingsHeader = () => {
-    const { data } = useSuspenseQuery(myBookingsQueries.stats());
+    const { myBookingsStatsQueryOptions } = Route.useRouteContext();
+    const { data } = useSuspenseQuery(myBookingsStatsQueryOptions);
+
+    // return null;
 
     return (
         <header className="grid gap-6 border-b border-(--hairline) pb-7 lg:grid-cols-[1fr_auto] lg:items-end">

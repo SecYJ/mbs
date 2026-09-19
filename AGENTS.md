@@ -1,42 +1,36 @@
-## Coding Style
+# Agent Instructions
 
-- Use arrow functions instead of function declarations except the page under createFileRoute from tanstack/router.
-- In Tailwind CSS classes, do not add the `var(...)` keyword for CSS variables; use the `(...)` shorthand instead.
-- In Tailwind CSS v4 data attribute variants, use direct boolean variants like `data-popup-open:border-(--hairline)`. Use square brackets only when matching a specific data attribute value, such as `data-[dialog=active]:...`.
-- Conditional `className` values must use the `cn` function instead of string template literals or inline conditional strings.
+## Task Guidance
 
-## TypeScript
+Before writing, modifying, or reviewing code or documentation, read and follow every document below that applies to the task. Paths are relative to the repository root. These documents contain required project conventions.
 
-- use type alias instead of interface
-- prefer auto-inferred return types over explicit return type annotations.
+| When working on | Read |
+| --- | --- |
+| JavaScript or TypeScript | [Coding style](docs/coding-style.md) |
+| Zod schemas or types inferred from them | [Zod conventions](docs/zod-conventions.md) |
+| Implementing or changing feature behavior | [Product requirements](docs/requirements.md) |
+| Verifying code or documentation changes | [Verification guide](docs/verification.md) |
 
-## Zod
+When updating a convention, edit its document rather than duplicating the rule here. Keep this table up to date if documents move or new topics are added.
 
-- For Zod schema fallbacks, do not chain `.default()` together with `.catch()`; `.catch()` already covers the fallback cases `.default()` would handle.
-- - **No unused schema types**: Do not create or export an inferred type from a Zod schema (e.g., `z.infer<typeof Schema>`) unless it is actually used somewhere. If the type has no consumers, remove it.
+## Directory Instructions
 
-## React
+Before working in a directory below, read and follow its instructions in addition to these shared rules, even when starting from the repository root.
 
-- Using React v19
-- Skip `useMemo`, `useCallback`, and `memo` — react-compiler handles memoization.
-- For filter/sort/search/pagination state, use URL search params (e.g. TanStack Router `useSearch`) instead of `useState`.
-
-## Feature Organization
-
-- Keep route files thin: route config, search validation, loaders, and the imported feature page only.
-- Feature folders should own their `components/`, `hooks/`, `schemas/`, `services/` and `utils/` when those concerns exist.
-- Prefer `schemas/` over a singular `schema/` folder.
-- Name components by business responsibility, not UI shape. Prefer names like `BookingRoomFilters`, `RoomBookingSchedule`, or `BookingReservationEditor` over generic names like `Drawer`, `Dialog`, `Shell`, or `Panel`.
-- Keep components focused on one responsibility. Do not mix business logic and presentational layout when a hook or child component can own that concern clearly.
+- For `client/`, read [client/AGENTS.md](client/AGENTS.md).
+- For `server/`, read [server/AGENTS.md](server/AGENTS.md).
 
 ## Latest Information
 
 - When current information matters, use Context7 or web search—whichever fits best—and prefer official sources.
+- Before consulting library documentation, check the relevant workspace package's installed version; use its package manifest and lockfile to confirm the intended version. Client and server dependencies can differ, so use documentation for the version relevant to the code being changed.
 
 ## Explanations
 
 - Assume I am a total beginner in backend and databases. Explain those concepts using simple words while keep it short, avoid jargon, and include short, dead-simple examples.
+- For SQL and database changes, use a hand-holding approach: explain one small query step at a time, show the equivalent plain SQL when useful, and explain what each table, condition, and result represents.
+- When I ask to write a SQL or Drizzle query myself, do not complete the whole refactor for me. Review my current attempt, give me only the next small change, explain how to verify it, and wait for my result before continuing.
 
 ## Dev Server
 
-- If you start a dev server manually (e.g. `vp dev`) for verification, stop it once the task is complete. Don't leave it running in the background.
+- If you start a dev server manually (e.g. `pnpm dev`) for verification, stop it once the task is complete. Don't leave it running in the background.
