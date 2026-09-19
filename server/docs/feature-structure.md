@@ -19,6 +19,7 @@ Use the following Mybooking files as references for specific responsibilities:
 - [Route](../src/modules/mybooking/mybooking.route.ts): route registration and controller wiring.
 - [Controller](../src/modules/mybooking/mybooking.controller.ts): request validation, authenticated user context, and responses.
 - [Schema](../src/modules/mybooking/mybooking.schema.ts): request validation schemas.
-- [Service](../src/modules/mybooking/mybooking.service.ts): existing query examples, including nested selections and SQL aggregation.
+- [Service](../src/modules/mybooking/mybooking.service.ts): coordinate repo calls and serialize dates for the response.
+- [Repo](../src/modules/mybooking/mybooking.repo.ts): database queries, including nested selections and SQL aggregation.
 
-Mybooking currently keeps database queries in its service and has no repo file. The intended structure puts those queries in `<feature>.repo.ts`; do not copy their current placement as the architecture to follow.
+Keep feature-specific access rules in the feature's queries. Share a query function only when multiple features need the same database operation; shared fields alone do not justify a shared endpoint.

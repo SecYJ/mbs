@@ -2,14 +2,14 @@ import express from "express";
 
 import {
     getNotificationsController,
-    markAllNotificationsAsRead,
-    markNotificationAsRead,
+    markAllNotificationsAsReadController,
+    markNotificationAsReadController,
 } from "#app/modules/notification/notification.controller";
 
 export const notificationRouter = express.Router();
 
 notificationRouter.get("/", getNotificationsController);
 
-notificationRouter.patch("/", markAllNotificationsAsRead);
+notificationRouter.patch("/", markAllNotificationsAsReadController);
 
-notificationRouter.patch("/:notificationId", markNotificationAsRead);
+notificationRouter.patch("/:notificationId", markNotificationAsReadController);

@@ -1,8 +1,10 @@
+import type { Request } from "express";
+
 import { myBookingQuerySchema } from "#app/modules/mybooking/mybooking.schema";
 import { getMyBookingStatsService, getMyBookingsDataService } from "#app/modules/mybooking/mybooking.service";
-import type { AuthenticatedRequestHandler } from "#app/types";
+import type { AuthenticatedResponse } from "#app/types";
 
-export const myBookingsDataController: AuthenticatedRequestHandler = async (req, res) => {
+export async function myBookingsDataController(req: Request, res: AuthenticatedResponse) {
     const { group, q } = myBookingQuerySchema.parse(req.query);
 
     res.json(
@@ -12,8 +14,8 @@ export const myBookingsDataController: AuthenticatedRequestHandler = async (req,
             query: q,
         }),
     );
-};
+}
 
-export const myBookingStatsController: AuthenticatedRequestHandler = async (_req, res) => {
+export async function myBookingStatsController(_req: Request, res: AuthenticatedResponse) {
     res.json(await getMyBookingStatsService(res.locals.userId));
-};
+}
