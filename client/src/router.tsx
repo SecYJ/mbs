@@ -2,6 +2,7 @@ import { createRouter as createTanStackRouter, parseSearchWith, stringifySearchW
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
 import { AppPending } from "@/components/AppPending";
+import { RouteError } from "@/components/RouteError";
 import { getContext } from "@/integrations/tanstack-query/RootProvider";
 import { routeTree } from "@/routeTree.gen";
 
@@ -15,6 +16,7 @@ export const getRouter = () => {
         defaultPreload: "intent",
         defaultPreloadStaleTime: 0,
         defaultPendingComponent: AppPending,
+        defaultErrorComponent: RouteError,
         parseSearch: parseSearchWith((value) => {
             const trimmed = value.trim();
             const looksLikeJson = trimmed.startsWith("{") || trimmed.startsWith("[") || trimmed.startsWith('"');

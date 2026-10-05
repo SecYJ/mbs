@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
+import { AdminError } from "@/features/admin/components/AdminError";
 import { AdminPending } from "@/features/admin/components/AdminPending";
 import { RoomDetailsPage } from "@/features/admin/pages/RoomDetailsPage";
 import { roomQueries } from "@/features/admin/services/rooms/queries";
@@ -17,4 +18,5 @@ export const Route = createFileRoute("/admin/rooms_/$roomId")({
     }),
     component: RoomDetailsPage,
     pendingComponent: AdminPending,
+    errorComponent: AdminError,
 });

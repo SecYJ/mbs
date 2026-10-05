@@ -1,7 +1,9 @@
 import { attendees, bookings, rooms, user } from "@mbs/shared/db/schema";
-import { and, count, desc, eq, gt, gte, ilike, lt, lte, or, sql } from "drizzle-orm";
+import { APP_TIME_ZONE } from "@mbs/shared/time";
+import { and, count, desc, eq, gt, ilike, lte, or, sql } from "drizzle-orm";
 
 import { db } from "#app/db/index";
+import { getContainsPattern } from "#app/lib/like-pattern";
 import type { AdminBookingsFilter } from "#app/modules/admin-booking/admin-booking.schema";
 
 function getStatusCondition(status: AdminBookingsFilter["status"], now: Date) {
@@ -16,7 +18,12 @@ function getStatusCondition(status: AdminBookingsFilter["status"], now: Date) {
 }
 
 export async function findAdminBookings(input: AdminBookingsFilter, now: Date) {
-    const searchPattern = input.q ? `%${input.q}%` : undefined;
+    const searchPattern = input.q ? getContainsPattern(input.q) : undefined;
+
+    const attendeeCount = db
+        .select({ value: count() })
+        .from(attendees)
+        .where(eq(attendees.bookingId, bookings.bookingId));
 
     return db
         .select({
@@ -28,12 +35,11 @@ export async function findAdminBookings(input: AdminBookingsFilter, now: Date) {
             room: rooms.name,
             bookedBy: user.name,
             userId: bookings.userId,
-            attendees: count(attendees.userId),
+            attendees: sql<number>`(${attendeeCount})`.mapWith(Number),
         })
         .from(bookings)
         .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))
         .innerJoin(user, eq(user.id, bookings.userId))
-        .leftJoin(attendees, eq(attendees.bookingId, bookings.bookingId))
         .where(
             and(
                 getStatusCondition(input.status, now),
@@ -47,16 +53,6 @@ export async function findAdminBookings(input: AdminBookingsFilter, now: Date) {
                 input.room !== "all" ? eq(rooms.name, input.room) : undefined,
             ),
         )
-        .groupBy(
-            bookings.bookingId,
-            bookings.title,
-            bookings.startTime,
-            bookings.endTime,
-            bookings.status,
-            rooms.name,
-            user.name,
-            bookings.userId,
-        )
         .orderBy(desc(bookings.startTime));
 }
 
@@ -68,7 +64,21 @@ export async function findAdminBookingRoomNames() {
     return result.names;
 }
 
-export async function getAdminBookingCounts(todayStart: Date, tomorrowStart: Date, weekStart: Date, weekEnd: Date) {
+const periodLengths = { day: sql`interval '1 day'`, week: sql`interval '1 week'` };
+
+// The start and end of the current day or week on the office wall clock, as exact moments in time.
+// date_trunc('week') starts on Monday. The length is added on the wall clock before converting back,
+// so a daylight-saving change inside the period cannot shift the end.
+function getLocalPeriodBounds(period: keyof typeof periodLengths, now: Date) {
+    const localStart = sql`date_trunc(${period}::text, ${now}::timestamptz at time zone ${APP_TIME_ZONE}::text)`;
+
+    return {
+        start: sql`${localStart} at time zone ${APP_TIME_ZONE}::text`,
+        end: sql`(${localStart} + ${periodLengths[period]}) at time zone ${APP_TIME_ZONE}::text`,
+    };
+}
+
+export async function getAdminBookingCounts(now: Date) {
     const popularRoomQuery = db
         .select({ name: rooms.name })
         .from(bookings)
@@ -78,15 +88,19 @@ export async function getAdminBookingCounts(todayStart: Date, tomorrowStart: Dat
         .orderBy(desc(count()), rooms.name)
         .limit(1);
 
+    const startsInPeriod = (period: keyof typeof periodLengths) => {
+        const { start, end } = getLocalPeriodBounds(period, now);
+
+        return sql<number>`count(*) filter (where ${bookings.startTime} >= ${start} and ${bookings.startTime} < ${end})`.mapWith(
+            Number,
+        );
+    };
+
     const [stats] = await db
         .select({
             popularRoom: sql<string | null>`(${popularRoomQuery})`,
-            todayCount: sql<number>`count(*) filter (
-                where ${and(gte(bookings.startTime, todayStart), lt(bookings.startTime, tomorrowStart))}
-            )`.mapWith(Number),
-            weekCount: sql<number>`count(*) filter (
-                where ${and(gte(bookings.startTime, weekStart), lt(bookings.startTime, weekEnd))}
-            )`.mapWith(Number),
+            todayCount: startsInPeriod("day"),
+            weekCount: startsInPeriod("week"),
         })
         .from(bookings)
         .innerJoin(rooms, eq(rooms.roomId, bookings.roomId))

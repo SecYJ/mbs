@@ -24,17 +24,7 @@ export async function getAdminBookingsService(userId: string, userRole: string, 
 }
 
 export async function getAdminBookingStatsService() {
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const tomorrowStart = new Date(todayStart);
-    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
-    const weekStart = new Date(todayStart);
-    const day = weekStart.getDay();
-    weekStart.setDate(weekStart.getDate() - (day === 0 ? 6 : day - 1));
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 7);
-
-    return getAdminBookingCounts(todayStart, tomorrowStart, weekStart, weekEnd);
+    return getAdminBookingCounts(new Date());
 }
 
 export async function cancelAdminBookingService(userId: string, userRole: string, input: CancelBookingInput) {

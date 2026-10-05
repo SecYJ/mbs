@@ -7,12 +7,11 @@ import { useResetPassword } from "@/features/reset-password/hooks/useResetPasswo
 
 type Props = {
     token: string | undefined;
-    error: string | undefined;
 };
 
-export const ResetPasswordForm = ({ token, error }: Props) => {
-    if (!token || error) {
-        return <InvalidLinkState reason={error} />;
+export const ResetPasswordForm = ({ token }: Props) => {
+    if (!token) {
+        return <InvalidLinkState />;
     }
 
     return <ValidResetForm token={token} />;
@@ -58,9 +57,15 @@ const ValidResetForm = ({ token }: { token: string }) => {
                     control={form.control}
                     render={({ errors }) =>
                         errors.root ? (
-                            <p role="alert" className="text-[0.72rem] text-red-400/80">
-                                {errors.root.message}
-                            </p>
+                            <div role="alert" className="space-y-2 text-[0.72rem] text-red-400/80">
+                                <p>{errors.root.message}</p>
+                                <Link
+                                    to="/forgot-password"
+                                    className="text-(--bone-muted) underline underline-offset-4 hover:text-(--bone)"
+                                >
+                                    Request a new link
+                                </Link>
+                            </div>
                         ) : null
                     }
                 />
@@ -94,20 +99,17 @@ const ValidResetForm = ({ token }: { token: string }) => {
     );
 };
 
-const InvalidLinkState = ({ reason }: { reason: string | undefined }) => {
-    const isExpired = reason === "INVALID_TOKEN" || reason === "TOKEN_EXPIRED";
-
+const InvalidLinkState = () => {
     return (
         <section className="animate-fade-up animation-duration-800 mt-14 [animation-delay:320ms]" aria-live="polite">
             <div className="text-center">
                 <p className="eyebrow text-(--gold)">Recovery link</p>
                 <h1 className="display-italic mt-3 text-[2.6rem] leading-none tracking-[-0.02em] text-(--bone)">
-                    {isExpired ? "The link has lapsed." : "The link is missing."}
+                    The link is missing.
                 </h1>
                 <p className="mx-auto mt-4 max-w-[38ch] text-[0.9rem] leading-relaxed text-(--bone-muted)">
-                    {isExpired
-                        ? "Recovery links remain valid for 60 minutes. Request a fresh one and we'll dispatch it straight away."
-                        : "We couldn't read a recovery token from this URL. Open the link from your inbox, or request a new one below."}
+                    We couldn&rsquo;t read a recovery token from this URL. Open the link from your inbox, or request a
+                    new one below.
                 </p>
             </div>
 

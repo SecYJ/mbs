@@ -7,7 +7,6 @@ import { redirectAuthenticatedUser } from "@/lib/session";
 
 const resetPasswordSearchSchema = z.object({
     token: z.string().optional(),
-    error: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_auth/reset-password")({
@@ -20,11 +19,11 @@ export const Route = createFileRoute("/_auth/reset-password")({
 });
 
 function ResetPasswordPage() {
-    const { token, error } = Route.useSearch();
+    const { token } = Route.useSearch();
 
     return (
         <ResetPasswordShell>
-            <ResetPasswordForm token={token} error={error} />
+            <ResetPasswordForm token={token} />
         </ResetPasswordShell>
     );
 }

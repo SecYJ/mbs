@@ -1,8 +1,9 @@
 import { toNodeHandler } from "better-auth/node";
+import { sql } from "drizzle-orm";
 import express from "express";
 
+import { db } from "#app/db/index";
 import { env } from "#app/env";
-import { NotFoundError } from "#app/errors/notFoundError";
 import { auth } from "#app/lib/auth";
 import { errorHandler } from "#app/middleware/error";
 import { requestLogger } from "#app/middleware/request-logger";
@@ -15,14 +16,31 @@ import { bookingRouter } from "#app/modules/booking/booking.route";
 import { myBookingRouter } from "#app/modules/mybooking/mybooking.route";
 import { notificationRouter } from "#app/modules/notification/notification.route";
 
+const JSON_BODY_LIMIT = "100kb";
+
 export const app = express();
+
+app.disable("x-powered-by");
+// Only the local reverse proxy (nginx, or the BFF) is trusted to set X-Forwarded-* headers.
+app.set("trust proxy", "loopback");
+
+// Registered before the request logger so frequent probes do not fill the logs.
+app.get("/health", async (_req, res) => {
+    try {
+        await db.execute(sql`select 1`);
+        res.json({ status: "ok" });
+    } catch (error) {
+        console.error("[health] database check failed:", error);
+        res.status(503).json({ status: "unavailable" });
+    }
+});
 
 app.use(requestLogger);
 
 // Better Auth reads the request stream itself, before the application's JSON parser.
 app.all(`/api/${env.API_VERSION}/auth/*splat`, toNodeHandler(auth));
 
-app.use(express.json());
+app.use(express.json({ limit: JSON_BODY_LIMIT }));
 
 app.use(`/api/${env.API_VERSION}/booking`, requireAuthenticated, bookingRouter);
 app.use(`/api/${env.API_VERSION}/admin/rooms`, requireAuthenticated, requireAdmin, adminRoomRouter);
@@ -32,9 +50,5 @@ app.use(`/api/${env.API_VERSION}/admin/users`, requireAuthenticated, requireAdmi
 app.use(`/api/${env.API_VERSION}/notifications`, requireAuthenticated, notificationRouter);
 
 app.use(`/api/${env.API_VERSION}/mybooking`, requireAuthenticated, myBookingRouter);
-
-app.get(`/api/${env.API_VERSION}/error-demo`, () => {
-    throw new NotFoundError("bodoh");
-});
 
 app.use(errorHandler);

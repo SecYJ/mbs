@@ -1,5 +1,5 @@
 import { attendees, bookings, equipment, notifications, roomEquipment, rooms, user } from "@mbs/shared/db/schema";
-import { and, asc, count, countDistinct, eq, gt, gte, inArray, lt, ne, sql } from "drizzle-orm";
+import { and, asc, count, countDistinct, eq, gt, gte, inArray, lt, ne, notInArray, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db, type Database } from "#app/db/index";
@@ -362,16 +362,36 @@ export async function updateBooking(bookingId: string, userId: string, input: Bo
     const result = await database
         .update(bookings)
         .set({ ...input, updatedAt: new Date() })
-        .where(and(eq(bookings.bookingId, bookingId), eq(bookings.userId, userId)))
+        .where(and(eq(bookings.bookingId, bookingId), eq(bookings.userId, userId), eq(bookings.status, "active")))
         .returning({ id: bookings.bookingId });
     return result.at(0);
 }
 
-export async function replaceBookingAttendees(bookingId: string, attendeeIds: string[], database: Database) {
-    await database.delete(attendees).where(eq(attendees.bookingId, bookingId));
-    if (attendeeIds.length > 0) {
-        await database.insert(attendees).values(attendeeIds.map((userId) => ({ bookingId, userId })));
-    }
+// Inserts only attendees that are not already on the booking (they start as pending) and returns the new IDs.
+// Existing rows are left alone, so an attendee who already accepted or declined keeps that answer.
+export async function addBookingAttendees(bookingId: string, attendeeIds: string[], database: Database) {
+    if (attendeeIds.length === 0) return [];
+
+    const added = await database
+        .insert(attendees)
+        .values(attendeeIds.map((userId) => ({ bookingId, userId })))
+        .onConflictDoNothing()
+        .returning({ userId: attendees.userId });
+    return added.map((row) => row.userId);
+}
+
+// Deletes every attendee that is not in keptIds and returns the deleted IDs.
+export async function removeBookingAttendeesExcept(bookingId: string, keptIds: string[], database: Database) {
+    const removed = await database
+        .delete(attendees)
+        .where(
+            and(
+                eq(attendees.bookingId, bookingId),
+                keptIds.length > 0 ? notInArray(attendees.userId, keptIds) : undefined,
+            ),
+        )
+        .returning({ userId: attendees.userId });
+    return removed.map((row) => row.userId);
 }
 
 export async function insertBookingNotifications(
@@ -385,18 +405,25 @@ export async function insertBookingNotifications(
     }
 }
 
-export async function getBookingAttendeeIds(bookingId: string, database: Database) {
-    const [result] = await database
-        .select({ ids: sql<string[]>`coalesce(array_agg(${attendees.userId}), '{}'::text[])` })
+// Attendees of the booking, plus its organizer when requested. UNION removes duplicates, so nobody is notified twice.
+export async function getBookingRecipientIds(bookingId: string, includeOrganizer: boolean, database: Database) {
+    const attendeeRecipients = database
+        .select({ userId: attendees.userId })
         .from(attendees)
         .where(eq(attendees.bookingId, bookingId));
-    return result.ids;
+    const recipients = includeOrganizer
+        ? await attendeeRecipients.union(
+              database.select({ userId: bookings.userId }).from(bookings).where(eq(bookings.bookingId, bookingId)),
+          )
+        : await attendeeRecipients;
+    return recipients.map((row) => row.userId);
 }
 
+// Only the organizer or an admin may cancel; canCancelAny is true for admins.
 export async function cancelBooking(
     bookingId: string,
     userId: string,
-    isSuperAdmin: boolean,
+    canCancelAny: boolean,
     cancelReason: string | undefined,
     database: Database,
 ) {
@@ -414,7 +441,7 @@ export async function cancelBooking(
             and(
                 eq(bookings.bookingId, bookingId),
                 eq(bookings.status, "active"),
-                isSuperAdmin ? undefined : eq(bookings.userId, userId),
+                canCancelAny ? undefined : eq(bookings.userId, userId),
             ),
         )
         .returning({ id: bookings.bookingId });

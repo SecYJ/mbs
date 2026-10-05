@@ -3,6 +3,7 @@ import { createFileRoute, Link, linkOptions, Outlet } from "@tanstack/react-rout
 import { Shield } from "lucide-react";
 
 import { AppPending } from "@/components/AppPending";
+import { DefaultError } from "@/components/DefaultError";
 import { AuthenticatedAccountMenu } from "@/features/account/components/AuthenticatedAccountMenu";
 import { useCrossTabSignOutSync } from "@/features/account/hooks/useCrossTabSignOutSync";
 import { NotificationNavigationMenu } from "@/features/notifications/components/NotificationNavigationMenu";
@@ -16,6 +17,7 @@ export const Route = createFileRoute("/_bookings")({
     loader: ({ context }) => context.session,
     component: AppLayout,
     pendingComponent: AppPending,
+    errorComponent: DefaultError,
 });
 
 const navItems = linkOptions([

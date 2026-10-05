@@ -35,7 +35,7 @@ Why: Cancelling currently deletes booking-related rows, which removes history an
 
 Likely files:
 
-- `src/db/schema.ts`
+- `packages/shared/src/db/schema.ts`
 - `src/features/bookings/services/fns.ts`
 - `src/features/bookings/schema/booking.schema.ts`
 - Drizzle migration files
@@ -181,7 +181,7 @@ Why: Sound preferences currently live in localStorage, so they do not follow use
 
 Likely files:
 
-- `src/db/schema.ts`
+- `packages/shared/src/db/schema.ts`
 - `src/features/settings/user-preferences.ts`
 - `src/routes/_bookings/settings.tsx`
 
@@ -253,7 +253,7 @@ Why: Admins can create/list users, but cannot disable accounts, reset passwords,
 
 Likely files:
 
-- `src/db/schema.ts`
+- `packages/shared/src/db/schema.ts`
 - `src/features/admin/services/users/fns.ts`
 - `src/features/admin/pages/users-page.tsx`
 - `src/features/admin/schema/user.schema.ts`
@@ -322,7 +322,7 @@ Why: The schema has `facilities` and `roomFacilities`, but the UI filters by `ro
 
 Likely files:
 
-- `src/db/schema.ts`
+- `packages/shared/src/db/schema.ts`
 - `src/features/admin/services/rooms/fns.ts`
 - `src/features/bookings/services/fns.ts`
 - Seed scripts
@@ -339,7 +339,7 @@ Why: `attendees.accepted` exists, but users cannot accept or decline invitations
 
 Likely files:
 
-- `src/db/schema.ts`
+- `packages/shared/src/db/schema.ts`
 - `src/features/bookings/services/fns.ts`
 - `src/routes/_bookings/notifications.tsx`
 - `src/routes/_bookings/my-bookings.tsx`

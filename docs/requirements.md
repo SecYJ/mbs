@@ -16,10 +16,25 @@ Internal web application for employees to view room availability, create booking
 ### 1.2 Admin
 
 - All User permissions, plus:
-- Manage rooms (create, edit, delete, enable/disable)
-- Manage users (view list, reset passwords, enable/disable accounts, grant/revoke admin)
+- Manage rooms (create, edit, enable/disable); cannot delete rooms
 - Configure booking rules (max duration, etc.)
 - View and cancel any booking system-wide
+- View the list of all users
+- Manage only accounts whose role is User: create users with the User role, reset passwords, enable/disable (ban/unban) accounts
+- Cannot manage Admin or Super Admin accounts, cannot grant or revoke the Admin role, and cannot create admins
+
+### 1.3 Super Admin
+
+- All Admin permissions, plus:
+- Delete rooms
+- Manage Admin accounts as well as User accounts: create admins, grant/revoke the Admin role, reset passwords, enable/disable (ban/unban) admins
+
+### 1.4 Account Rules
+
+- Nobody can grant the Super Admin role, and nobody can modify a Super Admin account through the application. Super Admin is assigned directly in the database.
+- Nobody can change their own role or disable their own account.
+- The rules are enforced on the server for every account action, including the Better Auth admin endpoints. The admin UI only offers the roles and actions the signed-in user is allowed to use.
+- Out of scope: impersonating users, deleting user accounts, and editing another user's email or profile.
 
 ---
 
@@ -50,25 +65,30 @@ Required fields:
 - Cannot book in the past
 - No advance booking limit (can book any future time)
 - Maximum single booking duration: **8 hours** (admin-configurable)
-- A room cannot have overlapping bookings in the same time slot
+- A room cannot have overlapping bookings in the same time slot (back-to-back bookings are allowed)
+- All dates and times use a single app time zone: Asia/Kuala_Lumpur
 
 ### 3.3 Conflict Detection
 
 - Enforced on both **create** and **edit** operations
 - Validated on both **client** and **server**
 - Error messages must specify which time slot is already occupied
+- The database also rejects overlapping active bookings, as a safety net behind the server check
 
 ### 3.4 Edit Booking
 
 - Users can edit their own bookings
+- Cancelled bookings cannot be edited
+- A meeting in progress can be edited as long as its start time stays the same
 - Conflict detection re-runs on time/room changes
+- Existing attendees keep their RSVP status; newly added attendees start as pending
 - Attendees are notified of changes
 
 ### 3.5 Cancel Booking
 
 - Users can cancel their own bookings
-- Admins can cancel any booking
-- All attendees are notified on cancellation
+- Admins and Super Admins can cancel any booking
+- All attendees are notified on cancellation; the organizer is notified when someone else cancels
 
 ---
 
@@ -113,11 +133,12 @@ Required fields:
 
 ### 6.2 Trigger Events
 
-| Event                               | Recipients     |
-| ----------------------------------- | -------------- |
-| Added as attendee to a booking      | The added user |
-| Booking modified (time, room, etc.) | All attendees  |
-| Booking cancelled                   | All attendees  |
+| Event                               | Recipients       |
+| ----------------------------------- | ---------------- |
+| Added as attendee to a booking      | The added user   |
+| Removed as attendee from a booking  | The removed user |
+| Booking modified (time, room, etc.) | All attendees    |
+| Booking cancelled                   | All attendees    |
 
 ### 6.3 Notification Center UI
 
@@ -146,20 +167,21 @@ Each room has the following attributes:
 
 ## 8. Admin Portal
 
-Separate admin interface accessible only to admin-role users.
+Separate admin interface accessible only to Admin and Super Admin users.
 
 ### 8.1 Room Management
 
-- Create / edit / delete rooms
+- Create / edit rooms (Admin and Super Admin); delete rooms (Super Admin only)
 - Edit all room properties (name, location, capacity, equipment, description)
 - Enable / disable rooms (disabled rooms reject new bookings; existing bookings remain)
 
 ### 8.2 User Management
 
-- View all users
-- Reset user passwords
-- Enable / disable user accounts
-- Grant / revoke admin role
+- View all users (Admin and Super Admin)
+- Create users, reset passwords, enable / disable accounts: Admin for User accounts only; Super Admin for User and Admin accounts
+- Grant / revoke the Admin role (Super Admin only)
+- The Super Admin role cannot be granted or revoked in the portal, and Super Admin accounts cannot be modified there
+- Nobody can change their own role or disable themselves
 
 ### 8.3 Booking Rules Configuration
 
@@ -169,7 +191,7 @@ Separate admin interface accessible only to admin-role users.
 ### 8.4 All Bookings View
 
 - View all bookings across all users
-- Cancel bookings when necessary (e.g. policy violations)
+- Cancel bookings when necessary (e.g. policy violations); allowed for Admin and Super Admin
 
 ---
 

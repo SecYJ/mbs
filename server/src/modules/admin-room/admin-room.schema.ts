@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const adminRoomQuerySchema = z.object({
-    q: z.string().trim().optional().catch(undefined),
+    q: z.string().trim().max(100).optional().catch(undefined),
     status: z.enum(["all", "available", "disabled"]).catch("all").optional(),
     sort: z
         .enum(["recent", "name-asc", "name-desc", "capacity-desc", "capacity-asc", "duration-desc", "duration-asc"])
@@ -14,8 +14,8 @@ export const adminRoomParamsSchema = z.object({
 });
 
 export const adminRoomInputSchema = z.object({
-    name: z.string().trim().min(1, "Room name is required"),
-    location: z.string().trim().min(1, "Location is required"),
+    name: z.string().trim().min(1, "Room name is required").max(100, "Room name is too long"),
+    location: z.string().trim().min(1, "Location is required").max(160, "Location is too long"),
     capacity: z
         .number({ message: "Capacity must be a number" })
         .int("Capacity must be a whole number")

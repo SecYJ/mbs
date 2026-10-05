@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { MY_BOOKING_GROUPS } from "@/features/my-bookings/my-bookings.constants";
 import { getServerApiClient } from "@/lib/server-api-client";
+import { authenticatedUserMiddleware } from "@/middleware/auth";
 
 type MyBookingHistoryUser = {
     id: string;
@@ -39,6 +40,7 @@ type MyBookingsDataResponse = {
 };
 
 export const getMyBookingsDataFn = createServerFn()
+    .middleware([authenticatedUserMiddleware])
     .validator(
         z.object({
             group: z.enum(MY_BOOKING_GROUPS).optional(),
@@ -54,10 +56,12 @@ export const getMyBookingsDataFn = createServerFn()
         return getServerApiClient().get("mybooking", { searchParams }).json<MyBookingsDataResponse>();
     });
 
-export const getMyBookingsStatsFn = createServerFn().handler(async () => {
-    return getServerApiClient().get("mybooking/stats").json<{
-        activeCount: number;
-        attendingCount: number;
-        ownedCount: number;
-    }>();
-});
+export const getMyBookingsStatsFn = createServerFn()
+    .middleware([authenticatedUserMiddleware])
+    .handler(async () => {
+        return getServerApiClient().get("mybooking/stats").json<{
+            activeCount: number;
+            attendingCount: number;
+            ownedCount: number;
+        }>();
+    });

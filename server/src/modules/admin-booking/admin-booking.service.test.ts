@@ -28,20 +28,13 @@ afterEach(() => {
 });
 
 describe("admin booking services", () => {
-    it.each([
-        [new Date(2026, 8, 20, 12), new Date(2026, 8, 14), new Date(2026, 8, 21)],
-        [new Date(2026, 8, 21, 12), new Date(2026, 8, 21), new Date(2026, 8, 28)],
-    ])("counts the local calendar day and Monday-to-Monday week for %s", async (now, weekStart, weekEnd) => {
+    it("asks the database for statistics around the current moment", async () => {
         vi.useFakeTimers();
-        vi.setSystemTime(now);
+        vi.setSystemTime(new Date("2026-09-20T12:00:00Z"));
         vi.mocked(getAdminBookingCounts).mockResolvedValue({ popularRoom: null, todayCount: 0, weekCount: 0 });
-        const todayStart = new Date(now);
-        todayStart.setHours(0, 0, 0, 0);
-        const tomorrowStart = new Date(todayStart);
-        tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
         expect(await getAdminBookingStatsService()).toEqual({ popularRoom: null, todayCount: 0, weekCount: 0 });
-        expect(getAdminBookingCounts).toHaveBeenCalledExactlyOnceWith(todayStart, tomorrowStart, weekStart, weekEnd);
+        expect(getAdminBookingCounts).toHaveBeenCalledExactlyOnceWith(new Date("2026-09-20T12:00:00Z"));
     });
 
     it("serializes booking dates without changing fields or room ordering", async () => {

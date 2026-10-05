@@ -46,6 +46,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("booking mutations against Postg
         // A private schema permits multiple connections for the actual concurrent-request test.
         await db.$client.query(`CREATE SCHEMA ${schemaName}`);
         await db.$client.query(`
+            CREATE EXTENSION IF NOT EXISTS btree_gist;
             CREATE TABLE "user" (id text PRIMARY KEY, name text NOT NULL, email text NOT NULL);
             CREATE TABLE rooms (
                 room_id uuid PRIMARY KEY, name text NOT NULL, location text NOT NULL,
@@ -57,7 +58,11 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("booking mutations against Postg
                 start_time timestamptz NOT NULL, end_time timestamptz NOT NULL,
                 status text NOT NULL DEFAULT 'active', cancelled_at timestamptz,
                 cancelled_by text REFERENCES "user", cancel_reason text,
-                created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now()
+                created_at timestamptz DEFAULT now(), updated_at timestamptz DEFAULT now(),
+                CONSTRAINT bookings_end_after_start CHECK (end_time > start_time),
+                CONSTRAINT bookings_no_room_overlap EXCLUDE USING gist (
+                    room_id WITH =, tstzrange(start_time, end_time) WITH &&
+                ) WHERE (status = 'active')
             );
             CREATE TABLE attendees (
                 booking_id uuid REFERENCES bookings, user_id text REFERENCES "user",
@@ -175,9 +180,49 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("booking mutations against Postg
             (await db.$client.query("SELECT user_id FROM attendees WHERE booking_id = $1", [created.id])).rows,
         ).toEqual([{ user_id: "other" }]);
         expect(
-            (await db.$client.query("SELECT user_id FROM notifications WHERE message = 'Booking updated: Revised'"))
-                .rows,
-        ).toEqual([{ user_id: "other" }]);
+            (
+                await db.$client.query(
+                    "SELECT user_id, message FROM notifications WHERE message LIKE '%Revised' ORDER BY user_id",
+                )
+            ).rows,
+        ).toEqual([
+            { user_id: "guest", message: "You've been removed from: Revised" },
+            { user_id: "other", message: "You've been invited to: Revised" },
+        ]);
+    });
+
+    it("keeps RSVP answers when editing attendees and notifies only the people affected", async () => {
+        const input = bookingInput({ attendeeIds: ["guest", "other"] });
+        const created = await createBookingService("owner", input);
+        await rsvpBookingService("guest", { bookingId: created.id, status: "accepted" });
+        await db.$client.query("DELETE FROM notifications");
+        await db.$client.query(`INSERT INTO "user" VALUES ('newcomer', 'Newcomer', 'new@example.test')`);
+
+        await updateBookingService("owner", {
+            ...input,
+            bookingId: created.id,
+            title: "Planning v2",
+            attendeeIds: ["guest", "newcomer"],
+        });
+
+        expect((await db.$client.query("SELECT user_id, status FROM attendees ORDER BY user_id")).rows).toEqual([
+            { user_id: "guest", status: "accepted" },
+            { user_id: "newcomer", status: "pending" },
+        ]);
+        expect((await db.$client.query("SELECT user_id, message FROM notifications ORDER BY user_id")).rows).toEqual([
+            { user_id: "guest", message: "Booking updated: Planning v2" },
+            { user_id: "newcomer", message: "You've been invited to: Planning v2" },
+            { user_id: "other", message: "You've been removed from: Planning v2" },
+        ]);
+    });
+
+    it("rejects editing a cancelled booking", async () => {
+        const input = bookingInput();
+        const created = await createBookingService("owner", input);
+        await cancelBookingService("owner", "user", { bookingId: created.id });
+        await expect(updateBookingService("owner", { ...input, bookingId: created.id })).rejects.toThrow(
+            "Cancelled bookings cannot be edited",
+        );
     });
 
     it("rolls back booking and attendee writes when notification insertion fails", async () => {
@@ -198,21 +243,35 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("booking mutations against Postg
         expect((await db.$client.query("SELECT * FROM notifications")).rows).toHaveLength(1);
     });
 
-    it("preserves owner/super-admin cancellation permission and user-path recipients", async () => {
+    it("lets the organizer or any admin cancel, and tells the organizer when someone else does", async () => {
         const created = await createBookingService("owner", bookingInput());
-        await expect(cancelBookingService("other", "admin", { bookingId: created.id })).rejects.toBeInstanceOf(
+        await expect(cancelBookingService("other", "user", { bookingId: created.id })).rejects.toBeInstanceOf(
             ForbiddenError,
         );
-        await cancelBookingService("other", "super_admin", { bookingId: created.id, cancelReason: "Room needed" });
+        await cancelBookingService("other", "admin", { bookingId: created.id, cancelReason: "Room needed" });
         expect((await db.$client.query("SELECT status, cancelled_by, cancel_reason FROM bookings")).rows).toEqual([
             { status: "cancelled", cancelled_by: "other", cancel_reason: "Room needed" },
         ]);
         expect(
-            (await db.$client.query("SELECT user_id FROM notifications WHERE message LIKE 'Booking canceled:%'")).rows,
-        ).toEqual([{ user_id: "guest" }]);
+            (
+                await db.$client.query(
+                    "SELECT user_id FROM notifications WHERE message LIKE 'Booking canceled:%' ORDER BY user_id",
+                )
+            ).rows,
+        ).toEqual([{ user_id: "guest" }, { user_id: "owner" }]);
         await expect(cancelBookingService("owner", "user", { bookingId: created.id })).rejects.toThrow(
             "already cancelled",
         );
+        const second = await createBookingService("owner", bookingInput({ attendeeIds: [] }));
+        await cancelBookingService("other", "super_admin", { bookingId: second.id });
+    });
+
+    it("notifies attendees only when the organizer cancels their own booking", async () => {
+        const created = await createBookingService("owner", bookingInput());
+        await cancelBookingService("owner", "user", { bookingId: created.id });
+        expect(
+            (await db.$client.query("SELECT user_id FROM notifications WHERE message LIKE 'Booking canceled:%'")).rows,
+        ).toEqual([{ user_id: "guest" }]);
     });
 
     it("adds the organizer once to admin-path cancellation notifications", async () => {
@@ -264,22 +323,40 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("booking mutations against Postg
         );
     });
 
-    it("preserves the existing future-start validation for title-only edits", async () => {
+    it("allows editing a running meeting unless its start time changes", async () => {
         const input = bookingInput();
         const created = await createBookingService("owner", input);
         const startTime = new Date(Date.now() - 3_600_000).toISOString();
         const endTime = new Date(Date.now() + 3_600_000).toISOString();
         await db.$client.query("UPDATE bookings SET start_time = $1, end_time = $2", [startTime, endTime]);
+        const running = { ...input, bookingId: created.id, startTime, endTime };
 
+        await updateBookingService("owner", { ...running, title: "Revised" });
+        expect((await db.$client.query("SELECT title FROM bookings")).rows).toEqual([{ title: "Revised" }]);
+
+        const longer = new Date(Date.now() + 2 * 3_600_000).toISOString();
+        await updateBookingService("owner", { ...running, endTime: longer });
         await expect(
             updateBookingService("owner", {
-                ...input,
-                bookingId: created.id,
-                title: "Revised",
-                startTime,
-                endTime,
+                ...running,
+                startTime: new Date(Date.now() - 1_800_000).toISOString(),
             }),
         ).rejects.toThrow("Start time must be in the future");
-        expect((await db.$client.query("SELECT title FROM bookings")).rows).toEqual([{ title: "Planning" }]);
+        await expect(
+            updateBookingService("owner", { ...running, endTime: new Date(Date.now() - 60_000).toISOString() }),
+        ).rejects.toThrow("End time must be in the future");
+    });
+
+    it("enforces the no-overlap rule in the database itself", async () => {
+        const input = bookingInput();
+        await createBookingService("owner", input);
+        // The database constraint is the last line of defence, so inserting directly must fail with 23P01.
+        await expect(
+            db.$client.query(
+                `INSERT INTO bookings (booking_id, room_id, user_id, title, start_time, end_time)
+                 VALUES (gen_random_uuid(), $1, 'other', 'Sneaky', $2, $3)`,
+                [roomId, input.startTime, input.endTime],
+            ),
+        ).rejects.toMatchObject({ code: "23P01" });
     });
 });

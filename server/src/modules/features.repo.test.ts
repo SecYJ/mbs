@@ -207,6 +207,22 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("feature queries against Postgre
         expect(Date.parse(result.items[0]!.createdAt)).toBeLessThanOrEqual(Date.now());
     });
 
+    it("lists only the 100 most recent notifications while counting all of them", async () => {
+        await db.$client.query(`
+            INSERT INTO "user" (id, name, email) VALUES ('busy', 'Busy User', 'busy@example.test');
+            INSERT INTO notifications (notification_id, user_id, message, status, created_at)
+            SELECT gen_random_uuid(), 'busy', 'Message ' || n, 'unread', now() - n * interval '1 minute'
+            FROM generate_series(1, 105) AS n;
+        `);
+
+        const result = await getNotificationsService("busy");
+
+        expect(result.items).toHaveLength(100);
+        expect(result).toMatchObject({ totalCount: 105, unreadCount: 105 });
+        expect(result.items[0]?.message).toBe("Message 1");
+        expect(result.items[99]?.message).toBe("Message 100");
+    });
+
     it("filters unread items without filtering overall counts and handles an empty recipient", async () => {
         const result = await getNotificationsService("current", "unread");
 

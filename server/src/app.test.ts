@@ -11,9 +11,14 @@ import * as booking from "#app/modules/booking/booking.service";
 import * as mybooking from "#app/modules/mybooking/mybooking.service";
 import * as notification from "#app/modules/notification/notification.service";
 
-const { getSession, authHandler } = vi.hoisted(() => ({ getSession: vi.fn(), authHandler: vi.fn() }));
+const { getSession, authHandler, dbExecute } = vi.hoisted(() => ({
+    getSession: vi.fn(),
+    authHandler: vi.fn(),
+    dbExecute: vi.fn(),
+}));
 
 vi.mock("#app/env", () => ({ env: { API_VERSION: "v1" } }));
+vi.mock("#app/db/index", () => ({ db: { execute: dbExecute } }));
 vi.mock("#app/lib/auth", () => ({ auth: { api: { getSession }, handler: authHandler } }));
 vi.mock("#app/modules/booking/booking.service", () => ({
     getBookingCalendarDataService: vi.fn(),
@@ -88,6 +93,7 @@ const protectedPaths = [
 const services = [booking, adminBooking, adminRoom, adminUser, mybooking, notification].flatMap(Object.values);
 const server = createServer(app);
 let origin: string;
+let serverOrigin: string;
 
 beforeAll(async () => {
     vi.spyOn(console, "info").mockImplementation(() => {});
@@ -95,7 +101,8 @@ beforeAll(async () => {
     await once(server, "listening");
     const address = server.address();
     if (!address || typeof address === "string") throw new Error("Expected an HTTP server address");
-    origin = `http://127.0.0.1:${address.port}/api/v1`;
+    serverOrigin = `http://127.0.0.1:${address.port}`;
+    origin = `${serverOrigin}/api/v1`;
 });
 
 afterAll(async () => {
@@ -303,5 +310,108 @@ describe("mounted application request handling", () => {
         });
         expect(booking.getBookingRoomService).toHaveBeenCalledExactlyOnceWith(roomId);
         expect(booking.getBookingDetailsService).not.toHaveBeenCalled();
+    });
+});
+
+describe("health check", () => {
+    it("answers without a session and checks the database", async () => {
+        dbExecute.mockResolvedValue({ rows: [{ "?column?": 1 }] });
+
+        const response = await fetch(`${serverOrigin}/health`);
+
+        expect(response.status).toBe(200);
+        expect(await response.json()).toEqual({ status: "ok" });
+        expect(dbExecute).toHaveBeenCalledOnce();
+        expect(getSession).not.toHaveBeenCalled();
+    });
+
+    it("answers 503 when the database is unreachable", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        dbExecute.mockRejectedValue(new Error("connection refused"));
+
+        const response = await fetch(`${serverOrigin}/health`);
+
+        expect(response.status).toBe(503);
+        expect(await response.json()).toEqual({ status: "unavailable" });
+        consoleError.mockRestore();
+    });
+
+    it("is not available under the API prefix", async () => {
+        const response = await fetch(`${origin}/health`);
+
+        expect(response.status).toBe(404);
+    });
+});
+
+describe("hardening and error handling", () => {
+    it("does not reveal the framework and no longer serves the error demo route", async () => {
+        const response = await fetch(`${serverOrigin}/health`);
+        const demo = await fetch(`${origin}/error-demo`);
+
+        expect(response.headers.has("x-powered-by")).toBe(false);
+        expect(demo.status).toBe(404);
+    });
+
+    it("answers 413 with a safe message when the JSON body is too large", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+
+        const response = await fetch(`${origin}/booking`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ title: "x".repeat(200_000) }),
+        });
+
+        expect(response.status).toBe(413);
+        expect(await response.json()).toEqual({ message: "Payload Too Large" });
+        expect(booking.createBookingService).not.toHaveBeenCalled();
+        expect(consoleError).not.toHaveBeenCalled();
+        consoleError.mockRestore();
+    });
+
+    it("logs the method, path, and error of unexpected failures without the query string", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        const failure = new Error("database exploded");
+        vi.mocked(booking.getBookingSummaryService).mockRejectedValue(failure);
+
+        const response = await fetch(`${origin}/booking/summary?secret=hunter2`);
+
+        expect(response.status).toBe(500);
+        expect(await response.json()).toEqual({ message: "Internal Server Error" });
+        expect(consoleError).toHaveBeenCalledExactlyOnceWith(
+            "[http] unexpected error on GET /api/v1/booking/summary:",
+            failure,
+        );
+        consoleError.mockRestore();
+    });
+
+    it("answers 409 for a unique constraint violation", async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        const violation = new Error("Failed query", {
+            cause: Object.assign(new Error("duplicate key"), { code: "23505" }),
+        });
+        vi.mocked(booking.createBookingService).mockRejectedValue(violation);
+
+        const response = await fetch(`${origin}/booking`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bookingInput),
+        });
+
+        expect(response.status).toBe(409);
+        expect(await response.json()).toEqual({ message: "Conflict" });
+        expect(consoleError).toHaveBeenCalledOnce();
+        consoleError.mockRestore();
+    });
+
+    it("never logs query strings or password-reset tokens in request logs", async () => {
+        const consoleInfo = vi.mocked(console.info);
+        authHandler.mockResolvedValue(Response.json({}));
+
+        await fetch(`${origin}/auth/reset-password/secret-token?token=also-secret`);
+
+        const logged = consoleInfo.mock.calls.flat().join("\n");
+        expect(logged).toContain("GET /api/v1/auth/reset-password/[redacted]");
+        expect(logged).not.toContain("secret-token");
+        expect(logged).not.toContain("also-secret");
     });
 });

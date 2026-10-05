@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { AppPending } from "@/components/AppPending";
+import { DefaultError } from "@/components/DefaultError";
 import { AdminLayout } from "@/features/admin/components/AdminLayout";
 import { requireAdminUser } from "@/lib/session";
 
@@ -13,4 +15,6 @@ export const Route = createFileRoute("/admin")({
         return { user: session.user };
     },
     component: AdminLayout,
+    pendingComponent: AppPending,
+    errorComponent: DefaultError,
 });

@@ -1,0 +1,28 @@
+[Unit]
+Description=MBS web (TanStack Start SSR)
+After=network.target mbs-server.service
+Wants=mbs-server.service
+
+[Service]
+Type=simple
+User=mbs
+Group=mbs
+WorkingDirectory=/srv/mbs/client
+EnvironmentFile=/etc/mbs/client.env
+Environment=NODE_ENV=production
+Environment=TZ=Asia/Kuala_Lumpur
+Environment=HOST=127.0.0.1
+Environment=PORT=3001
+ExecStart=/usr/bin/node scripts/start.mjs
+# An unhandled rejection (for example a failed loader prefetch while Express is down)
+# exits the process; systemd starts it again.
+Restart=on-failure
+RestartSec=2
+KillSignal=SIGTERM
+TimeoutStopSec=15
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

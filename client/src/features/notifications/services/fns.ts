@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { notificationFilterSchema } from "@/features/notifications/schemas/notificationSchema";
 import { getServerApiClient } from "@/lib/server-api-client";
+import { authenticatedUserMiddleware } from "@/middleware/auth";
 
 type NotificationsResponse = {
     items: Array<{
@@ -27,6 +28,7 @@ type NotificationsResponse = {
 };
 
 export const getNotificationsFn = createServerFn({ method: "GET" })
+    .middleware([authenticatedUserMiddleware])
     .validator(z.object({ filter: notificationFilterSchema.optional() }))
     .handler(async ({ data }) => {
         const searchParams = data.filter === "unread" ? { filter: data.filter } : undefined;
@@ -35,6 +37,7 @@ export const getNotificationsFn = createServerFn({ method: "GET" })
     });
 
 export const markNotificationReadFn = createServerFn({ method: "POST" })
+    .middleware([authenticatedUserMiddleware])
     .validator(
         z.object({
             notificationId: z.uuid(),
@@ -44,6 +47,8 @@ export const markNotificationReadFn = createServerFn({ method: "POST" })
         await getServerApiClient().patch(`notifications/${data.notificationId}`);
     });
 
-export const markAllNotificationsReadFn = createServerFn({ method: "POST" }).handler(async () => {
-    await getServerApiClient().patch("notifications");
-});
+export const markAllNotificationsReadFn = createServerFn({ method: "POST" })
+    .middleware([authenticatedUserMiddleware])
+    .handler(async () => {
+        await getServerApiClient().patch("notifications");
+    });

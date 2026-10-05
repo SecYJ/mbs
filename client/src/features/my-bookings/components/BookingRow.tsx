@@ -1,4 +1,4 @@
-import { isSuperAdminRole } from "@mbs/shared/roles";
+import { isAdminRole } from "@mbs/shared/roles";
 import { Link } from "@tanstack/react-router";
 import { Ban, CalendarDays, Check, Clock, Eye, Pencil, UserRound, Users, XCircle } from "lucide-react";
 
@@ -36,10 +36,10 @@ export const BookingRow = ({
     } = useMyBookingsPage();
     const { requestEdit } = useMyBookingsEdit((state) => state.actions);
     const isOrganizer = booking.organizer.id === currentUserId;
-    const canCancelAsSuperAdmin = isSuperAdminRole(currentUserRole);
-    const canEdit = isOrganizer && booking.status === "upcoming";
+    const canCancelAsAdmin = isAdminRole(currentUserRole);
+    const canEdit = isOrganizer && (booking.status === "upcoming" || booking.status === "in-progress");
     const canCancel =
-        (isOrganizer || canCancelAsSuperAdmin) && (booking.status === "upcoming" || booking.status === "in-progress");
+        (isOrganizer || canCancelAsAdmin) && (booking.status === "upcoming" || booking.status === "in-progress");
     const attendanceStatus = booking.currentUserAttendance?.status ?? null;
     const canRespond =
         !isOrganizer && !!attendanceStatus && (booking.status === "upcoming" || booking.status === "in-progress");

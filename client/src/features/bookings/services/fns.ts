@@ -16,6 +16,7 @@ import type {
 } from "@/features/bookings/services/booking-api.types";
 import type { RoomFilters } from "@/features/bookings/services/queries";
 import { getServerApiClient } from "@/lib/server-api-client";
+import { nullIfNotFound } from "@/lib/server-api-error";
 import { authenticatedUserMiddleware } from "@/middleware/auth";
 
 const roomFiltersSchema = z.object({
@@ -76,7 +77,7 @@ export const getBookingRoomFn = createServerFn({ method: "GET" })
     .middleware([authenticatedUserMiddleware])
     .validator(z.object({ roomId: z.uuid() }))
     .handler(async ({ data }) => {
-        return getServerApiClient().get(`booking/rooms/${data.roomId}`).json<BookingRoomResponse | null>();
+        return nullIfNotFound(getServerApiClient().get(`booking/rooms/${data.roomId}`).json<BookingRoomResponse>());
     });
 
 export const getBookingCalendarRoomCatalogFn = createServerFn({ method: "GET" })

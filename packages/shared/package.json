@@ -4,7 +4,8 @@
     "type": "module",
     "exports": {
         "./db/schema": "./src/db/schema.ts",
-        "./roles": "./src/roles.ts"
+        "./roles": "./src/roles.ts",
+        "./time": "./src/time.ts"
     },
     "scripts": {
         "typecheck": "tsc --noEmit"

@@ -14,6 +14,7 @@ import {
     updateAdminRoom,
 } from "#app/modules/admin-room/admin-room.repo";
 import type { AdminRoomInput, AdminRoomQuery } from "#app/modules/admin-room/admin-room.schema";
+import { formatBookingSlot } from "#app/modules/booking/booking.format";
 
 function serializeRoom<T extends { createdAt: Date | null; updatedAt: Date | null }>(room: T) {
     const { createdAt, updatedAt, ...fields } = room;
@@ -24,23 +25,6 @@ function serializeRoom<T extends { createdAt: Date | null; updatedAt: Date | nul
     };
 }
 
-function formatDeletedRoomNotificationDate(value: Date) {
-    return value.toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        timeZone: "UTC",
-    });
-}
-
-function formatDeletedRoomNotificationTime(value: Date) {
-    return value.toLocaleTimeString("en-US", {
-        hour: "numeric",
-        minute: "2-digit",
-        timeZone: "UTC",
-    });
-}
-
 export async function getAdminRoomsService(query: AdminRoomQuery) {
     const rooms = await listAdminRooms(query);
     return rooms.map(serializeRoom);
@@ -48,7 +32,8 @@ export async function getAdminRoomsService(query: AdminRoomQuery) {
 
 export async function getAdminRoomService(roomId: string) {
     const room = await findAdminRoom(roomId);
-    return room ? serializeRoom(room) : null;
+    if (!room) throw new NotFoundError("Room no longer exists");
+    return serializeRoom(room);
 }
 
 export async function createAdminRoomService(input: AdminRoomInput) {
@@ -76,7 +61,7 @@ export async function deleteAdminRoomService(roomId: string, userRole: string) {
             await insertDeletedRoomNotifications(
                 bookings.map((booking) => ({
                     userId: booking.userId,
-                    message: `Room deleted: Your booking "${booking.title}" in ${existingRoom.name}, ${existingRoom.location} on ${formatDeletedRoomNotificationDate(booking.startTime)} from ${formatDeletedRoomNotificationTime(booking.startTime)} to ${formatDeletedRoomNotificationTime(booking.endTime)} was removed.`,
+                    message: `Room deleted: Your booking "${booking.title}" in ${existingRoom.name}, ${existingRoom.location} on ${formatBookingSlot(booking.startTime, booking.endTime)} was removed.`,
                 })),
                 tx,
             );

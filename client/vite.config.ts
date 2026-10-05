@@ -127,27 +127,6 @@ const config = defineConfig({
         ...(enableReactScan ? [reactScan({ enable: true })] : []),
         clientBundleAnalyzer,
     ],
-    preview: {
-        allowedHosts: ["mbs-web.onrender.com"],
-    },
-    server: {
-        proxy: {
-            "/api": {
-                target: "http://localhost:3000",
-                changeOrigin: true,
-                configure: (proxy) => {
-                    proxy.on("proxyReq", (proxyReq, req) => {
-                        console.log(`[Proxy] ${req.url} -> ${proxyReq.protocol}//${proxyReq.host}${proxyReq.path}`);
-                    });
-
-                    proxy.on("proxyRes", (proxyRes, req) => {
-                        console.log(`[Proxy Response] ${req.url} <- ${proxyRes.statusCode}`);
-                        proxyRes.headers["x-dev-proxy"] = "vite";
-                    });
-                },
-            },
-        },
-    },
 });
 
 export default config;

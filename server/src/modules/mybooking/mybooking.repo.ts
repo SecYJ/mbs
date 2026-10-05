@@ -1,8 +1,9 @@
 import { attendees, bookings, rooms, user } from "@mbs/shared/db/schema";
-import { and, asc, count, desc, eq, exists, gt, ilike, lte, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gt, ilike, lte, ne, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "#app/db/index";
+import { getContainsPattern } from "#app/lib/like-pattern";
 
 type AttendeeStatus = "pending" | "accepted" | "declined";
 type BookingHistoryStatus = "upcoming" | "in-progress" | "completed" | "cancelled";
@@ -19,12 +20,6 @@ type CurrentUserAttendance = Pick<BookingHistoryUser, "status">;
 const attendeeUserTable = alias(user, "attendee_user");
 const cancelledByUserTable = alias(user, "cancelled_by_user");
 const searchAttendeeUserTable = alias(user, "search_attendee_user");
-
-function getLikePattern(value: string) {
-    const escapedValue = value.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_");
-
-    return `%${escapedValue}%`;
-}
 
 function getUserBookingCondition(userId: string) {
     const currentUserAttendeeQuery = db
@@ -79,7 +74,7 @@ export async function findMyBookings({ userId, group, query }: MyBookingsInput) 
     };
 
     const normalizedQuery = query?.trim();
-    const searchPattern = normalizedQuery ? getLikePattern(normalizedQuery) : undefined;
+    const searchPattern = normalizedQuery ? getContainsPattern(normalizedQuery) : undefined;
     const searchCondition = searchPattern
         ? or(
               ilike(bookings.title, searchPattern),
@@ -161,7 +156,8 @@ export async function getMyBookingCounts(userId: string) {
                     where ${bookings.userId} = ${userId}
                 )
             `.mapWith(Number),
-            totalCount: count(),
+            // Bookings the user was invited to, as opposed to ones they organize.
+            attendingCount: sql<number>`count(*) filter (where ${bookings.userId} <> ${userId})`.mapWith(Number),
         })
         .from(bookings)
         .where(getUserBookingCondition(userId));

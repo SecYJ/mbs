@@ -10,6 +10,7 @@ import {
 import { and, asc, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 
 import { db, type Database } from "#app/db/index";
+import { getContainsPattern } from "#app/lib/like-pattern";
 import type { AdminRoomInput, AdminRoomQuery } from "#app/modules/admin-room/admin-room.schema";
 
 type RoomEquipment = {
@@ -69,12 +70,12 @@ function getRoomsOrderBy(sort: AdminRoomQuery["sort"]) {
 }
 
 export function listAdminRooms(query: AdminRoomQuery) {
-    const search = query.q?.trim();
+    const searchPattern = query.q ? getContainsPattern(query.q) : undefined;
 
     return selectRoomsWithEquipment()
         .where(
             and(
-                search ? or(ilike(rooms.name, `%${search}%`), ilike(rooms.location, `%${search}%`)) : undefined,
+                searchPattern ? or(ilike(rooms.name, searchPattern), ilike(rooms.location, searchPattern)) : undefined,
                 query.status === "available" ? eq(rooms.available, true) : undefined,
                 query.status === "disabled" ? eq(rooms.available, false) : undefined,
             ),

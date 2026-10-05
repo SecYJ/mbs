@@ -74,8 +74,8 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("admin room queries against Post
                 ('${uuid(1)}', '${uuid(11)}', 2), ('${uuid(1)}', '${uuid(12)}', 1), ('${uuid(2)}', '${uuid(12)}', 3);
             INSERT INTO room_facilities VALUES ('${uuid(1)}'), ('${uuid(2)}');
             INSERT INTO bookings (booking_id, room_id, user_id, start_time, end_time, title, status) VALUES
-                ('${uuid(21)}', '${uuid(1)}', 'owner', '2026-09-20T09:00:00Z', '2026-09-20T10:00:00Z', 'Planning', 'active'),
-                ('${uuid(22)}', '${uuid(1)}', 'other-owner', '2026-09-20T11:00:00Z', '2026-09-20T12:00:00Z', 'Review', 'cancelled'),
+                ('${uuid(21)}', '${uuid(1)}', 'owner', '2026-09-20T09:00:00+08:00', '2026-09-20T10:00:00+08:00', 'Planning', 'active'),
+                ('${uuid(22)}', '${uuid(1)}', 'other-owner', '2026-09-20T11:00:00+08:00', '2026-09-20T12:00:00+08:00', 'Review', 'cancelled'),
                 ('${uuid(23)}', '${uuid(2)}', 'unaffected', '2026-09-21T09:00:00Z', '2026-09-21T10:00:00Z', 'Other room', 'active');
             INSERT INTO attendees VALUES ('${uuid(21)}', 'guest'), ('${uuid(22)}', 'guest'), ('${uuid(23)}', 'guest');
             INSERT INTO notifications (notification_id, booking_id, user_id, message) VALUES
@@ -104,7 +104,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("admin room queries against Post
         });
         expect(result[2]?.equipment).toEqual([]);
         expect(await getAdminRoomService(uuid(1))).toEqual(result[0]);
-        expect(await getAdminRoomService(uuid(99))).toBeNull();
+        await expect(getAdminRoomService(uuid(99))).rejects.toThrow("Room no longer exists");
     });
 
     it.each([
@@ -148,14 +148,14 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("admin room queries against Post
 
     it("restricts deletion to super admins", async () => {
         await expect(deleteAdminRoomService(uuid(1), "admin")).rejects.toThrow("Only super admins can delete rooms.");
-        expect(await getAdminRoomService(uuid(1))).not.toBeNull();
+        await expect(getAdminRoomService(uuid(1))).resolves.toMatchObject({ roomId: uuid(1) });
     });
 
     it("deletes dependencies and notifies only booking organizers with detached notifications", async () => {
         const result = await deleteAdminRoomService(uuid(1), "super_admin");
 
         expect(result.room).toMatchObject({ roomId: uuid(1), name: "Alpha", updatedAt: null });
-        expect(await getAdminRoomService(uuid(1))).toBeNull();
+        await expect(getAdminRoomService(uuid(1))).rejects.toThrow("Room no longer exists");
         const messages = await db.$client.query(
             "SELECT user_id, booking_id, message, status FROM notifications ORDER BY user_id",
         );
@@ -188,7 +188,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("admin room queries against Post
 
         await expect(deleteAdminRoomService(uuid(1), "super_admin")).rejects.toThrow();
 
-        expect(await getAdminRoomService(uuid(1))).not.toBeNull();
+        await expect(getAdminRoomService(uuid(1))).resolves.toMatchObject({ roomId: uuid(1) });
         expect((await db.$client.query("SELECT message FROM notifications ORDER BY message")).rows).toEqual([
             { message: "Keep this invitation" },
             { message: "Old invitation" },
@@ -202,7 +202,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("admin room queries against Post
 
     it("deletes an empty room and rejects an already missing room", async () => {
         await deleteAdminRoomService(uuid(3), "super_admin");
-        expect(await getAdminRoomService(uuid(3))).toBeNull();
+        await expect(getAdminRoomService(uuid(3))).rejects.toThrow("Room no longer exists");
         await expect(deleteAdminRoomService(uuid(3), "super_admin")).rejects.toThrow("Room no longer exists");
     });
 });

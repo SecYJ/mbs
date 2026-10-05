@@ -8,7 +8,7 @@
         "dev:server": "pnpm --filter @mbs/server dev",
         "dev:all": "concurrently --names client,server --prefix name --kill-others-on-fail \"pnpm run dev\" \"pnpm run dev:server\"",
         "build": "pnpm --filter @mbs/client build",
-        "preview": "pnpm --filter @mbs/client preview",
+        "start": "pnpm --filter @mbs/client start",
         "prepare": "simple-git-hooks",
         "test": "pnpm --filter @mbs/client test",
         "test:run": "pnpm --filter @mbs/client test:run",

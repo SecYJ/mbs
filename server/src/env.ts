@@ -3,6 +3,9 @@ import { z } from "zod";
 
 export const env = createEnv({
     server: {
+        NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+        PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+        HOST: z.string().min(1).default("127.0.0.1"),
         SERVER_ORIGIN: z.url(),
         CLIENT_ORIGIN: z.url(),
         DATABASE_URL: z.url(),
@@ -14,3 +17,8 @@ export const env = createEnv({
     runtimeEnv: process.env,
     emptyStringAsUndefined: true,
 });
+
+// Reset-password links are only emailed in production; without a key they would never reach users.
+if (env.NODE_ENV === "production" && !env.RESEND_API_KEY) {
+    throw new Error("RESEND_API_KEY is required when NODE_ENV=production");
+}

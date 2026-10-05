@@ -8,11 +8,25 @@ export const bookingRoomFiltersSchema = z.object({
     location: queryArraySchema,
 });
 
-export const bookingEventsSchema = bookingRoomFiltersSchema.extend({
-    rangeStart: z.iso.datetime(),
-    rangeEnd: z.iso.datetime(),
-    roomId: z.uuid().optional(),
-});
+// The calendar's widest view is one year; the extra days leave room for week edges.
+const MAX_EVENTS_RANGE_DAYS = 400;
+const MAX_ATTENDEES = 100;
+
+export const bookingEventsSchema = bookingRoomFiltersSchema
+    .extend({
+        rangeStart: z.iso.datetime(),
+        rangeEnd: z.iso.datetime(),
+        roomId: z.uuid().optional(),
+    })
+    .refine(({ rangeStart, rangeEnd }) => Date.parse(rangeEnd) > Date.parse(rangeStart), {
+        message: "rangeEnd must be after rangeStart",
+        path: ["rangeEnd"],
+    })
+    .refine(
+        ({ rangeStart, rangeEnd }) =>
+            Date.parse(rangeEnd) - Date.parse(rangeStart) <= MAX_EVENTS_RANGE_DAYS * 86_400_000,
+        { message: `The range cannot exceed ${MAX_EVENTS_RANGE_DAYS} days`, path: ["rangeEnd"] },
+    );
 
 export const bookingIdSchema = z.object({ bookingId: z.uuid() });
 export const bookingRoomIdSchema = z.object({ roomId: z.uuid() });
@@ -23,7 +37,11 @@ const bookingFieldsSchema = z.object({
     startTime: z.iso.datetime("Select a valid start time"),
     endTime: z.iso.datetime("Select a valid end time"),
     description: z.string().trim().max(1000, "Description is too long").optional(),
-    attendeeIds: z.array(z.string()).default([]),
+    attendeeIds: z
+        .array(z.string().min(1).max(128))
+        .max(MAX_ATTENDEES, `You can invite at most ${MAX_ATTENDEES} attendees`)
+        .refine((ids) => new Set(ids).size === ids.length, "Attendees must be unique")
+        .default([]),
 });
 
 export const createBookingSchema = bookingFieldsSchema;

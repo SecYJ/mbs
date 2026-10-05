@@ -1,11 +1,13 @@
 import { session, user } from "@mbs/shared/db/schema";
-import { asc, desc, eq, or, sql } from "drizzle-orm";
+import { asc, desc, eq, max, or, sql } from "drizzle-orm";
 
 import { db } from "#app/db/index";
+import { getContainsPattern } from "#app/lib/like-pattern";
 import type { AdminUsersQuery } from "#app/modules/admin-user/admin-user.schema";
 
-const lastLoginAtQuery = sql<Date | string | null>`max(${session.createdAt})`;
-const lastLoginSortQuery = sql`coalesce(max(${session.createdAt}), '1970-01-01T00:00:00Z'::timestamptz)`;
+// Users who never logged in sort as the oldest login.
+const lastLoginAtQuery = max(session.createdAt);
+const lastLoginSortQuery = sql`coalesce(${lastLoginAtQuery}, '1970-01-01T00:00:00Z'::timestamptz)`;
 
 function getUsersOrderBy({ sort, dir }: AdminUsersQuery) {
     const direction = dir === "asc" ? asc : desc;
@@ -14,9 +16,7 @@ function getUsersOrderBy({ sort, dir }: AdminUsersQuery) {
 }
 
 export async function findAdminUsers(input: AdminUsersQuery) {
-    const searchPattern = input.q
-        ? `%${input.q.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_")}%`
-        : undefined;
+    const searchPattern = input.q ? getContainsPattern(input.q) : undefined;
 
     return db
         .select({
@@ -38,6 +38,6 @@ export async function findAdminUsers(input: AdminUsersQuery) {
                   )
                 : undefined,
         )
-        .groupBy(user.id, user.name, user.email, user.image, user.role, user.createdAt)
+        .groupBy(user.id)
         .orderBy(getUsersOrderBy(input));
 }

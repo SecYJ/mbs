@@ -1,5 +1,6 @@
 import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
 
+import { AdminError } from "@/features/admin/components/AdminError";
 import { AdminPending } from "@/features/admin/components/AdminPending";
 import { RoomsPage } from "@/features/admin/pages/RoomsPage";
 import { roomsSearchDefaults, roomsSearchSchema } from "@/features/admin/schema/rooms-search.schema";
@@ -23,4 +24,5 @@ export const Route = createFileRoute("/admin/rooms")({
     },
     component: RoomsPage,
     pendingComponent: AdminPending,
+    errorComponent: AdminError,
 });

@@ -32,11 +32,19 @@ export const createEditBookingValidator = ({ rooms, original }: { rooms: RoomPol
             values.startTime !== original.startTime ||
             values.endTime !== original.endTime;
 
-        if (scheduleChanged && startMs <= Date.now()) {
+        // A meeting in progress stays editable as long as its start time is unchanged.
+        if (values.startTime !== original.startTime && startMs <= Date.now()) {
             ctx.addIssue({
                 code: "custom",
                 path: ["startTime"],
                 message: "Start time must be in the future",
+            });
+        }
+        if (values.endTime !== original.endTime && endMs <= Date.now()) {
+            ctx.addIssue({
+                code: "custom",
+                path: ["endTime"],
+                message: "End time must be in the future",
             });
         }
         if (endMs <= startMs) {

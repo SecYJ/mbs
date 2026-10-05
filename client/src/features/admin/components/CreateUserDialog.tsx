@@ -1,3 +1,5 @@
+import { assignableRoles, USER_ROLE_LABELS } from "@mbs/shared/roles";
+import { useRouteContext } from "@tanstack/react-router";
 import { KeyRound, Mail, ShieldCheck, UserPlus } from "lucide-react";
 import type { ReactNode } from "react";
 import { Controller, FormStateSubscribe } from "react-hook-form";
@@ -14,6 +16,9 @@ type CreateUserDialogProps = {
 };
 
 export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) => {
+    const { user } = useRouteContext({ from: "/admin" });
+    // The server enforces the same rule; the form only offers roles the signed-in admin may assign.
+    const roles = assignableRoles(user.role);
     const { form, onSubmit, isPending } = useCreateUser({
         onSuccess: () => {
             toast.success("User created");
@@ -106,8 +111,11 @@ export const CreateUserDialog = ({ open, onOpenChange }: CreateUserDialogProps) 
                                         id="create-user-role"
                                         className={cn(adminSelectClasses, "w-full")}
                                     >
-                                        <option value="user">User</option>
-                                        <option value="admin">Admin</option>
+                                        {roles.map((role) => (
+                                            <option key={role} value={role}>
+                                                {USER_ROLE_LABELS[role]}
+                                            </option>
+                                        ))}
                                     </select>
                                 </Field>
                             )}

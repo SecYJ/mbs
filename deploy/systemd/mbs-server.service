@@ -1,0 +1,27 @@
+[Unit]
+Description=MBS Express API
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=mbs
+Group=mbs
+WorkingDirectory=/srv/mbs/server
+EnvironmentFile=/etc/mbs/server.env
+Environment=NODE_ENV=production
+Environment=TZ=Asia/Kuala_Lumpur
+Environment=HOST=127.0.0.1
+Environment=PORT=3000
+ExecStart=/usr/bin/node src/server.ts
+Restart=on-failure
+RestartSec=3
+# server.ts closes the HTTP server and the database pool on SIGTERM.
+KillSignal=SIGTERM
+TimeoutStopSec=15
+NoNewPrivileges=true
+ProtectSystem=full
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

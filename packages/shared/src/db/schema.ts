@@ -5,6 +5,7 @@ import {
     check,
     date,
     foreignKey,
+    index,
     integer,
     numeric,
     pgEnum,
@@ -56,6 +57,7 @@ export const session = pgTable(
                 foreignColumns: [user.id],
                 name: "session_user_id_fk",
             }).onDelete("cascade"),
+            index("session_user_id_idx").on(table.userId),
         ];
     },
 );
@@ -84,6 +86,7 @@ export const account = pgTable(
                 foreignColumns: [user.id],
                 name: "account_user_id_fk",
             }).onDelete("cascade"),
+            index("account_user_id_idx").on(table.userId),
         ];
     },
 );
@@ -155,6 +158,12 @@ export const bookings = pgTable(
                 foreignColumns: [user.id],
                 name: "bookings_cancelled_by_fk",
             }),
+            // Overlap checks and calendar queries only look at active bookings, so cancelled rows stay out of the index.
+            index("bookings_room_active_time_idx")
+                .on(table.roomId, table.startTime, table.endTime)
+                .where(sql`${table.status} = 'active'`),
+            index("bookings_user_id_idx").on(table.userId),
+            check("bookings_end_after_start", sql`${table.endTime} > ${table.startTime}`),
         ];
     },
 );
@@ -181,6 +190,8 @@ export const attendees = pgTable(
                 foreignColumns: [user.id],
                 name: "attendees_user_id_fk",
             }),
+            // The primary key already covers lookups by booking; this one serves "bookings I attend".
+            index("attendees_user_id_idx").on(table.userId),
         ];
     },
 );
@@ -208,6 +219,8 @@ export const notifications = pgTable(
                 foreignColumns: [user.id],
                 name: "notifications_user_id_fk",
             }),
+            index("notifications_user_id_created_at_idx").on(table.userId, table.createdAt),
+            index("notifications_booking_id_idx").on(table.bookingId),
         ];
     },
 );
@@ -296,5 +309,7 @@ export const roomEquipment = pgTable(
             name: "room_equipment_equipment_id_fk",
         }).onDelete("cascade"),
         check("room_equipment_quantity_positive", sql`${table.quantity} >= 1`),
+        // The primary key starts with room_id; this one serves lookups and cascades by equipment.
+        index("room_equipment_equipment_id_idx").on(table.equipmentId),
     ],
 );

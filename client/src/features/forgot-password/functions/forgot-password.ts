@@ -8,10 +8,7 @@ export const requestPasswordResetFn = createServerFn({ method: "POST" })
     .handler(async ({ data }) => {
         await getServerApiClient().post("auth/request-password-reset", {
             context: { forwardCookie: false },
-            json: {
-                email: data.email,
-                redirectTo: new URL("/reset-password", process.env.SERVER_URL ?? "http://localhost:5173").toString(),
-            },
+            json: { email: data.email },
         });
 
         return { dispatched: true };

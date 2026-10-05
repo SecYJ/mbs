@@ -24,8 +24,12 @@ export const requireAuthenticatedUser = async () => {
 export const requireAdminUser = async () => {
     const session = await getUserSession();
 
-    if (!session || !isAdminRole(session.user.role)) {
+    if (!session) {
         throw redirect({ to: "/login" });
+    }
+
+    if (!isAdminRole(session.user.role)) {
+        throw redirect({ to: "/bookings" });
     }
 
     return session;

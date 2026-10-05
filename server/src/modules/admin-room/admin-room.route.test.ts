@@ -5,6 +5,7 @@ import express from "express";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ForbiddenError } from "#app/errors/forbiddenError";
+import { NotFoundError } from "#app/errors/notFoundError";
 import { errorHandler } from "#app/middleware/error";
 import { requireAdmin } from "#app/middleware/require-admin";
 import { requireAuthenticated } from "#app/middleware/require-authenticated";
@@ -64,7 +65,7 @@ beforeEach(() => {
     vi.resetAllMocks();
     getSession.mockResolvedValue({ user: { id: "admin-user", role: "admin" } });
     vi.mocked(getAdminRoomsService).mockResolvedValue([{ ...room, equipment: [] }]);
-    vi.mocked(getAdminRoomService).mockResolvedValue(null);
+    vi.mocked(getAdminRoomService).mockResolvedValue({ ...room, equipment: [] });
     vi.mocked(createAdminRoomService).mockResolvedValue({ room });
     vi.mocked(updateAdminRoomService).mockResolvedValue({ room });
     vi.mocked(deleteAdminRoomService).mockResolvedValue({ room });
@@ -91,10 +92,11 @@ describe("admin room routes", () => {
         });
     });
 
-    it("returns null for a missing detail and rejects invalid IDs", async () => {
+    it("returns 404 for a missing detail and rejects invalid IDs", async () => {
+        vi.mocked(getAdminRoomService).mockRejectedValue(new NotFoundError("Room no longer exists"));
         const missing = await fetch(`${origin}/${roomId}`);
-        expect(missing.status).toBe(200);
-        expect(await missing.json()).toBeNull();
+        expect(missing.status).toBe(404);
+        expect(await missing.json()).toEqual({ message: "Room no longer exists" });
         const invalid = await fetch(`${origin}/invalid`);
         expect(invalid.status).toBe(400);
         expect(await invalid.json()).toEqual({ message: "Validation Failed" });
@@ -122,6 +124,19 @@ describe("admin room routes", () => {
         expect(await valid.json()).toEqual({ room });
         if (method === "POST") expect(createAdminRoomService).toHaveBeenCalledExactlyOnceWith(input);
         else expect(updateAdminRoomService).toHaveBeenCalledExactlyOnceWith(roomId, input);
+    });
+
+    it.each([
+        ["name", "x".repeat(101)],
+        ["location", "x".repeat(161)],
+    ])("rejects a room %s that is too long", async (field, value) => {
+        const response = await fetch(origin, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ...input, [field]: value }),
+        });
+        expect(response.status).toBe(400);
+        expect(createAdminRoomService).not.toHaveBeenCalled();
     });
 
     it("passes the authenticated role to deletion and ignores a forged query role", async () => {

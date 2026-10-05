@@ -1,4 +1,4 @@
-import { isSuperAdminRole } from "@mbs/shared/roles";
+import { isAdminRole } from "@mbs/shared/roles";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -44,7 +44,7 @@ const selectAdminBookings = (data: AdminBookingsQueryData) =>
         room: row.room,
         bookedBy: row.bookedBy,
         userId: row.userId,
-        canCancel: row.userId === data.currentUserId || isSuperAdminRole(data.currentUserRole),
+        canCancel: row.userId === data.currentUserId || isAdminRole(data.currentUserRole),
         attendees: row.attendees,
         date: format(new Date(row.startTime), "yyyy-MM-dd"),
         time: formatBookingTime(row.startTime, row.endTime),

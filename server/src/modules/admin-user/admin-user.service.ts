@@ -7,6 +7,6 @@ export async function getAdminUsersService(input: AdminUsersQuery) {
     return users.map((user) => ({
         ...user,
         createdAt: user.createdAt.toISOString(),
-        lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt).toISOString() : null,
+        lastLoginAt: user.lastLoginAt?.toISOString() ?? null,
     }));
 }

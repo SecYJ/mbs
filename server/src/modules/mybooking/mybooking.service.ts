@@ -15,11 +15,7 @@ export async function getMyBookingsDataService(input: MyBookingsInput) {
 }
 
 export async function getMyBookingStatsService(userId: string) {
-    const { activeBookingCount, ownedCount, totalCount } = await getMyBookingCounts(userId);
+    const { activeBookingCount, attendingCount, ownedCount } = await getMyBookingCounts(userId);
 
-    return {
-        activeCount: activeBookingCount,
-        attendingCount: totalCount - ownedCount,
-        ownedCount,
-    };
+    return { activeCount: activeBookingCount, attendingCount, ownedCount };
 }

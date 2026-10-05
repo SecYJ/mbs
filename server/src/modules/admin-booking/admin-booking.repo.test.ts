@@ -66,12 +66,12 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("admin queries against PostgreSQ
             SELECT id::uuid, room::uuid, 'owner', starts::timestamptz,
                 starts::timestamptz + interval '1 hour', title, status
             FROM (VALUES
-                ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000100', '2026-09-20T00:00:00Z', 'Today midnight', 'active'),
+                ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000100', '2026-09-20T00:00:00+08:00', 'Today midnight', 'active'),
                 ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000101', '2026-09-20T12:00:00Z', 'Running meeting', 'active'),
-                ('00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000100', '2026-09-14T00:00:00Z', 'Week midnight', 'active'),
-                ('00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000101', '2026-09-21T00:00:00Z', 'Next week', 'active'),
+                ('00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000100', '2026-09-14T00:00:00+08:00', 'Week midnight', 'active'),
+                ('00000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000101', '2026-09-21T00:00:00+08:00', 'Next week', 'active'),
                 ('00000000-0000-0000-0000-000000000005', '00000000-0000-0000-0000-000000000100', '2026-09-19T12:00:00Z', 'Cancelled', 'cancelled'),
-                ('00000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000100', '2026-09-13T23:59:00Z', 'Previous week', 'active')
+                ('00000000-0000-0000-0000-000000000006', '00000000-0000-0000-0000-000000000100', '2026-09-13T23:59:00+08:00', 'Previous week', 'active')
             ) AS fixture(id, room, starts, title, status);
             INSERT INTO attendees (booking_id, user_id) VALUES
                 ('00000000-0000-0000-0000-000000000001', 'owner'),
@@ -111,15 +111,21 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("admin queries against PostgreSQ
         expect(await findAdminBookings({ q: "missing", room: "all", status: "all" }, now)).toEqual([]);
     });
 
-    it("aggregates active bookings with inclusive starts and exclusive day/week ends", async () => {
-        const result = await getAdminBookingCounts(
-            new Date("2026-09-20T00:00:00Z"),
-            new Date("2026-09-21T00:00:00Z"),
-            new Date("2026-09-14T00:00:00Z"),
-            new Date("2026-09-21T00:00:00Z"),
-        );
+    it("counts day and Monday-to-Monday week boundaries on the Kuala Lumpur wall clock", async () => {
+        // 20:30 on Sunday 20 September in Kuala Lumpur, which is still 12:30 UTC the same day.
+        expect(await getAdminBookingCounts(now)).toEqual({ popularRoom: "Alpha", todayCount: 2, weekCount: 3 });
+        // 17:00 UTC on Saturday is already Sunday 01:00 in Kuala Lumpur, so a UTC-based "today" would miss it.
+        expect(await getAdminBookingCounts(new Date("2026-09-19T17:00:00Z"))).toMatchObject({ todayCount: 2 });
+        // 16:30 UTC on Sunday is Monday 00:30 in Kuala Lumpur: a new day and a new week.
+        expect(await getAdminBookingCounts(new Date("2026-09-20T16:30:00Z"))).toMatchObject({
+            todayCount: 1,
+            weekCount: 1,
+        });
+    });
 
-        expect(result).toEqual({ popularRoom: "Alpha", todayCount: 2, weekCount: 3 });
+    it("treats percent, underscore, and backslash in searches as literal text", async () => {
+        const result = await findAdminBookings({ q: "%", room: "all", status: "all" }, now);
+        expect(result).toEqual([]);
     });
 
     it("returns empty room/bookings arrays and null/zero stats with no records", async () => {
@@ -127,7 +133,7 @@ describe.skipIf(!process.env.TEST_DATABASE_URL)("admin queries against PostgreSQ
 
         expect(await findAdminBookings({ q: "", room: "all", status: "all" }, now)).toEqual([]);
         expect(await findAdminBookingRoomNames()).toEqual([]);
-        expect(await getAdminBookingCounts(now, now, now, now)).toEqual({
+        expect(await getAdminBookingCounts(now)).toEqual({
             popularRoom: null,
             todayCount: 0,
             weekCount: 0,

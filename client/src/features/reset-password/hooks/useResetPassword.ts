@@ -11,6 +11,15 @@ type Args = {
     token: string;
 };
 
+// better-auth rejects a bad or expired token with "Invalid token"; show a clearer message for it.
+const getResetErrorMessage = (error: unknown) => {
+    if (!(error instanceof Error)) return "Unable to reissue your passphrase. Please try again.";
+
+    if (/token/i.test(error.message)) return "This reset link is invalid or has expired.";
+
+    return error.message;
+};
+
 export const useResetPassword = ({ token }: Args) => {
     const form = useForm({
         resolver: zodResolver(resetPasswordSchema),
@@ -35,12 +44,7 @@ export const useResetPassword = ({ token }: Args) => {
             navigate({ to: "/login" });
         },
         onError: (error) => {
-            form.setError("root", {
-                message:
-                    error instanceof Error
-                        ? error.message
-                        : "Unable to reissue your passphrase. The link may have expired.",
-            });
+            form.setError("root", { message: getResetErrorMessage(error) });
         },
     });
 

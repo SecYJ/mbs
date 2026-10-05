@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
-import { ArrowRight, Bell, CheckCheck } from "lucide-react";
-import type { ReactNode } from "react";
+import { useQueryErrorResetBoundary } from "@tanstack/react-query";
+import { CatchBoundary, isNotFound, isRedirect, Link, type ErrorComponentProps } from "@tanstack/react-router";
+import { ArrowRight, Bell, BellOff, CheckCheck } from "lucide-react";
+import { Suspense, type ReactNode } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NOTIFICATION_FILTER_OPTIONS } from "@/features/notifications/constants/notificationConstants";
@@ -43,7 +44,49 @@ type NotificationCenterLinkProps = {
     filter: NotificationFilter;
 };
 
-export const NotificationNavigationMenu = () => {
+const NOTIFICATION_TRIGGER_CLASSES =
+    "relative flex size-9 items-center justify-center border border-transparent text-(--bone-dim) transition-all duration-200";
+
+// The menu loads its own data, so a slow or failing notifications request must not take down the layout.
+export const NotificationNavigationMenu = () => (
+    <CatchBoundary getResetKey={() => 0} errorComponent={NotificationMenuError}>
+        <Suspense fallback={<NotificationMenuFallback />}>
+            <NotificationNavigationMenuContent />
+        </Suspense>
+    </CatchBoundary>
+);
+
+const NotificationMenuFallback = () => (
+    <div aria-busy="true" aria-label="Loading notifications" className={NOTIFICATION_TRIGGER_CLASSES}>
+        <Bell className="size-4 animate-pulse" strokeWidth={1.4} />
+    </div>
+);
+
+const NotificationMenuError = ({ error, reset }: ErrorComponentProps) => {
+    const { reset: resetQueryErrors } = useQueryErrorResetBoundary();
+
+    // Redirects (expired session) and not-found belong to the router, not to this menu.
+    if (isRedirect(error) || isNotFound(error)) throw error;
+
+    const retry = () => {
+        resetQueryErrors();
+        reset();
+    };
+
+    return (
+        <button
+            type="button"
+            onClick={retry}
+            aria-label="Notifications unavailable. Retry"
+            title="Notifications unavailable. Click to retry"
+            className={cn(NOTIFICATION_TRIGGER_CLASSES, "cursor-pointer hover:border-(--hairline) hover:text-(--bone)")}
+        >
+            <BellOff className="size-4" strokeWidth={1.4} />
+        </button>
+    );
+};
+
+const NotificationNavigationMenuContent = () => {
     const {
         closeMenu,
         isMarkingAllRead,

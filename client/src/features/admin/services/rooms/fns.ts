@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createRoomSchema, deleteRoomSchema, updateRoomSchema } from "@/features/admin/schema/room.schema";
 import { roomsSearchSchema } from "@/features/admin/schema/rooms-search.schema";
 import { getServerApiClient } from "@/lib/server-api-client";
+import { nullIfNotFound } from "@/lib/server-api-error";
 import { adminUserMiddleware } from "@/middleware/auth";
 
 type RoomResponse = {
@@ -47,7 +48,9 @@ export const getRoomFn = createServerFn({ method: "GET" })
     .middleware([adminUserMiddleware])
     .validator(z.object({ roomId: z.uuid() }))
     .handler(async ({ data }) => {
-        const room = await getServerApiClient().get(`admin/rooms/${data.roomId}`).json<RoomDetailsResponse | null>();
+        const room = await nullIfNotFound(
+            getServerApiClient().get(`admin/rooms/${data.roomId}`).json<RoomDetailsResponse>(),
+        );
         return room ? restoreRoomDates(room) : null;
     });
 

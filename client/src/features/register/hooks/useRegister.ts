@@ -11,10 +11,10 @@ export const useRegister = () => {
     const form = useForm({
         resolver: zodResolver(registerSchema),
         defaultValues: {
-            name: "JaneDoe",
-            email: "tes@gmail.com",
-            password: "123456789",
-            confirmPassword: "123456789",
+            name: "",
+            email: "",
+            password: "",
+            confirmPassword: "",
         },
     });
 

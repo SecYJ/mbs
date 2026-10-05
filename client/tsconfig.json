@@ -1,7 +1,7 @@
 {
     "extends": "../tsconfig.base.json",
-    "include": ["**/*.ts", "**/*.tsx", ""],
-    "exclude": ["dist", "drizzle"],
+    "include": ["**/*.ts", "**/*.tsx"],
+    "exclude": ["dist"],
     "compilerOptions": {
         "jsx": "react-jsx",
         "module": "ESNext",
