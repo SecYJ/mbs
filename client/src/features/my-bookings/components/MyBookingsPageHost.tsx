@@ -1,39 +1,28 @@
-import { useSuspenseQueries } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 
 import { EmptyBookings } from "@/features/my-bookings/components/EmptyBookings";
 import { MyBookingsFilterControls } from "@/features/my-bookings/components/MyBookingsFilterControls";
 import { MyBookingsFilteredPage } from "@/features/my-bookings/components/MyBookingsFilteredPage";
-import { type MyBookingsQueryData, type MyBookingsStatsQueryData } from "@/features/my-bookings/services/queries";
 
 const Route = getRouteApi("/_bookings/my-bookings");
 
-export const MyBookingsPageHost = () => {
-    const q = Route.useSearch({ select: (search) => search.q });
-    const { myBookingsListQueryOptions, myBookingsStatsQueryOptions } = Route.useRouteContext();
+export function MyBookingsPageHost() {
+    const { myBookingsStatsQueryOptions } = Route.useRouteContext();
 
-    const hasBookings = useSuspenseQueries({
-        queries: [
-            {
-                ...myBookingsListQueryOptions,
-                select: (data: MyBookingsQueryData) => data.history.length > 0,
-            },
-            {
-                ...myBookingsStatsQueryOptions,
-                select: (data: MyBookingsStatsQueryData) => data.ownedCount + data.attendingCount > 0,
-            },
-        ],
-        combine: (result) => result.some((query) => query.data),
+    const { data: hasBookings } = useSuspenseQuery({
+        ...myBookingsStatsQueryOptions,
+        select: (data) => data.ownedCount + data.attendingCount > 0,
     });
 
     if (hasBookings) {
         return (
             <>
                 <MyBookingsFilterControls />
-                {hasBookings ? <MyBookingsFilteredPage /> : <EmptyBookings hasQuery={q.trim().length > 0} />}
+                <MyBookingsFilteredPage />
             </>
         );
     }
 
     return <EmptyBookings hasQuery={false} />;
-};
+}

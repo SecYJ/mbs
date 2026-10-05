@@ -1,3 +1,4 @@
+import { isSuperAdminRole } from "@mbs/shared/roles";
 import { Link } from "@tanstack/react-router";
 import { Ban, CalendarDays, Check, Clock, Eye, Pencil, UserRound, Users, XCircle } from "lucide-react";
 
@@ -9,7 +10,6 @@ import {
     myBookingStatusMeta,
     type BookingHistoryItem,
 } from "@/features/my-bookings/my-bookings.constants";
-import { isSuperAdminRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 type BookingRowData = BookingHistoryItem & {

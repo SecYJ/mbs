@@ -9,7 +9,6 @@ type MyBookingsFilters = {
 };
 
 export type MyBookingsQueryData = Awaited<ReturnType<typeof getMyBookingsDataFn>>;
-export type MyBookingsStatsQueryData = Awaited<ReturnType<typeof getMyBookingsStatsFn>>;
 
 const myBookingStatsQueryOptions = () =>
     queryOptions({

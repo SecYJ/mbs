@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { updateRoomSchema } from "@/features/admin/schema/room.schema";
 import { updateRoomFn } from "@/features/admin/services/rooms/fns";
 import { roomQueries } from "@/features/admin/services/rooms/queries";
-import { bookingCalendarQueries } from "@/features/bookings/services/queries";
+import { invalidateBookingQueries } from "@/features/bookings/services/invalidation";
 
 type Props = {
     roomId: string;
@@ -29,10 +29,10 @@ export const useUpdateRoom = (defaults: Props) => {
 
     const { mutate: submit, isPending } = useMutation({
         mutationFn: updateRoom,
-        onSuccess: async (_1, variables, _3, context) => {
+        async onSuccess(_1, _2, _3, context) {
             await Promise.all([
-                context.client.invalidateQueries(roomQueries.detail(variables.data.roomId)),
-                context.client.invalidateQueries(bookingCalendarQueries.data()),
+                context.client.invalidateQueries({ queryKey: roomQueries.all() }),
+                invalidateBookingQueries(context.client),
             ]);
 
             router.invalidate();

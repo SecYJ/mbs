@@ -1,7 +1,7 @@
+import { bookings, notifications, rooms } from "@mbs/shared/db/schema";
 import { and, count, desc, eq, sql } from "drizzle-orm";
 
 import { db } from "#app/db/index";
-import { bookings, notifications, rooms } from "#app/db/schema";
 
 export async function getNotifications(userId: string, filter?: "unread") {
     return db

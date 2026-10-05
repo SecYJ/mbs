@@ -18,11 +18,11 @@
         "lint:fix": "oxlint --fix",
         "fmt": "oxfmt",
         "fmt:check": "oxfmt --check",
-        "db:generate": "pnpm --filter @mbs/client db:generate",
-        "db:migrate": "pnpm --filter @mbs/client db:migrate",
-        "db:push": "pnpm --filter @mbs/client db:push",
-        "db:pull": "pnpm --filter @mbs/client db:pull",
-        "db:studio": "pnpm --filter @mbs/client db:studio"
+        "db:generate": "pnpm --filter @mbs/server db:generate",
+        "db:migrate": "pnpm --filter @mbs/server db:migrate",
+        "db:push": "pnpm --filter @mbs/server db:push",
+        "db:pull": "pnpm --filter @mbs/server db:pull",
+        "db:studio": "pnpm --filter @mbs/server db:studio"
     },
     "devDependencies": {
         "@types/node": "^26.1.1",
@@ -30,6 +30,7 @@
         "lint-staged": "^16.2.6",
         "oxfmt": "^0.59.0",
         "oxlint": "^1.75.0",
+        "oxlint-tsgolint": "^7.0.2001",
         "simple-git-hooks": "^2.13.1",
         "vitest": "catalog:"
     },

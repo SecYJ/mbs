@@ -1,4 +1,4 @@
-import type { Request, RequestHandler, Response } from "express";
+import type { Response } from "express";
 
 type AuthenticatedLocals = {
     userId: string;
@@ -6,11 +6,3 @@ type AuthenticatedLocals = {
 };
 
 export type AuthenticatedResponse = Response<unknown, AuthenticatedLocals>;
-
-export type AuthenticatedRequestHandler = RequestHandler<
-    Request["params"],
-    unknown,
-    unknown,
-    Request["query"],
-    AuthenticatedLocals
->;

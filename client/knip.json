@@ -1,11 +1,9 @@
 {
     "$schema": "https://unpkg.com/knip@6/schema.json",
-    "entry": ["src/router.tsx", "src/routes/**/*.{ts,tsx}", "src/scripts/**/*.ts"],
+    "entry": ["src/routes/**/*.{ts,tsx}"],
     "project": ["src/**/*.{ts,tsx,css}"],
-    "drizzle": {
-        "config": []
-    },
     "rules": {
         "catalog": "off"
-    }
+    },
+    "ignoreBinaries": ["oxlint", "oxfmt"]
 }

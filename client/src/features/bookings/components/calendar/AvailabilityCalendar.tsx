@@ -13,7 +13,7 @@ import { useDeferredValue } from "react";
 import { useBookingCalendarEventsContext } from "@/features/bookings/contexts/BookingCalendarEventsContext";
 import { bookingCalendarViewMap } from "@/features/bookings/schemas/booking-calendar-search.schema";
 import { bookingCalendarQueries, type BookingCalendarEvent } from "@/features/bookings/services/queries";
-import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
+import { useBookingCalendarActions } from "@/features/bookings/stores/BookingCalendarStore";
 import { isPastCalendarEvent } from "@/features/bookings/utils/calendar-event";
 
 export const AvailabilityCalendar = () => {
@@ -36,9 +36,7 @@ export const AvailabilityCalendar = () => {
         },
     });
 
-    const { openExistingReservation, openNewReservation, setCalendar, setVisibleRange } = useBookingCalendarStore(
-        (state) => state.actions,
-    );
+    const { openExistingReservation, openNewReservation, setCalendar, setVisibleRange } = useBookingCalendarActions();
 
     const handleDateClick = (info: DateClickArg) => {
         if (isPast(info.date)) {

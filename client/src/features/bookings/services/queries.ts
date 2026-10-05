@@ -103,9 +103,10 @@ export const bookingCalendarQueries = {
             refetchInterval: 60_000,
         });
     },
+    details: () => ["bookings", "details"],
     detail: (bookingId: string) => {
         return queryOptions({
-            queryKey: ["bookings", "details", bookingId],
+            queryKey: [...bookingCalendarQueries.details(), bookingId],
             queryFn: () => getBookingDetailsFn({ data: { bookingId } }),
         });
     },

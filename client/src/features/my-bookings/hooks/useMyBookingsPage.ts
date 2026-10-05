@@ -3,10 +3,11 @@ import { useServerFn } from "@tanstack/react-start";
 import { useFormContext, useWatch } from "react-hook-form";
 
 import { cancelBookingFn, rsvpBookingInviteFn } from "@/features/bookings/services/fns";
-import { bookingCalendarQueries } from "@/features/bookings/services/queries";
+import {
+    invalidateBookingAttendanceQueries,
+    invalidateBookingQueries,
+} from "@/features/bookings/services/invalidation";
 import type { BookingCancellationFormValues } from "@/features/my-bookings/components/MyBookingsFormProvider";
-import { myBookingsQueries } from "@/features/my-bookings/services/queries";
-import { notificationQueries } from "@/features/notifications/services/queries";
 
 export const useMyBookingsPage = () => {
     const cancelBooking = useServerFn(cancelBookingFn);
@@ -20,24 +21,14 @@ export const useMyBookingsPage = () => {
 
     const cancelMutation = useMutation({
         mutationFn: cancelBooking,
-        onSuccess: (_data, _variables, _onMutateResult, context) => {
-            return Promise.all([
-                context.client.invalidateQueries({ queryKey: myBookingsQueries.all() }),
-                context.client.invalidateQueries(bookingCalendarQueries.data()),
-                context.client.invalidateQueries(notificationQueries.list()),
-            ]);
-        },
+        onSuccess: (_data, variables, _onMutateResult, context) =>
+            invalidateBookingQueries(context.client, variables.data.bookingId),
     });
 
     const rsvpMutation = useMutation({
         mutationFn: rsvpBookingInvite,
-        onSuccess: (_data, _variables, _onMutateResult, context) => {
-            return Promise.all([
-                context.client.invalidateQueries({ queryKey: myBookingsQueries.all() }),
-                context.client.invalidateQueries(bookingCalendarQueries.data()),
-                context.client.invalidateQueries(notificationQueries.list()),
-            ]);
-        },
+        onSuccess: (_data, variables, _onMutateResult, context) =>
+            invalidateBookingAttendanceQueries(context.client, variables.data.bookingId),
     });
 
     const clearCancellation = (bookingId: string) => {

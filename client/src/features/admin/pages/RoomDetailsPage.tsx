@@ -1,3 +1,4 @@
+import { isSuperAdminRole } from "@mbs/shared/roles";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi, Link, useParams } from "@tanstack/react-router";
 import { AlertTriangle, ArrowLeft, MapPin, Package, RotateCcw, Save, Trash2, UsersRound, X } from "lucide-react";
@@ -12,7 +13,6 @@ import { useUpdateRoom } from "@/features/admin/hooks/useUpdateRoom";
 import { roomsSearchDefaults } from "@/features/admin/schema/rooms-search.schema";
 import { roomQueries, type RoomQueryData } from "@/features/admin/services/rooms/queries";
 import type { Room } from "@/features/admin/types";
-import { isSuperAdminRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 const MAX_BOOKING_DURATION_HOURS_LIMIT = 24;

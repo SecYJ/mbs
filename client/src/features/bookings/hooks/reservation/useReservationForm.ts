@@ -12,6 +12,7 @@ import {
     getOverlappingBookingConflict,
 } from "@/features/bookings/services/booking-conflicts";
 import { createBookingFn, updateBookingFn } from "@/features/bookings/services/fns";
+import { invalidateBookingQueries } from "@/features/bookings/services/invalidation";
 import { bookingMutations } from "@/features/bookings/services/mutations";
 import {
     bookingCalendarQueries,
@@ -20,7 +21,6 @@ import {
 } from "@/features/bookings/services/queries";
 import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import type { ReservationDialogState } from "@/features/bookings/types/reservation-editor.types";
-import { notificationQueries } from "@/features/notifications/services/queries";
 
 export type ReservationFormValues = z.infer<typeof bookingReservationFormSchema>;
 type BookingSchedule = Pick<ReservationFormValues, "roomId" | "startTime" | "endTime">;
@@ -210,11 +210,8 @@ export const useReservationForm = () => {
                 ? updateBooking({ data: { bookingId: eventId, ...payload } })
                 : createBooking({ data: payload });
         },
-        onSuccess: async (_1, _2, _3, context) => {
-            await Promise.all([
-                context.client.invalidateQueries(bookingCalendarQueries.data()),
-                context.client.invalidateQueries(notificationQueries.list()),
-            ]);
+        async onSuccess(data, _2, _3, context) {
+            await invalidateBookingQueries(context.client, data.id);
 
             closeReservation();
         },

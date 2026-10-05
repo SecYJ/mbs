@@ -1,6 +1,5 @@
+import { USER_ROLES } from "@mbs/shared/roles";
 import { z } from "zod";
-
-import { USER_ROLES } from "@/lib/roles";
 
 const sessionSchema = z.object({
     id: z.string(),

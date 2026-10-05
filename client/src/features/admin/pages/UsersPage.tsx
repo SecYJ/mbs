@@ -1,3 +1,4 @@
+import { USER_ROLE_LABELS, type UserRole } from "@mbs/shared/roles";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { useNavigate, useSearch } from "@tanstack/react-router";
 import { format } from "date-fns";
@@ -12,7 +13,6 @@ import { EmptyState } from "@/features/admin/components/EmptyState";
 import { usersSearchDefaults } from "@/features/admin/schema/users-search.schema";
 import { userQueries } from "@/features/admin/services/users/queries";
 import type { AdminUser } from "@/features/admin/types";
-import { USER_ROLE_LABELS, type UserRole } from "@/lib/roles";
 import { cn } from "@/lib/utils";
 
 type SortField = "name" | "email" | "role" | "lastLogin";

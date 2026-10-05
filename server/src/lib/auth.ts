@@ -1,3 +1,4 @@
+import * as schema from "@mbs/shared/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin } from "better-auth/plugins/admin";
@@ -5,12 +6,11 @@ import { adminAc, userAc } from "better-auth/plugins/admin/access";
 import { Resend } from "resend";
 
 import { db } from "#app/db/index";
-import * as schema from "#app/db/schema";
 import { env } from "#app/env";
 
 const RESET_PASSWORD_TOKEN_EXPIRES_IN_SECONDS = 60 * 60;
 const RESET_PASSWORD_TOKEN_EXPIRES_IN_MINUTES = RESET_PASSWORD_TOKEN_EXPIRES_IN_SECONDS / 60;
-const buildResetEmail = (resetUrl: string) => {
+function buildResetEmail(resetUrl: string) {
     const text = [
         "We received a request to re-key your Meridian suite.",
         "",
@@ -81,7 +81,7 @@ const buildResetEmail = (resetUrl: string) => {
     `;
 
     return { text, html };
-};
+}
 
 const resend = env.RESEND_API_KEY ? new Resend(env.RESEND_API_KEY) : null;
 const fromAddress = env.RESEND_FROM_EMAIL ?? "Meridian <onboarding@resend.dev>";
@@ -98,7 +98,7 @@ export const auth = betterAuth({
         enabled: true,
         resetPasswordTokenExpiresIn: RESET_PASSWORD_TOKEN_EXPIRES_IN_SECONDS,
         revokeSessionsOnPasswordReset: true,
-        sendResetPassword: async ({ user, url }) => {
+        async sendResetPassword({ user, url }) {
             if (!resend) {
                 console.warn(
                     `[auth] RESEND_API_KEY not set — printing reset URL for ${user.email} instead of dispatching.\n  ${url}`,

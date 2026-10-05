@@ -4,8 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { compareAsc, format, formatDuration, intervalToDuration } from "date-fns";
 
 import { rsvpBookingInviteFn } from "@/features/bookings/services/fns";
+import { invalidateBookingAttendanceQueries } from "@/features/bookings/services/invalidation";
 import { bookingCalendarQueries } from "@/features/bookings/services/queries";
-import { notificationQueries } from "@/features/notifications/services/queries";
 
 type BookingStateInput = {
     start: string;
@@ -50,13 +50,8 @@ export const useBookingDetailsPage = () => {
 
     const rsvpMutation = useMutation({
         mutationFn: rsvpBookingInvite,
-        onSuccess: (_1, _2, _3, context) => {
-            return Promise.all([
-                context.client.invalidateQueries(bookingCalendarQueries.detail(bookingId)),
-                context.client.invalidateQueries(bookingCalendarQueries.data()),
-                context.client.invalidateQueries({ queryKey: notificationQueries.all() }),
-            ]);
-        },
+        onSuccess: (_1, variables, _3, context) =>
+            invalidateBookingAttendanceQueries(context.client, variables.data.bookingId),
     });
 
     const attendanceStatus = data.currentUserAttendance?.status ?? null;

@@ -1,3 +1,4 @@
+import { isAdminRole } from "@mbs/shared/roles";
 import { createFileRoute, Link, linkOptions, Outlet } from "@tanstack/react-router";
 import { Shield } from "lucide-react";
 
@@ -5,7 +6,6 @@ import { AppPending } from "@/components/AppPending";
 import { AuthenticatedAccountMenu } from "@/features/account/components/AuthenticatedAccountMenu";
 import { useCrossTabSignOutSync } from "@/features/account/hooks/useCrossTabSignOutSync";
 import { NotificationNavigationMenu } from "@/features/notifications/components/NotificationNavigationMenu";
-import { isAdminRole } from "@/lib/roles";
 import { requireAuthenticatedUser } from "@/lib/session";
 
 export const Route = createFileRoute("/_bookings")({

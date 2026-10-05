@@ -1,4 +1,4 @@
-import type { UserRole } from "@/lib/roles";
+import type { UserRole } from "@mbs/shared/roles";
 
 type RoomEquipmentLine = {
     id: string;

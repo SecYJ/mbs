@@ -4,22 +4,25 @@ Run commands from the repository root using pnpm. Choose checks for the code and
 
 ## Code Changes
 
-| Change                                     | Checks                                                                                                                                                     |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Client TypeScript or React code            | `pnpm --filter @mbs/client typecheck` and the relevant client tests.                                                                                       |
-| Server TypeScript code                     | `pnpm --filter @mbs/server typecheck` and `pnpm --filter @mbs/server test:run` (or a focused test-file path). Typechecking alone does not verify behavior. |
-| JavaScript or TypeScript in either package | `pnpm exec oxlint <changed-files>` in addition to the applicable checks above.                                                                             |
-| Formatting                                 | `pnpm exec oxfmt --check <changed-files>` for files supported by the formatter.                                                                            |
+| Change                                     | Checks                                                                                                                                                                            |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client TypeScript or React code            | `pnpm --filter @mbs/client typecheck` and the relevant client tests.                                                                                                              |
+| Server TypeScript code                     | `pnpm --filter @mbs/server typecheck` and `pnpm --filter @mbs/server test:run` (or a focused test-file path). Typechecking alone does not verify behavior.                        |
+| Shared schema or role definitions          | `pnpm --filter @mbs/shared typecheck`, both application typechecks, and the relevant application tests. Database schema changes also require the database regression tests below. |
+| JavaScript or TypeScript in either package | `pnpm exec oxlint <changed-files>` in addition to the applicable checks above.                                                                                                    |
+| Formatting                                 | `pnpm exec oxfmt --check <changed-files>` for files supported by the formatter.                                                                                                   |
 
 Replace `<changed-files>` with actual file paths. Keep checks scoped to the change; broaden them when shared behavior or configuration is affected.
 
 Root `pnpm typecheck`, `pnpm test`, and `pnpm test:run` currently target only the client. For changes spanning both packages, run each package's checks explicitly.
 
+For React changes, also run the React Doctor regression check described in the [React Doctor skill](../.agents/skills/react-doctor/SKILL.md). Review diagnostics against the changed behavior; its full-project findings may include existing issues outside the change.
+
 ## Server Tests
 
 - Run `pnpm --filter @mbs/server test:run` for HTTP route and service tests. These mock authentication and database dependencies and do not need the application environment variables. HTTP tests briefly listen on a local, random port and close it afterward.
-- Query regression tests in `server/src/modules/features.repo.test.ts` run when `TEST_DATABASE_URL` points to a dedicated PostgreSQL test database. Without it, those tests are skipped.
-- Run the complete server suite with `TEST_DATABASE_URL=postgresql://postgres:password@127.0.0.1:5432/mbs_test pnpm --filter @mbs/server test:run`, replacing the example connection string with your test database's details. The query tests use temporary tables on one connection and close that connection after the suite.
+- Database regression tests under `server/src/modules/` run when `TEST_DATABASE_URL` points to a dedicated PostgreSQL test database. Without it, those tests are skipped.
+- Run the complete server suite with `TEST_DATABASE_URL=postgresql://postgres:password@127.0.0.1:5432/mbs_test pnpm --filter @mbs/server test:run`, replacing the example connection string with your test database's details. Query tests use temporary tables. Booking mutation tests create an isolated schema so they can check concurrent requests on separate connections, then drop the schema. All suites close their database connections.
 
 ## Client Tests
 

@@ -3,14 +3,13 @@ import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { changePasswordFn } from "@/features/auth/services/change-password";
 import { signOutFn } from "@/features/auth/services/sign-out";
 import { changePasswordSchema } from "@/features/settings/schema/change-password.schema";
 import { broadcastSessionSignOut } from "@/lib/session-broadcast";
 
-export const useChangePassword = () => {
+export function useChangePassword() {
     const navigate = useNavigate({ from: "/settings" });
     const changePassword = useServerFn(changePasswordFn);
 
@@ -42,11 +41,10 @@ export const useChangePassword = () => {
             }
         },
         onError: (error) => {
-            const message = z
-                .instanceof(Error)
-                .transform((v) => v.message)
-                .catch("Unable to update your passphrase. Please check your current passphrase and try again.")
-                .parse(error);
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Unable to update your passphrase. Please check your current passphrase and try again.";
 
             form.setError("root", { message });
         },
@@ -59,4 +57,4 @@ export const useChangePassword = () => {
     });
 
     return { form, onSubmit, isPending };
-};
+}

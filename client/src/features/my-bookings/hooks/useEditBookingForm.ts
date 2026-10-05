@@ -5,6 +5,7 @@ import { addMinutes, startOfMinute } from "date-fns";
 import { useForm } from "react-hook-form";
 
 import { updateBookingFn } from "@/features/bookings/services/fns";
+import { invalidateBookingQueries } from "@/features/bookings/services/invalidation";
 import { bookingCalendarQueries } from "@/features/bookings/services/queries";
 import type { BookingHistoryItem } from "@/features/my-bookings/my-bookings.constants";
 import {
@@ -12,8 +13,6 @@ import {
     toDateTimeLocal,
     type EditBookingFormValues,
 } from "@/features/my-bookings/schemas/edit-booking.schema";
-import { myBookingsQueries } from "@/features/my-bookings/services/queries";
-import { notificationQueries } from "@/features/notifications/services/queries";
 
 type UseEditBookingFormProps = {
     booking: BookingHistoryItem;
@@ -53,12 +52,8 @@ export const useEditBookingForm = ({ booking, onSuccess }: UseEditBookingFormPro
     const updateBooking = useServerFn(updateBookingFn);
     const updateBookingMutation = useMutation({
         mutationFn: updateBooking,
-        onSuccess: async (_data, _variables, _onMutateResult, context) => {
-            await Promise.all([
-                context.client.invalidateQueries({ queryKey: myBookingsQueries.all() }),
-                context.client.invalidateQueries(bookingCalendarQueries.data()),
-                context.client.invalidateQueries(notificationQueries.list()),
-            ]);
+        async onSuccess(_data, variables, _onMutateResult, context) {
+            await invalidateBookingQueries(context.client, variables.data.bookingId);
 
             onSuccess();
         },

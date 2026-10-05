@@ -4,8 +4,9 @@
         "noEmit": true,
         "module": "nodenext",
         "moduleResolution": "nodenext",
+        "types": ["node"],
         "rewriteRelativeImportExtensions": true,
         "erasableSyntaxOnly": true
     },
-    "include": ["src/**/*.ts"]
+    "include": ["src/**/*.ts", "*.config.ts"]
 }

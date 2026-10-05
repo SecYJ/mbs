@@ -1,8 +1,8 @@
 import { addDays, format, formatDuration, intervalToDuration, isPast as isPastDate, startOfDay } from "date-fns";
 import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 
-import type { RoomBookingDaySegment } from "@/features/bookings/hooks/room-day/useRoomDayModel";
 import type { BookingCalendarEvent } from "@/features/bookings/services/queries";
+import type { RoomBookingDaySegment } from "@/features/bookings/utils/room-day";
 import { cn } from "@/lib/utils";
 
 const formatSlotDuration = (start: Date, end: Date) => {

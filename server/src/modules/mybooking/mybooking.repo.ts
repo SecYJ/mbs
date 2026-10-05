@@ -1,8 +1,8 @@
+import { attendees, bookings, rooms, user } from "@mbs/shared/db/schema";
 import { and, asc, count, desc, eq, exists, gt, ilike, lte, ne, or, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "#app/db/index";
-import { attendees, bookings, rooms, user } from "#app/db/schema";
 
 type AttendeeStatus = "pending" | "accepted" | "declined";
 type BookingHistoryStatus = "upcoming" | "in-progress" | "completed" | "cancelled";

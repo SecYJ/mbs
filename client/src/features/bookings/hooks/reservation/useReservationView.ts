@@ -4,9 +4,9 @@ import { useImmer } from "use-immer";
 
 import { useBookingCalendarEventsContext } from "@/features/bookings/contexts/BookingCalendarEventsContext";
 import { cancelBookingFn } from "@/features/bookings/services/fns";
+import { invalidateBookingQueries } from "@/features/bookings/services/invalidation";
 import { bookingCalendarQueries } from "@/features/bookings/services/queries";
 import type { ReservationViewState } from "@/features/bookings/types/reservation-editor.types";
-import { notificationQueries } from "@/features/notifications/services/queries";
 
 type Props = {
     dialogState: ReservationViewState;
@@ -25,11 +25,8 @@ export const useReservationView = ({ dialogState, closeReservation }: Props) => 
 
     const cancelBookingMutation = useMutation({
         mutationFn: cancelBooking,
-        onSuccess: async (_data, _variables, _onMutateResult, context) => {
-            await Promise.all([
-                context.client.invalidateQueries(bookingCalendarQueries.data()),
-                context.client.invalidateQueries(notificationQueries.list()),
-            ]);
+        async onSuccess(_data, variables, _onMutateResult, context) {
+            await invalidateBookingQueries(context.client, variables.data.bookingId);
 
             closeReservation();
         },

@@ -1,16 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { z } from "zod";
 
 import { signOutFn } from "@/features/auth/services/sign-out";
 import { broadcastSessionSignOut } from "@/lib/session-broadcast";
 
-const signOutErrorMessage = z
-    .instanceof(Error)
-    .transform((v) => v.message)
-    .catch("Unable to sign out.");
-
-export const useSignOut = () => {
+export function useSignOut() {
     const navigate = useNavigate();
 
     const {
@@ -29,5 +23,9 @@ export const useSignOut = () => {
         },
     });
 
-    return { error: error ? signOutErrorMessage.parse(error) : null, isPending, signOut };
-};
+    return {
+        error: error ? (error instanceof Error ? error.message : "Unable to sign out.") : null,
+        isPending,
+        signOut,
+    };
+}

@@ -1,6 +1,6 @@
-import type { RequestHandler } from "express";
+import type { NextFunction, Request, Response } from "express";
 
-export const requestLogger: RequestHandler = (request, response, next) => {
+export function requestLogger(request: Request, response: Response, next: NextFunction) {
     const startedAt = performance.now();
     const requestLabel = `${request.method} ${request.path}`;
 
@@ -13,4 +13,4 @@ export const requestLogger: RequestHandler = (request, response, next) => {
     });
 
     next();
-};
+}

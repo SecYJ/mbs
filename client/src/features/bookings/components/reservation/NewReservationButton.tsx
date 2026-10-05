@@ -2,11 +2,11 @@ import { useSuspenseQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 
 import { bookingCalendarQueries } from "@/features/bookings/services/queries";
-import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
+import { useBookingCalendarActions } from "@/features/bookings/stores/BookingCalendarStore";
 import { cn } from "@/lib/utils";
 
 export const NewReservationButton = () => {
-    const { openNewReservation } = useBookingCalendarStore((state) => state.actions);
+    const { openNewReservation } = useBookingCalendarActions();
 
     const { data: hasBookableRooms } = useSuspenseQuery({
         ...bookingCalendarQueries.roomCatalog(),

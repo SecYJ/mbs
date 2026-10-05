@@ -2,7 +2,7 @@
 
 This guide uses Vitest Browser Mode with Playwright to test `PasswordInput` in a real Chromium browser.
 
-Production test location:
+Component and suggested test location:
 
 ```txt
 src/components/PasswordInput.tsx
@@ -20,24 +20,22 @@ src/components/PasswordInput.browser.test.tsx
 
 ## Browser Test Shape
 
-The test mounts the component with React 19's `createRoot`, then uses Vitest's browser locators:
+Mount the component with `render` from `vitest-browser-react`, then use Vitest's browser locators and assertions:
 
 ```ts
-import { userEvent, page } from "vitest/browser";
-import { expectBrowserAttribute } from "@/test/browser-assertions";
+import { expect } from "vitest";
+import { page } from "vitest/browser";
 
 const password = page.getByLabelText("Password");
-const user = userEvent.setup();
-
-await expectBrowserAttribute(password, "type", "password");
-await user.click(page.getByRole("button", { name: "Show passphrase" }));
-await expectBrowserAttribute(password, "type", "text");
+await expect.element(password).toHaveAttribute("type", "password");
+await page.getByRole("button", { name: "Show passphrase" }).click();
+await expect.element(password).toHaveAttribute("type", "text");
 ```
 
-`page.getByRole` and `page.getByLabelText` use the same user-facing accessibility information that a real browser user relies on. The shared browser assertion helpers retry until the browser reaches the expected state.
+`page.getByRole` and `page.getByLabelText` use the same user-facing accessibility information that a real browser user relies on. `expect.element` retries until the browser reaches the expected state. Use `await expect.element(locator).toBeVisible()` to check visibility.
 
 ## Important Setup Idea
 
 `PasswordInput` expects a real `react-hook-form` control. The test therefore creates a small wrapper with `useForm` and passes `form.control` to the component.
 
-The shared `renderInBrowser` helper mounts React into a browser container and unmounts it after each test. No DOM emulation or extra component-testing library setup is needed.
+`render` from `vitest-browser-react` mounts React and cleans up after each test. The existing [LoginForm browser test](../../src/features/login/components/LoginForm.browser.test.tsx) shows this setup with the app's query and router providers.

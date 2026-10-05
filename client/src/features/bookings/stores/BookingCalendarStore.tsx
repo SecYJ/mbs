@@ -1,6 +1,7 @@
 import type { DatesSetArg } from "@fullcalendar/core";
 import type FullCalendar from "@fullcalendar/react";
 import { createContext, use, useState, type ReactNode } from "react";
+import invariant from "tiny-invariant";
 import { createStore, useStore } from "zustand";
 
 import type { BookingCalendarEvent } from "@/features/bookings/services/queries";
@@ -29,31 +30,31 @@ type BookingCalendarState = {
     };
 };
 
-const createScopedStore = () =>
-    createStore<BookingCalendarState>((set, get) => ({
+function createScopedStore() {
+    return createStore<BookingCalendarState>((set, get) => ({
         activeReservationDialog: null,
         calendar: null,
         visibleRange: null,
         actions: {
-            closeReservation: () => {
+            closeReservation() {
                 set({ activeReservationDialog: null });
             },
-            openExistingReservation: (event) => {
+            openExistingReservation(event) {
                 set({ activeReservationDialog: { mode: "view", event, isEditing: false } });
             },
-            openNewReservation: (initialDetails) => {
+            openNewReservation(initialDetails) {
                 set({ activeReservationDialog: { mode: "create", initialDetails } });
             },
-            onReservationEditing: (isEditing) => {
+            onReservationEditing(isEditing) {
                 const dialog = get().activeReservationDialog;
                 if (dialog?.mode !== "view") return;
                 set({ activeReservationDialog: { ...dialog, isEditing } });
             },
-            setCalendar: (calendar) => {
+            setCalendar(calendar) {
                 if (get().calendar === calendar) return;
                 set({ calendar });
             },
-            setVisibleRange: (arg) => {
+            setVisibleRange(arg) {
                 set({
                     visibleRange: {
                         activeEnd: arg.view.activeEnd,
@@ -64,21 +65,26 @@ const createScopedStore = () =>
             },
         },
     }));
+}
 
 type Store = ReturnType<typeof createScopedStore>;
 
 const Ctx = createContext<Store | null>(null);
 
-export const BookingCalendarStoreProvider = ({ children }: { children: ReactNode }) => {
+export function BookingCalendarStoreProvider({ children }: { children: ReactNode }) {
     const [store] = useState(createScopedStore);
 
     return <Ctx value={store}>{children}</Ctx>;
-};
+}
 
-export const useBookingCalendarStore = <T,>(selector: (state: BookingCalendarState) => T) => {
+export function useBookingCalendarStore<T>(selector: (state: BookingCalendarState) => T) {
     const store = use(Ctx);
 
-    if (!store) throw new Error("useBookingCalendarStore must be used within BookingCalendarStoreProvider");
+    invariant(store, "useBookingCalendarStore must be used within BookingCalendarStoreProvider");
 
     return useStore(store, selector);
-};
+}
+
+export function useBookingCalendarActions() {
+    return useBookingCalendarStore((state) => state.actions);
+}

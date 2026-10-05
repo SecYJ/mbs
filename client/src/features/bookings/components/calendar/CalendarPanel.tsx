@@ -1,3 +1,4 @@
+import { isAdminRole } from "@mbs/shared/roles";
 import { useSuspenseQueries } from "@tanstack/react-query";
 import { Link, useSearch } from "@tanstack/react-router";
 import { Building2, FilterX, Plus } from "lucide-react";
@@ -11,7 +12,6 @@ import {
     type BookingCalendarRoomCatalog,
     type BookingCalendarRooms,
 } from "@/features/bookings/services/queries";
-import { isAdminRole } from "@/lib/roles";
 
 export const CalendarPanel = () => {
     const search = useSearch({ from: "/_bookings/bookings" });

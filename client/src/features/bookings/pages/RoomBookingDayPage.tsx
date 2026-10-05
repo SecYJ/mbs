@@ -1,5 +1,6 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useSuspenseQueries } from "@tanstack/react-query";
 import { getRouteApi, Link } from "@tanstack/react-router";
+import { format } from "date-fns";
 import { ArrowLeft, Plus } from "lucide-react";
 import { useDeferredValue } from "react";
 
@@ -9,38 +10,37 @@ import { NextOpening } from "@/features/bookings/components/room-day/NextOpening
 import { RoomDaySummary } from "@/features/bookings/components/room-day/RoomDaySummary";
 import { Schedule } from "@/features/bookings/components/room-day/Schedule";
 import { BookingCalendarEventsProvider } from "@/features/bookings/contexts/BookingCalendarEventsContext";
-import { useRoomDayModel } from "@/features/bookings/hooks/room-day/useRoomDayModel";
 import { bookingCalendarQueries, type BookingCalendarEvent } from "@/features/bookings/services/queries";
-import { BookingCalendarStoreProvider, useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
+import {
+    BookingCalendarStoreProvider,
+    useBookingCalendarActions,
+} from "@/features/bookings/stores/BookingCalendarStore";
+import { getRoomDayModel } from "@/features/bookings/utils/room-day";
 
 const Route = getRouteApi("/_bookings/rooms/$roomId");
 
-export const RoomBookingDayPage = () => (
-    <BookingCalendarStoreProvider>
-        <RoomBookingDayPageContent />
-    </BookingCalendarStoreProvider>
-);
+export function RoomBookingDayPage() {
+    return (
+        <BookingCalendarStoreProvider>
+            <RoomBookingDayPageContent />
+        </BookingCalendarStoreProvider>
+    );
+}
 
-const RoomBookingDayPageContent = () => {
+function RoomBookingDayPageContent() {
     const { roomId } = Route.useParams();
     const { date } = Route.useSearch();
-
+    const navigate = Route.useNavigate();
+    const { openNewReservation, openExistingReservation } = useBookingCalendarActions();
     const deferredDate = useDeferredValue(date);
-
-    const { data: calendarEvents } = useSuspenseQuery(
-        bookingCalendarQueries.roomDayEvents({ roomId, date: deferredDate }),
-    );
-
-    return (
-        <BookingCalendarEventsProvider events={calendarEvents}>
-            <RoomBookingDayPageInner />
-        </BookingCalendarEventsProvider>
-    );
-};
-
-const RoomBookingDayPageInner = () => {
-    const { openNewReservation, openExistingReservation } = useBookingCalendarStore((state) => state.actions);
-    const { bookableSlot, goToDate, room, segments, selectedDate } = useRoomDayModel();
+    const { calendarEvents, room } = useSuspenseQueries({
+        queries: [
+            bookingCalendarQueries.roomDayEvents({ roomId, date: deferredDate }),
+            bookingCalendarQueries.room(roomId),
+        ],
+        combine: ([eventsQuery, roomQuery]) => ({ calendarEvents: eventsQuery.data, room: roomQuery.data }),
+    });
+    const { bookableSlot, segments, selectedDate, summary } = getRoomDayModel(calendarEvents, deferredDate);
 
     if (!room) {
         return (
@@ -65,16 +65,20 @@ const RoomBookingDayPageInner = () => {
         );
     }
 
-    const openReservationEditor = (slot: { start: Date; end: Date }) => {
-        openNewReservation({ roomId: room.id, start: slot.start, end: slot.end });
-    };
+    function goToDate(nextDate: Date) {
+        navigate({ search: (prev) => ({ ...prev, date: format(nextDate, "yyyy-MM-dd") }), replace: true });
+    }
 
-    const openEventDialog = (event: BookingCalendarEvent) => {
+    function openReservationEditor(slot: { start: Date; end: Date }) {
+        openNewReservation({ roomId, start: slot.start, end: slot.end });
+    }
+
+    function openEventDialog(event: BookingCalendarEvent) {
         openExistingReservation(event);
-    };
+    }
 
     return (
-        <>
+        <BookingCalendarEventsProvider events={calendarEvents}>
             <div className="mx-auto w-full max-w-7xl space-y-8">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                     <Link
@@ -120,7 +124,7 @@ const RoomBookingDayPageInner = () => {
                     </button>
                 </header>
 
-                <RoomDaySummary />
+                <RoomDaySummary room={room} {...summary} />
 
                 <section className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_360px]">
                     <div className="space-y-7">
@@ -138,6 +142,6 @@ const RoomBookingDayPageInner = () => {
             </div>
 
             <ReservationEditorDialog />
-        </>
+        </BookingCalendarEventsProvider>
     );
-};
+}

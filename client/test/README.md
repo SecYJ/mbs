@@ -44,10 +44,10 @@ Practice:
 
 Learn:
 
-- rendering React with `createRoot`
+- rendering React with `render` from `vitest-browser-react`
 - `page.getByRole`
 - `page.getByLabelText`
-- browser assertion helpers built on `expect.poll`
+- direct browser assertions with `expect.element`
 - browser `userEvent`
 
 Practice:

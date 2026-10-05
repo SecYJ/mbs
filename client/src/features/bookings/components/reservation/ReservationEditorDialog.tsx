@@ -6,7 +6,7 @@ import {
     LazyReservationForm,
     ReservationFormFallback,
 } from "@/features/bookings/components/reservation/ReservationForm.lazy";
-import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
+import { useBookingCalendarActions, useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 import { cn } from "@/lib/utils";
 
 const dialogContentClassName =
@@ -14,7 +14,7 @@ const dialogContentClassName =
 
 export const ReservationEditorDialog = () => {
     const isDialogVisible = useBookingCalendarStore((s) => s.activeReservationDialog !== null);
-    const { closeReservation } = useBookingCalendarStore((s) => s.actions);
+    const { closeReservation } = useBookingCalendarActions();
 
     return (
         <Dialog

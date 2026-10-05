@@ -1,0 +1,19 @@
+{
+    "name": "@mbs/shared",
+    "private": true,
+    "type": "module",
+    "exports": {
+        "./db/schema": "./src/db/schema.ts",
+        "./roles": "./src/roles.ts"
+    },
+    "scripts": {
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "drizzle-orm": "1.0.0-rc.4",
+        "uuidv7": "^1.2.1"
+    },
+    "devDependencies": {
+        "typescript": "^7.0.2"
+    }
+}

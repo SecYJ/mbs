@@ -1,22 +1,21 @@
 import { fromNodeHeaders } from "better-auth/node";
+import type { NextFunction, Request } from "express";
 
+import { UnauthorizedError } from "#app/errors/unauthorizedError";
 import { auth } from "#app/lib/auth";
-import type { AuthenticatedRequestHandler } from "#app/types";
+import type { AuthenticatedResponse } from "#app/types";
 
-export const requireAuthenticated: AuthenticatedRequestHandler = async (req, res, next) => {
+export async function requireAuthenticated(req: Request, res: AuthenticatedResponse, next: NextFunction) {
     const userSession = await auth.api.getSession({
         headers: fromNodeHeaders(req.headers),
     });
 
     if (!userSession) {
-        res.status(401).json({
-            message: "Unauthorized",
-        });
-        return;
+        throw new UnauthorizedError();
     }
 
     res.locals.userId = userSession.user.id;
     res.locals.userRole = userSession.user.role ?? "user";
 
     next();
-};
+}

@@ -5,7 +5,6 @@ export const env = createEnv({
     server: {
         SERVER_ORIGIN: z.url(),
         SERVER_API_VERSION: z.string().min(1),
-        DATABASE_URL: z.string().min(1),
     },
 
     /**

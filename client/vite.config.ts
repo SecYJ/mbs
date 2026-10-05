@@ -13,8 +13,6 @@ import { unstableRolldownAdapter } from "vite-bundle-analyzer";
 import { analyzer } from "vite-bundle-analyzer";
 import { configDefaults } from "vitest/config";
 
-const pgNativeShim = fileURLToPath(new URL("./src/lib/pg-native.ts", import.meta.url));
-const nodePostgresPackages = ["pg", "pg-pool", "pg-native"];
 const analyzeClientBundle = process.env.ANALYZE === "true";
 const enableReactScan = process.env.REACT_SCAN === "true";
 const clientBundleAnalyzer = {
@@ -34,7 +32,12 @@ const config = defineConfig({
     test: {
         projects: [
             {
-                extends: true,
+                // Unit tests exercise handlers directly, without Start's RPC compiler.
+                resolve: {
+                    alias: {
+                        "@": fileURLToPath(new URL("./src", import.meta.url)),
+                    },
+                },
                 test: {
                     name: "unit",
                     globals: true,
@@ -71,14 +74,7 @@ const config = defineConfig({
     resolve: {
         alias: {
             "@": fileURLToPath(new URL("./src", import.meta.url)),
-            "pg-native": pgNativeShim,
         },
-    },
-    optimizeDeps: {
-        exclude: nodePostgresPackages,
-    },
-    ssr: {
-        external: nodePostgresPackages,
     },
     // Vendor code-splitting for the client bundle only; the SSR build is left untouched.
     environments: {

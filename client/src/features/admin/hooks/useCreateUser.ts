@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { createUserSchema } from "@/features/admin/schema/user.schema";
 import { createUserByAdminFn } from "@/features/admin/services/users/fns";
 import { userQueries } from "@/features/admin/services/users/queries";
+import { bookingCalendarQueries } from "@/features/bookings/services/queries";
 
 export const useCreateUser = ({ onSuccess }: { onSuccess: () => void }) => {
     const form = useForm({
@@ -23,8 +24,12 @@ export const useCreateUser = ({ onSuccess }: { onSuccess: () => void }) => {
 
     const { mutate: submitCreateUser, isPending } = useMutation({
         mutationFn: createUser,
-        onSuccess: (_1, _2, _3, context) => {
-            context.client.invalidateQueries({ queryKey: userQueries.lists() });
+        async onSuccess(_1, _2, _3, context) {
+            await Promise.all([
+                context.client.invalidateQueries({ queryKey: userQueries.lists() }),
+                context.client.invalidateQueries({ ...bookingCalendarQueries.data(), exact: true }),
+            ]);
+
             form.reset();
             onSuccess?.();
         },

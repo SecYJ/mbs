@@ -2,11 +2,11 @@ import { useMutationState } from "@tanstack/react-query";
 import { ArrowRight, Save } from "lucide-react";
 
 import { bookingMutations } from "@/features/bookings/services/mutations";
-import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
+import { useBookingCalendarActions, useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
 
 export const ReservationFormActions = ({ submitDisabled }: { submitDisabled: boolean }) => {
     const isExistingBooking = useBookingCalendarStore((state) => state.activeReservationDialog?.mode === "view");
-    const { closeReservation, onReservationEditing } = useBookingCalendarStore((state) => state.actions);
+    const { closeReservation, onReservationEditing } = useBookingCalendarActions();
 
     const isSubmitting =
         useMutationState({

@@ -9,11 +9,11 @@ import {
     ReservationFormFallback,
 } from "@/features/bookings/components/reservation/ReservationForm.lazy";
 import { useReservationView } from "@/features/bookings/hooks/reservation/useReservationView";
-import { useBookingCalendarStore } from "@/features/bookings/stores/BookingCalendarStore";
+import { useBookingCalendarActions } from "@/features/bookings/stores/BookingCalendarStore";
 import type { ReservationViewState } from "@/features/bookings/types/reservation-editor.types";
 
 export const ReservationDetails = ({ dialogState }: { dialogState: ReservationViewState }) => {
-    const { closeReservation, onReservationEditing } = useBookingCalendarStore((s) => s.actions);
+    const { closeReservation, onReservationEditing } = useBookingCalendarActions();
 
     const {
         cancel,

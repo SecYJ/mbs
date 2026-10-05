@@ -1,3 +1,4 @@
+import { isSuperAdminRole } from "@mbs/shared/roles";
 import { useMutation, useSuspenseQuery } from "@tanstack/react-query";
 import { getRouteApi } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
@@ -8,7 +9,7 @@ import { toast } from "sonner";
 
 import { cancelAdminBookingFn } from "@/features/admin/services/bookings/fns";
 import { adminBookingQueries, type AdminBookingsQueryData } from "@/features/admin/services/bookings/queries";
-import { isSuperAdminRole } from "@/lib/roles";
+import { invalidateBookingQueries } from "@/features/bookings/services/invalidation";
 
 type AdminBookingCancellationFormValues = {
     cancellations: {
@@ -102,6 +103,8 @@ export const useAdminBookingsPage = () => {
         variables: cancellingVariables,
     } = useMutation({
         mutationFn: cancelAdminBooking,
+        onSuccess: (_data, variables, _onMutateResult, context) =>
+            invalidateBookingQueries(context.client, variables.data.bookingId),
         onError: (error) => {
             toast.error(error instanceof Error ? error.message : "Failed to cancel booking");
         },
@@ -126,11 +129,7 @@ export const useAdminBookingsPage = () => {
                 },
             },
             {
-                onSuccess: async (_1, _2, _3, context) => {
-                    await Promise.all([
-                        context.client.invalidateQueries(bookingsQueryOptions),
-                        context.client.invalidateQueries(adminBookingQueries.stats()),
-                    ]);
+                onSuccess() {
                     toast.error(`"${booking.title}" cancelled`);
                     removeCancellation(booking.id);
                 },

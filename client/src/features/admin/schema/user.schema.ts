@@ -1,6 +1,5 @@
+import { USER_ROLES } from "@mbs/shared/roles";
 import { z } from "zod";
-
-import { USER_ROLES } from "@/lib/roles";
 
 const userRoleSchema = z.enum(USER_ROLES).exclude(["super_admin"]);
 

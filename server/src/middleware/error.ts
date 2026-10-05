@@ -8,7 +8,7 @@ import { UnauthorizedError } from "#app/errors/unauthorizedError";
 import { ValidationError } from "#app/errors/validationError";
 
 export function errorHandler(err: unknown, _req: Request, res: Response, _next: NextFunction) {
-    if (err instanceof ZodError) {
+    if (err instanceof ZodError || (err instanceof SyntaxError && "status" in err && err.status === 400)) {
         const error = new ValidationError();
         res.status(error.statusCode).json({ message: error.message });
         return;
